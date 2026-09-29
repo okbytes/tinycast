@@ -11,8 +11,6 @@ final class PalettePanel: NSPanel {
 
     /// Bare backspace, which the field editor swallows before `onKeyPress` could see it.
     var onBareBackspace: (() -> Bool)?
-    /// Escape, which an `AVPlayerView` in the preview answers before `onKeyPress` could see it.
-    var onEscape: (() -> Bool)?
     /// Command chords the field editor swallows, plus the ones no main menu handles.
     var onCommandShortcut: ((NSEvent) -> Bool)?
     /// The palette's typing context, handed over each time a field takes focus.
@@ -173,13 +171,6 @@ final class PalettePanel: NSPanel {
             paletteState?.menuOpen == true,
             event.modifierFlags.isDisjoint(with: [.command, .control]),
             !Self.menuNavKeys.contains(Int(event.keyCode))
-        {
-            return
-        }
-        if event.type == .keyDown,
-            Int(event.keyCode) == kVK_Escape,
-            event.modifierFlags.isDisjoint(with: [.command, .option, .control, .shift]),
-            onEscape?() == true
         {
             return
         }

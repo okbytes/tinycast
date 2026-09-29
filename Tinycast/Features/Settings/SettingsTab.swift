@@ -1,7 +1,7 @@
 enum SettingsTab: CaseIterable, Identifiable {
     case general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
-        fallbacks, clipboard, snippets, fileSearch, windowManagement, navigation, notes, calendar, emoji,
-        extensions, permissions, backup, about
+        fallbacks, clipboard, snippets, windowManagement, navigation, notes, calendar, emoji,
+        permissions, backup, about
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 
@@ -15,7 +15,6 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .quicklinks: return "Quicklinks"
         case .appleShortcuts: return "Apple Shortcuts"
         case .fallbacks: return "Fallbacks"
-        case .fileSearch: return "File Search"
         case .notes: return "Notes"
         case .snippets: return "Snippets"
         case .navigation: return "Navigation"
@@ -23,7 +22,6 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .clipboard: return "Clipboard"
         case .emoji: return "Emoji & Symbols"
         case .calendar: return "Calendar"
-        case .extensions: return "Extensions"
         case .permissions: return "Permissions"
         case .backup: return "Backup"
         case .about: return "About"
@@ -40,7 +38,6 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .quicklinks: return "link"
         case .appleShortcuts: return "square.2.layers.3d"
         case .fallbacks: return "arrow.turn.down.right"
-        case .fileSearch: return "doc.text.magnifyingglass"
         case .notes: return "text.page"
         case .snippets: return "curlybraces"
         case .navigation: return "arrow.left.arrow.right"
@@ -48,7 +45,6 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .clipboard: return "doc.on.clipboard"
         case .emoji: return "face.smiling"
         case .calendar: return "calendar"
-        case .extensions: return "puzzlepiece.extension"
         case .permissions: return "lock.shield"
         case .backup: return "arrow.up.arrow.down.circle"
         case .about: return "info.circle"
@@ -80,10 +76,8 @@ enum SettingsSection: CaseIterable, Identifiable {
                 .appleShortcuts, .fallbacks
             ]
         case .features:
-            // Everyday tools first; extensions are an opt-in extra.
             return [
-                .clipboard, .snippets, .fileSearch, .windowManagement, .navigation, .notes,
-                .calendar, .emoji, .extensions
+                .clipboard, .snippets, .windowManagement, .navigation, .notes, .calendar, .emoji
             ]
         case .advanced: return [.backup, .about]
         }

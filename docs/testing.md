@@ -82,9 +82,6 @@ If a change touches anything in the right column, the harness on the left is man
 | Harness | Guards |
 | --- | --- |
 | `fuzz-test` | `Launcher/Model/LauncherMatch.swift`, `LauncherOrder.swift`, `LauncherSuggestions.swift`, `EntryNaming.swift`, `ScriptRomanization.swift`, `SearchRelevance.swift`, `LauncherRankingStore.swift` — **a new ranking complaint is a new case in its `denseIndex`** |
-| `file-search-test` | `FileSearch/Model/`, plus the shared `FuzzyMatch` scorer |
-| `file-search-session-test` | serialized query execution, debounce coalescing and cancellation |
-| `menu-search-test` | `MenuSearch/Model/` decisions, `MenuSearch/Service/` session filtering, the shared `FuzzyMatch` scorer |
 | `action-menu-search-test` | Action-menu query normalization and shared fuzzy matching |
 | `ranking-test` | `Launcher/Model/LauncherRankingStore.swift` |
 | `scopes-test` | `Launcher/Model/SearchScopes.swift` |
@@ -99,7 +96,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `emoji-search-test` | `Emoji/Service/EmojiIndex.swift`, `FrequentEmojiStore.swift`, `Scripts/gen-emoji.js`'s keyword format |
 | `palette-navigation-test` | `Palette/PaletteState.swift`'s screen motions — `prepare`, `replace`, `push`, `pop` |
 | `palette-selection-test` | `Features/PaletteRowIndex.swift` |
-| `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift`, `Extensions/Model/ExtensionFormMetrics.swift` |
+| `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift` |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `GlobeTapDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
 | `fallback-test` | `Launcher/Model/Fallback.swift`, plus the `CommandID` and `Quicklink` ids it is built from |
@@ -118,12 +115,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `notes-test` | all of `Notes/Model/` and `Notes/Service/`, including the Markdown parser, edit plans and reveal policy, plus the real fuzzy matcher and signposts |
 | `notes-editor-test` | the Notes editor, rendered and literal, with real TextKit 2 and AppKit editing objects: styling, reveal, layout fragments, keys, chords, checkboxes and links |
 | `raycast-test` | `Backup/Service/RaycastDecoder.swift`, `Scrypt.swift`, `Platform/Compression/Zlib.swift` |
-| `symbols-test` | `Extensions/Service/SymbolCatalog.swift`, against this machine's CoreGlyphs |
-| `ext-store-test` | `Extensions/Model/` — the registry model and both registry APIs' parsers |
-| `ext-refresh-test` | `Extensions/Model/ExtensionRefreshPolicy.swift` — interval parsing, due dates, backoff, subtitle fallback, indicator state |
-| `ext-metadata-test` | `Extensions/Service/ExtensionCommandMetadataStore.swift` — round-trip, failure runs, uninstall |
-| `ext-test` | the extension runtime and native menu-bar lifecycle — boots shipped sources in JavaScriptCore; menu tests cover restoration, refresh serialization, actions and teardown; fetch tests cover HTTP connection cleanup, cancellation and request isolation |
-| `ext-icon-test` | `Extensions/Service/ExtensionIconCache.swift` — artwork sizing and its fallback |
 | `icon-cache-test` | `Platform/Images/IconCache.swift` — row sizing at 1×/2×, warm reuse, stamp and style invalidation, bitmap release, fitted geometry across all 256 alpha values, and that a row icon draws identically to the 96px one |
 | `entry-icon-test` | `EntryIcon` — that each case draws, caches and prints apart from the others, and that a moved `FileIconStamp` retires the bitmap decoded before it |
 | `settings-backup-test` | `Settings/AppSettingsKey.swift`, `Backup/Model/SettingsBackupCoverage.swift` |
@@ -153,7 +144,6 @@ when touching a pure file:
 - `WindowManagement/Model/` still touches no `NSScreen` and makes no AX call, layouts included
 - `Features/PaletteRowIndex.swift` still imports Foundation alone, despite living under `Features/`
 - `Quicklinks/Model/` is still handed the home directory rather than reading it
-- `FileSearch/Model/` is still handed the home directory rather than reading it
 
 ## Build and size checks
 
@@ -192,28 +182,14 @@ search result that navigates and then sits there.
 
 ## Performance measurement
 
-`Platform/Signposts.swift` emits eight intervals on the `com.tinycast.perf` subsystem: `AppCore.start`,
+`Platform/Signposts.swift` emits seven intervals on the `com.tinycast.perf` subsystem: `AppCore.start`,
 `AppIndex.scan`, `AppIndex.rank`, `PaletteWindowController.show`, `UninstallScanner.discover` and
-`UninstallScanner.measure`, `FileSearchService.search`, and `Notes.search`. Open the Time Profiler or
+`UninstallScanner.measure`, and `Notes.search`. Open the Time Profiler or
 `os_signpost` instrument in Instruments and filter to that subsystem; nothing needs recompiling.
 
 None of the benchmarks below join the suite, so each is registered in `run-tests.sh` as `run index`
 instead: `--index` hands it editor flags without queueing it, and without that entry nothing in the
 file resolves. Keep the entry's source list matching the command beside it.
-
-Run the real Spotlight-backed file-search benchmark separately from the deterministic harnesses:
-
-```sh
-swiftc -O -swift-version 6 Tinycast/Platform/Signposts.swift \
-    Tinycast/Features/Launcher/Model/SearchRelevance.swift \
-    Tinycast/Features/FileSearch/Model/*.swift \
-    Tinycast/Features/FileSearch/Service/FileSearchService.swift \
-    Tests/file-search-performance.swift -o /tmp/file-search-performance
-/tmp/file-search-performance
-```
-
-Every query runs twice: once on the shipped rules and once with five extra user patterns, so the output
-says what the ignore list itself costs rather than only what Spotlight does.
 
 The calculator benchmark is deterministic — an injected clock, calendar and rate table — so it is a
 timing harness rather than an assertion one, and stays out of `run-tests.sh` for that reason:
@@ -312,7 +288,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 - Palette hotkey opens the launcher; pressing it again closes it; Escape clears a non-empty query,
   then hides on a second press; clicking away closes it
-- Search a mode command (Clipboard History, Search Emoji, Search Quicklinks, Search Files)
+- Search a mode command (Clipboard History, Search Emoji, Search Quicklinks)
   and run it: Escape returns to the launcher **with the query still typed and the row still
   selected**, and the next press clears it. The same screen from its own global hotkey hides the
   palette instead, and shows its own header icon rather than a back chevron
@@ -342,8 +318,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   the palette query; sections survive filtering, **No Results** is centred, and no dissolve covers the
   last row. The native caret blinks; mouse drag and ⌘A select text; ←/→ move through it; ↑/↓ still
   move the menu highlight. Escape clears a non-empty query, then closes the menu on the next press
-- The bottom-left app menu also searches from its bottom band; every header menu — including Emoji
-  categories, File Search filters and extension dropdowns — searches from its top band
+- The bottom-left app menu also searches from its bottom band; every header menu — Emoji categories
+  included — searches from its top band
 - A long menu opens with unchanged row insets; while scrolling, rows can reach the panel edges
 - A click in the palette but outside its menu closes only the menu; a click outside the palette
   closes both, regardless of the menu query; the next summon accepts typing immediately
@@ -398,14 +374,14 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 ### Hotkeys
 
-- The palette, clipboard, emoji, File Search, and all three Notes shortcuts fire; a per-app shortcut
+- The palette, clipboard, emoji and all three Notes shortcuts fire; a per-app shortcut
   toggles that app
 - Recording captures a shortcut, and the old binding does not fire while recording
 - A conflicting binding is rejected and names its current owner
 - A double-tap binding fires; Hyper Key remaps and its status dot is green
 - Every binding survives quit and relaunch
 - `Enable Commands` off leaves every pane-owned command listed, searchable and firing — Notes,
-  Clipboard, Emoji, File Search, Snippets, Quicklinks, Calendar and the two layout commands
+  Clipboard, Emoji, Snippets, Quicklinks, Calendar and the two layout commands
 
 ### Uninstall
 
@@ -432,30 +408,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Unchecking a row hides it from search, and its hotkey still fires
 - Deleting a shortcut in Shortcuts frees its alias and hotkey on the next launcher open
 - A shortcut that fails shows Tinycast's dialog with the tool's error
-
-### File Search
-
-- With File Search **off**: Search Files is absent, its shortcut no-ops, and no permission appears
-- Enabling in Settings exposes Search Files immediately; it persists across relaunch and backup import
-- Disabling during a query cancels it and returns the open screen to the launcher
-- File Search and Quicklinks remain independently visible in all four enabled/disabled combinations
-- An empty query performs no search; a filename query returns only files and folders beneath the scopes
-- Library internals, generated trees, application bundles and hidden paths do not appear
-- Visible custom top-level home folders and cloud-drive files remain searchable
-- Return opens, Command-Return reveals in Finder, and Copy Path keeps the palette open with a HUD
-- A file and a folder drag into Finder as copies and into a browser's upload field; a cancelled drag
-  flies back and leaves the palette up, a landed one hides it
-- Replacing a query quickly never lets an older result list overwrite the current query
-- A broad `.` search can be scrolled end to end; leaving it releases its fitted icons, and repeating the
-  cycle does not raise the post-close memory floor
-- Removing home and adding one folder narrows results to it; restoring the default brings them back
-- A cleared scope list returns nothing rather than falling back to home, and never hangs
-- A missing scope shows the warning triangle without failing the rest of the search
-- Adding `*.log` takes effect on the next query with no relaunch; removing it restores those results
-- Built-in ignore rows carry no remove button; user rows do, and a duplicate or blank is refused
-- Recording a shortcut opens the palette straight into File Search, hidden from the launcher or not
-- Search Files is absent from Settings ▸ Commands, and `Enable Commands` off leaves its shortcut live
-- Export, clear both lists and the shortcut, re-import: all three return, defaults undo not duplicated
 
 ### Notes
 
@@ -629,16 +581,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   turning Window Management off each bring every window back.
   Repeat on two displays and with Reduce Motion on
 
-### Extensions
-
-- Open a view-command deeplink with `fallbackText=beta`, with the palette hidden and already open:
-  the field shows `beta`; a locally filtered List/Grid shows matching rows, and a command using
-  `onSearchTextChange` receives the query when it mounts. Repeat without fallback text: the field
-  starts empty. A no-view command receives the prop without prefilling the search field.
-- Every command under Settings ▸ Extensions has Add Alias, and Record Hotkey when the mode is
-  supported; an alias set there finds the command from its start and shows the chip
-- Hiding the extension from the launcher, or turning off Show in launcher, dims its alias fields
-
 ### Settings and backup
 
 - Every pane renders and the sidebar switches without flicker
@@ -650,7 +592,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - A file whose `manifest.json` `format` was hand-edited is refused **with a message naming it**
 - Cancelling the save panel leaves nothing in `~/Library/Caches/com.tinycast.app.dev/backup-staging/`
 - **`snippetsEnabled` is not in the exported file**, and importing does not enable snippets
-- Nothing in the extracted tree names an extension
 
 ### Clean install
 

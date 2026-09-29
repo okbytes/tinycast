@@ -172,8 +172,8 @@ struct SettingsHistoryTests {
 
     /// A term found in the title has to beat the same term found only in a breadcrumb.
     static func catalogRanksTitlesFirst() {
-        let results = SettingsSearchCatalog.results(for: "extensions")
-        expect(results.first?.tab == .extensions, "“extensions” opens on its own pane")
+        let results = SettingsSearchCatalog.results(for: "calendar")
+        expect(results.first?.tab == .calendar, "“calendar” opens on its own pane")
         expect(
             SettingsSearchCatalog.results(for: "nothing here matches at all").isEmpty,
             "and an unmatched query returns nothing")

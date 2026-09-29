@@ -13,11 +13,8 @@ final class LauncherCoordinator {
     private let windowCommandCoordinator: WindowCommandCoordinator
     private let windowLayoutCoordinator: WindowLayoutCoordinator
     private let snippetCoordinator: SnippetCoordinator
-    private let fileSearchCoordinator: FileSearchCoordinator
-    private let menuSearchCoordinator: MenuSearchCoordinator
     private let windowSwitchCoordinator: WindowSwitchCoordinator
     private let notesCoordinator: NotesCoordinator
-    private let extensionCoordinator: ExtensionCoordinator
     private let calendarCoordinator: CalendarCoordinator
     /// The backup commands only, which need the live stores to gather from and apply to.
     private unowned let core: AppCore
@@ -33,11 +30,8 @@ final class LauncherCoordinator {
         windowCommandCoordinator: WindowCommandCoordinator,
         windowLayoutCoordinator: WindowLayoutCoordinator,
         snippetCoordinator: SnippetCoordinator,
-        fileSearchCoordinator: FileSearchCoordinator,
-        menuSearchCoordinator: MenuSearchCoordinator,
         windowSwitchCoordinator: WindowSwitchCoordinator,
         notesCoordinator: NotesCoordinator,
-        extensionCoordinator: ExtensionCoordinator,
         calendarCoordinator: CalendarCoordinator,
         core: AppCore
     ) {
@@ -51,11 +45,8 @@ final class LauncherCoordinator {
         self.windowCommandCoordinator = windowCommandCoordinator
         self.windowLayoutCoordinator = windowLayoutCoordinator
         self.snippetCoordinator = snippetCoordinator
-        self.fileSearchCoordinator = fileSearchCoordinator
-        self.menuSearchCoordinator = menuSearchCoordinator
         self.windowSwitchCoordinator = windowSwitchCoordinator
         self.notesCoordinator = notesCoordinator
-        self.extensionCoordinator = extensionCoordinator
         self.calendarCoordinator = calendarCoordinator
         self.core = core
     }
@@ -113,11 +104,6 @@ final class LauncherCoordinator {
             windowLayoutCoordinator.runWindowLayout(id: id)
             return
         }
-        // Before the palette hides: a view command takes the palette over rather than closing it.
-        if app.kind == .extensionCommand {
-            extensionCoordinator.runExtensionCommand(app, arguments: arguments)
-            return
-        }
         if app.kind == .meeting {
             guard let id = MeetingEvent.id(fromEntryID: app.id) else { return }
             calendarCoordinator.activateMeeting(id: id)
@@ -146,7 +132,7 @@ final class LauncherCoordinator {
             let snippetID = String(app.id.dropFirst("snippet:".count))
             snippetCoordinator.expandSnippet(id: snippetID, target: previous)
         case .command, .customCommand, .systemAction, .windowCommand, .windowLayout,
-            .windowRoom, .quicklink, .appleShortcut, .extensionCommand, .meeting:
+            .windowRoom, .quicklink, .appleShortcut, .meeting:
             break  // handled above
         }
     }
@@ -160,10 +146,6 @@ final class LauncherCoordinator {
             paletteCoordinator.togglePalette(mode: .clipboard)
         case .searchEmoji:
             paletteCoordinator.togglePalette(mode: .emoji)
-        case .searchFiles:
-            fileSearchCoordinator.show()
-        case .searchMenuItems:
-            menuSearchCoordinator.show()
         case .switchWindows:
             windowSwitchCoordinator.show()
         case .openCamera:

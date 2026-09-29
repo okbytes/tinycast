@@ -38,9 +38,9 @@ These are the things that quietly break the look if changed. Preserve them unles
 - **Dark is the baseline and its values are frozen.** Every `Theme.Colors` token resolves per appearance, and its **dark branch is the literal the forced-dark build shipped** — restated, never recomputed. Retune a light branch freely; touch a dark one only when the task is to change Dark. `AppCore.applyAppearance()` is the only place an appearance is assigned, from `AppSettings.appearance`; `.system` assigns `nil` so AppKit follows macOS.
 - **New colors go through `Theme.Colors.ramp(dark:light:)`** (an alpha that inverts) or `adaptive(dark:light:)` (two explicit `NSColor`s, for anything that isn't a plain inversion — `panelScrim`, `layoutPreviewGround`). Never a bare `Color.white.opacity(…)` in a view: it disappears in Light.
 - **No grays, no opaque fills on the surface.** Reach for `Theme.Colors.*` instead of `.gray`, `NSColor.windowBackground`, etc.
-- **Three things stay fixed in both appearances, on purpose.** The `EdgeDissolve`/`OverflowFade` gradients are **mask luminance, not color** — inverting them breaks the dissolve everywhere. `ExtensionTintColors` and a tinted `IconCache` tile keep white ink, because a saturated tile carries its own contrast. And `IconCache` cannot use a dynamic `NSColor` at all: it rasterizes off-main, so the surface is carried explicitly and is part of the cache key.
+- **Three things stay fixed in both appearances, on purpose.** The `EdgeDissolve`/`OverflowFade` gradients are **mask luminance, not color** — inverting them breaks the dissolve everywhere. A tinted `IconCache` tile keeps white ink, because a saturated tile carries its own contrast. And `IconCache` cannot use a dynamic `NSColor` at all: it rasterizes off-main, so the surface is carried explicitly and is part of the cache key.
 - **An icon is drawn for a surface *and* a system icon style, and both move under you.** macOS restyles the icons `NSWorkspace` hands out when System Settings → Appearance → **Icon & widget style** changes, so `IconStyleMonitor` and Tinycast's own appearance both call `IconCache.invalidateStyled()`. **The monitor may not invalidate on the notification itself.** AppKit posts `NSWorkspaceIconAppearanceConfigurationDidChange` before IconServices has swapped what `NSWorkspace` vends — measured at 25–120ms behind, jittering run to run — and the images it hands back are live objects macOS restyles in place, so flattening one on the signal freezes the *outgoing* style into a bitmap nothing ever invalidates again. `IconStyleMonitor` therefore polls `IconCache.styleFingerprint()` until the pixels actually move, and only then invalidates. Waiting also sidesteps the cost: re-flattening every icon the instant a restyle begins forces a cold IconServices regeneration, measured at 160× the settled draw cost. That drops the cached bitmaps, bumps every cache key so an in-flight decode cannot repopulate a stale one, and moves `IconCache.style.generation`. **Any view that draws an icon must key its fetch on that generation** — wrap the view's own key in `IconRequest`, or call `IconCache.observeStyle()` where the icon is resolved synchronously in a `body`. It is reached through `IconCache` rather than injected precisely because icons are drawn in menus, popovers and every list, where a missed injection would be a silent staleness bug.
-- **No hard dividers between the list and the bars.** The header and bottom bar are `safeAreaInset` overlays with no background; separation comes from `edgeDissolve()`, nothing else. (One deliberate exception: the vertical hairline between a list and its preview pane, as the clipboard and file search screens draw.)
+- **No hard dividers between the list and the bars.** The header and bottom bar are `safeAreaInset` overlays with no background; separation comes from `edgeDissolve()`, nothing else. (One deliberate exception: the vertical hairline between a list and its preview pane, as the clipboard screen draws.)
 - **The panel corner is clipped once, at the root.** `RootPaletteView.body` ends with `.background(panelScrim) → .background(GlassEffectView()) → .clipShape(RoundedRectangle(26, .continuous))`. Keep that order; the scrim goes _over_ the glass, and the clip is last.
 - **Don't use the native scroll edge effect.** Inside a transparent panel it renders a hard-bounded rectangle. Use `edgeDissolve()`, or a gradient `mask` where a surface owns its own fade — `scrollEdgeEffectStyle` draws a *material* where a scroll view meets a safe area, so over a panel that already has `panelScrim` + `GlassEffectView` it composites to nothing. Tried and rejected, with and without `safeAreaBar`. This is a rule about the borderless panels; the Settings window is a titled `NSWindow` whose system titlebar draws the band itself (see "Settings").
 - **Test over a light desktop.** Transparency and corner masking bugs only show over bright wallpaper. Dark wallpaper hides them.
@@ -63,8 +63,8 @@ Add a token rather than a magic number when introducing a new value.
 
 ### Interface Size (`InterfaceMetrics`)
 
-`AppSettings.interfaceSize` scales the palette and the surfaces that float with it — the ⌘K menu, the
-extension list panel, dialogs and HUDs. Settings, Onboarding, About and Notes never scale.
+`AppSettings.interfaceSize` scales the palette and the surfaces that float with it — the ⌘K menu,
+dialogs and HUDs. Settings, Onboarding, About and Notes never scale.
 
 `DesignSystem/InterfaceMetrics.swift` stores **only a scale** and derives every value from the `Theme`
 literal, so `Theme` stays the one place a number is written down. **In any view a scaled surface can
@@ -140,15 +140,15 @@ round every row to 18 for no reason.
 
 If a pair ever does need closing, **move the gap, not the curve** — but only once you have checked
 what else is anchored to that gap. A radius is shared by surfaces across several features, a
-placement constant is not: `Radius.menuPanel` alone dresses the ⌘K menu, the extensions actions
-panel, the shortcut-recorder callout and the Notes switcher, and `menuRow` is deliberately equal to
+placement constant is not: `Radius.menuPanel` alone dresses the ⌘K menu, the
+shortcut-recorder callout and the Notes switcher, and `menuRow` is deliberately equal to
 `row` so a row pill is one shape everywhere.
 
 ### Size (`Theme.Size`)
 
 `panelWidth 750` · `panelHeight 475` · `headerHeight 44` · `bottomBarHeight 52` · `barButtonHeight 28` ·
 `rowIcon 24` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` · `clipboardListWidth 290` ·
-`menuWidth 276` · `clipboardFilterMenuWidth 200` · `fileSearchFilterMenuWidth 200` ·
+`menuWidth 276` · `clipboardFilterMenuWidth 200` ·
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·
 `emojiGridInset 16` ·
 `settingsSidebar 215` · `settingsRowIcon 20` · `dialogCompactWidth 290` ·
@@ -186,7 +186,7 @@ shipped. Light is the same stop with the ink inverted, and is the only column op
 | `selection`       | white 0.10     | black 0.09     | selected row fill (keyboard/active selection)    |
 | `rowHover`        | white 0.05     | black 0.045    | mouse-hover fill (always fainter than selection) |
 | `menuHover`       | white 0.10     | black 0.09     | popover-menu row hover                           |
-| `separator`       | white 0.10     | black 0.12     | a list↔preview hairline (clipboard, file search) |
+| `separator`       | white 0.10     | black 0.12     | a list↔preview hairline (clipboard)              |
 | `controlSurface`  | white 0.10     | black 0.08     | filled keycaps, glyph tiles                      |
 | `border`          | white 0.20     | black 0.18     | outlined keycap borders                          |
 | `textPrimary`     | white 1.00     | black 1.00     | search text and caret, volume fill and knob      |
@@ -207,10 +207,6 @@ their own.
 
 Beyond these, `.secondary`/`.tertiary` foreground styles are fine for SF Symbols (they resolve against
 the environment's appearance). **Selection always beats hover** when a row is both.
-
-An extension's own surfaces live in `ExtensionColors` (`Features/Extensions/UI/`), not here — the
-`ramp` mechanism is shared, the values are the feature's. See the Extensions non-negotiable in
-[`AGENTS.md`](../AGENTS.md).
 
 ---
 
@@ -349,7 +345,7 @@ or pass `includingTop: true` for a bounded popup whose title and rows scroll tog
 ## Rows, selection, hover
 
 Source: `Launcher/UI/LauncherList.swift`, `Clipboard/UI/ClipboardView.swift`,
-`FileSearch/UI/FileSearchList.swift`, `Uninstall/UI/UninstallView.swift`.
+`Uninstall/UI/UninstallView.swift`.
 
 All lists share one row grammar so launcher and clipboard look identical:
 
@@ -364,7 +360,7 @@ All lists share one row grammar so launcher and clipboard look identical:
 
 ### Section headers
 
-All six palette lists (App Launcher, Clipboard, Emoji, File Search, Calculator History, Uninstall) render category labels
+The palette lists (App Launcher, Clipboard, Emoji, Calculator History, Uninstall) render category labels
 through one shared **`SectionHeader`** (`.subheadline.medium`, secondary — `Features/Launcher/UI/SectionHeader.swift`).
 The launcher shows a single "Results" header over search matches, and per-kind sections
 (Favorites / Applications / System Settings / Commands) for the empty query; clipboard/history use
@@ -386,7 +382,7 @@ Glass is normally for floating controls. The dialog root is the one modal-surfac
 
 - `View.frosted(in:)` = `glassEffect(.clear.interactive(), in:)` — clear, interactive lensing. Used on the action-group capsule, the menu circle and `PopoverMenu`. Dialogs intentionally use untinted, non-interactive `.glassEffect(.regular)` on their root instead; HUDs retain the panel recipe (see "Dialogs & HUD"). Retune it in `frosted(in:)`, not per call site.
 - **Menus are in-window overlays, not system popovers.** `.contextMenu`/`NSMenu` stall clicks for seconds inside a `LazyVStack` and spill outside the panel. Use `PopoverMenu` anchored to a corner via `.overlay`, inset `menuInset` (8pt) so its own corner isn't clipped by the panel's. A menu hung off a control instead of a corner — the clipboard type filter, `.topTrailing` — insets by that control's own metrics so their edges line up.
-- **A menu's `width` is fixed, never intrinsic**, so it can't jitter as its rows change. Every header menu states its own at its `RootPaletteView.menuContent` case — `menuWidth 276`, or a token of its own where that reads too wide (`clipboardFilterMenuWidth`, `fileSearchFilterMenuWidth`, `emojiCategoryMenuWidth`) — so retuning one never moves another. Native footer menus add 30pt without changing those header widths; extension Actions owns its nearby 310pt width inside the feature.
+- **A menu's `width` is fixed, never intrinsic**, so it can't jitter as its rows change. Every header menu states its own at its `RootPaletteView.menuContent` case — `menuWidth 276`, or a token of its own where that reads too wide (`clipboardFilterMenuWidth`, `emojiCategoryMenuWidth`) — so retuning one never moves another. Native footer menus add 30pt without changing those header widths.
 - **`PopoverMenu`** uses `glassEffect(.regular)` with `menuPanel 16` corners and **no hand-tuned shadow** — Tahoe glass carries its own elevation; adding a drop shadow reads heavy and non-native. A footer menu raises only its attached bottom corner to the controls' 18-point radius, so the two silhouettes meet exactly.
 - Its native search field is a row-height sibling of the scroller, above header menus or below footer menus. It uses an 18pt horizontal inset to align with the visible row glyphs. The top field stays vertically symmetric; the bottom field keeps its 1pt optical lift. Menus omit the adjacent edge dissolve and centre **No Results** in one row when their filtered rows are empty. The 8pt resting list inset belongs to the scroll content, so rows can reach the surface edges without shifting their initial position; hover fills keep the dedicated `menuRow 10` corner.
 - `PopoverMenuRow`: leading glyph, label, trailing shortcut glyph and `menuHover` fill on hover. Menus animate in with opacity and scale from the anchored corner, stretching briefly to 1.003 before settling; `Theme.MenuMotion` owns the entry, settle and exit timings.
@@ -542,7 +538,7 @@ Custom thin overlay scrollbar (the native one flashes and reserves a gutter insi
 style; `.thinScrollbar()` on the scroll view draws a hairline thumb (`Color.primary` alpha 0.30 rest →
 0.42 hover → 0.5 drag) that fattens on hover, with a faint rail revealed only while hovering/dragging.
 
-Routing: the palette lists (App Launcher, Clipboard history, Emoji, File Search, Calculator history) use
+Routing: the palette lists (App Launcher, Clipboard history, Emoji, Calculator history) use
 `.thinScrollbar()` + `.hideNativeScrollers()`; the Clipboard preview (right pane) and every Settings
 pane take the native scroller as-is. Don't reintroduce native scrollers on the palette lists.
 
@@ -619,7 +615,6 @@ system-drawn and a pane reads exactly as macOS System Settings does.
 - **A secret is a `RevealableSecureField`, never a bare `SecureField`.** One eye, one place, so an API
   key, a header value and a passphrase all offer the same way to check a pasted value before saving.
   It re-hides on its own once the field is cleared, and its eye is disabled while it is empty.
-  A password field an extension declares, in a form or a preference, is left as it was.
 - **A `TextEditor` ignores `.disabled(_:)` on macOS** — its own and an ancestor's alike. The backing
   `NSTextView` keeps its caret, its keyboard and its selection, so a "disabled" prompt box still takes
   typing and still gives up its text to ⌘A ⌘C. Swap the editor for a `Text` when it must be read-only,
@@ -667,8 +662,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   presenting binding remains the dismissal source of truth, while launcher handoffs are consumed into
   pane-local state so opening an editor does not repaint the split view. A list that can keep growing
   scrolls at a stated row count instead — Custom Commands caps its arguments at `visibleArgumentRows` —
-  so a panel's height stays a property of the editor, not of what has been typed into it. Extension
-  editor visuals stay inside `Features/Extensions/`; the shared presenter treats them as opaque content.
+  so a panel's height stays a property of the editor, not of what has been typed into it.
 - **The sidebar searches every pane *and* its rows.** `.searchable(placement: .sidebar)` sits above the list and
   swaps it for a flat, ranked result list; each result carries the pane's `systemImage`, the row's
   title and a `Pane › Section` breadcrumb, and arrowing through them moves the pane, as System

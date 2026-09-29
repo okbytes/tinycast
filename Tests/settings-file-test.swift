@@ -46,14 +46,13 @@ struct SettingsFileTest {
             "sections follow the Settings sidebar",
             SettingsFileKey.sections == [
                 "general", "appearance", "hyperKey", "calculator", "search", "applications",
-                "commands", "quicklinks", "appleShortcuts", "fileSearch",
-                "notes", "snippets", "navigation", "windowManagement", "clipboard", "emoji",
-                "calendar", "extensions"
+                "commands", "quicklinks", "appleShortcuts", "notes", "snippets", "navigation",
+                "windowManagement", "clipboard", "emoji", "calendar"
             ])
 
         // A file that could switch one of these on would grant what only the app may ask for.
         let grantPaths = [
-            "snippets.enabled", "extensions.enabled", "calendar.enabled",
+            "snippets.enabled", "calendar.enabled",
             "calendar.autoJoinMeetings", "calendar.cameraPreview", "clipboard.textSearchEnabled"
         ]
         check(
@@ -115,7 +114,7 @@ struct SettingsFileTest {
             .searchScopes: .array(["/Applications", "~/Applications"]),
             .showInMenuBar: true,
             .escapeKeyBehavior: "say \"hi\"\\ / é\n\t\u{01}",
-            .fileSearchIgnorePatterns: .array([]),
+            .clipboardDisabledApps: .array([]),
             .popToRootTimeout: 5,
             .windowGap: .number(-1.5)
         ]
@@ -133,12 +132,12 @@ struct SettingsFileTest {
                   "~/Applications"
                 ]
               },
-              "fileSearch": {
-                "ignorePatterns": []
-              },
               "windowManagement": {
                 "gap": -1.5,
                 "shortcuts": {}
+              },
+              "clipboard": {
+                "disabledApps": []
               }
             }
 

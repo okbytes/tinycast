@@ -27,8 +27,6 @@ reviews:
   auto_apply_labels: false
 
   labeling_instructions:
-    - label: extension
-      instructions: Apply when the PR changes Tinycast/Features/Extensions/ or Scripts/raycast-runtime/.
     - label: bug
       instructions: Apply when the PR fixes incorrect existing behaviour.
     - label: enhancement
@@ -52,18 +50,11 @@ reviews:
 
   path_filters:
     - "!**/*.generated.swift"
-    - "!Tinycast/Resources/RaycastRuntime.generated.js"
     - "!Tinycast.xcodeproj/**"
     - "!Tinycast/Assets.xcassets/**"
     - "!Tinycast/tinycast.icon/**"
-    - "!Tests/ai-fixtures/*.txt"
     - "!**/node_modules/**"
-    - "!**/package-lock.json"
-    - "!**/pnpm-lock.yaml"
     - "!build/**"
-    - "!website/.next/**"
-    - "!website/out/**"
-    - "!website/.source/**"
     - "!**/*.png"
     - "!**/*.svg"
 
@@ -185,19 +176,6 @@ reviews:
         - Flag observation of whole stores where one property is read.
         - Flag synchronous IO on show.
 
-    - path: "Tinycast/Features/Extensions/**"
-      instructions: |
-        Runs untrusted Raycast extensions in JavaScriptCore.
-        - Containment: every view, row, menu, geometry and sizing constant lives here. Flag
-          anything added to DesignSystem, Theme, or shared with another feature. Duplicating
-          layout here is the correct trade.
-        - Only Theme base tokens, InterfaceMetrics, PopoverMenuItem and Platform/ may be used
-          from outside.
-        - Treat all extension input as hostile: validate sizes, paths, URLs and types. Flag path
-          traversal, unbounded payloads, and JS values trusted without checks.
-        - JSContext/JSValue stay on their owning actor. Flag retain cycles between JS callbacks
-          and Swift owners.
-
     - path: "Tinycast/DesignSystem/**"
       instructions: |
         Theme.swift is the only design-token source.
@@ -253,11 +231,9 @@ reviews:
 
     - path: "Scripts/**/*.{js,mjs}"
       instructions: |
-        Node generators and the Raycast runtime build.
+        Node generators.
         - Their output is committed; check the PR regenerates and commits the matching
           *.generated.* file.
-        - Keep the runtime small because it is loaded into every extension context. Flag heavy
-          polyfills and eager work.
 
     - path: "project.yml"
       instructions: |
@@ -279,12 +255,6 @@ reviews:
         Check the text matches the code in this PR.
         - Flag stale type names, paths and commands.
         - A code change that makes a doc wrong must fix that doc in the same PR.
-
-    - path: "website/**"
-      instructions: |
-        Next.js static export (fumadocs, React 19, Tailwind 4), linted with oxlint.
-        Focus on broken links, accessibility and content accuracy against the app.
-        Skip style nits.
 
   finishing_touches:
     docstrings:
@@ -320,8 +290,7 @@ reviews:
         instructions: >-
           Fail if a file whose name contains .generated. changed while none of
           its generators changed in the same PR: Scripts/gen-emoji.js,
-          Scripts/gen-currencies.js, Scripts/gen-countries.js, or files under
-          Scripts/raycast-runtime/. Otherwise pass.
+          Scripts/gen-currencies.js or Scripts/gen-countries.js. Otherwise pass.
 
       - name: Protected scroll files
         mode: error

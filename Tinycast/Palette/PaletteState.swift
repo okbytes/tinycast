@@ -20,14 +20,10 @@ final class PaletteState {
     var isComposing = false
     /// The clipboard screen's type filter, reset with the rest of the screen state on each summon.
     var clipboardFilter: ClipboardFilter = .all
-    /// The file search screen's type filter, reset on each summon like the clipboard's.
-    var fileSearchFilter: FileSearchFilter = .all
     /// The emoji picker's visible category, reset with the rest of a freshly opened screen.
     var emojiCategoryFilter: EmojiCategoryFilter = .all
     /// Nil means the configured default; zoom only overrides it for this picker session.
     var emojiGridColumnsOverride: EmojiGridColumns?
-    /// Whether file search draws its Quick Look overlay; it follows whatever row is selected.
-    var fileSearchQuickLook = false
     /// Ordering out leaves the SwiftUI tree mounted, so a media preview needs this to stop playing.
     private(set) var isVisible = false
     /// Changes every time the palette is shown so the search field can re-focus.
@@ -62,10 +58,6 @@ final class PaletteState {
     @ObservationIgnored private var commandHoldTask: Task<Void, Never>?
     /// True while a form field owns the keyboard, so the palette's own text keys stay out of it.
     private(set) var isEditingField = false
-    /// True while a control inside a screen has a list open, which owns the arrows and ↵ whole.
-    private(set) var isControlListOpen = false
-    /// Bumped when a press lands outside an open control list, which is how the list learns of it.
-    private(set) var controlListDismissToken = UUID()
     /// True only once the pointer has moved of its own accord; untracked, so it never re-renders.
     @ObservationIgnored private(set) var hoverHighlightArmed = false
     /// Bumped when the highlight drops, so a lit row clears even though the pointer never left it.
@@ -84,8 +76,6 @@ final class PaletteState {
 
     func noteVisible(_ visible: Bool) {
         isVisible = visible
-        // Ordering out leaves the tree mounted, and a preview must not outlive the window.
-        if !visible { fileSearchQuickLook = false }
     }
 
     var canGoBack: Bool { !backStack.isEmpty }
@@ -143,15 +133,12 @@ final class PaletteState {
         selection = 0
         isComposing = false
         isEditingField = false
-        isControlListOpen = false
         commandArguments = [:]
         pendingArgumentEntryID = nil
         argumentEntryID = nil
         clipboardFilter = .all
-        fileSearchFilter = .all
         emojiCategoryFilter = .all
         emojiGridColumnsOverride = nil
-        fileSearchQuickLook = false
         forceExpanded = false
         dropHoverHighlight()
         menuOpen = false
@@ -204,17 +191,6 @@ final class PaletteState {
     func noteEditingField(_ editing: Bool) {
         guard editing != isEditingField else { return }
         isEditingField = editing
-    }
-
-    /// Set by a control whose own list is up; the palette leaves every navigation key to it.
-    func noteControlListOpen(_ open: Bool) {
-        guard open != isControlListOpen else { return }
-        isControlListOpen = open
-    }
-
-    func dismissControlList() {
-        guard isControlListOpen else { return }
-        controlListDismissToken = UUID()
     }
 
     /// The pointer moved, which re-lights the highlight once it has cleared the arming slop.

@@ -78,7 +78,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var menuWidth: CGFloat { scaledPoints(Theme.Size.menuWidth, scale) }
         var actionMenuWidth: CGFloat { scaledPoints(Theme.Size.actionMenuWidth, scale) }
         var clipboardFilterMenuWidth: CGFloat { scaledPoints(Theme.Size.clipboardFilterMenuWidth, scale) }
-        var fileSearchFilterMenuWidth: CGFloat { scaledPoints(Theme.Size.fileSearchFilterMenuWidth, scale) }
         var emojiCategoryMenuWidth: CGFloat { scaledPoints(Theme.Size.emojiCategoryMenuWidth, scale) }
         var menuIcon: CGFloat { scaledPoints(Theme.Size.menuIcon, scale) }
         var menuBrandIcon: CGFloat { scaledPoints(Theme.Size.menuBrandIcon, scale) }
@@ -157,7 +156,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var bar: Font { font(Theme.Typography.bar, .callout, .medium) }
         var disclosure: Font { font(Theme.Typography.disclosure, .caption1, .semibold) }
         var menuRow: Font { font(Theme.Typography.menuRow, .body) }
-        var menuShortcut: Font { font(Theme.Typography.menuShortcut, .callout) }
         var menuIcon: Font { font(Theme.Typography.menuIcon, .body) }
 
         /// The AppKit twin of a text style, for text an `NSTextView` draws beside SwiftUI's own.

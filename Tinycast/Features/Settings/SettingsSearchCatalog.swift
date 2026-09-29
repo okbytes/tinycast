@@ -109,9 +109,8 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + systemSettings + systemActions + commands + quicklinks
-        + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
-        + navigation + notes + calendar + emoji + extensions + permissions
-        + backup + about
+        + appleShortcuts + fallbacks + clipboard + snippets + windowManagement
+        + navigation + notes + calendar + emoji + permissions + backup + about
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),
@@ -267,24 +266,6 @@ enum SettingsSearchCatalog {
             keywords: ["no results", "empty", "search web", "order"])
     ]
 
-    private static let fileSearch: [SettingsSearchEntry] = [
-        .init(
-            pane: .fileSearch,
-            keywords: ["spotlight", "files", "folders", "find"]),
-        .init(
-            .fileSearchFileSearch, "Enable File Search",
-            keywords: ["spotlight", "index"]),
-        .init(
-            group: .fileSearchCommands, "File search commands",
-            keywords: ["shortcut", "launcher"]),
-        .init(
-            group: .fileSearchSearchScopes, "Search Scopes",
-            keywords: ["folders", "locations", "home", "add folder"]),
-        .init(
-            group: .fileSearchIgnorePatterns, "Ignore Patterns",
-            keywords: ["exclude", "glob", "node_modules", "skip"])
-    ]
-
     private static let notes: [SettingsSearchEntry] = [
         .init(pane: .notes, keywords: ["markdown", "scratchpad", "floating"]),
         .init(
@@ -325,19 +306,13 @@ enum SettingsSearchCatalog {
     private static let navigation: [SettingsSearchEntry] = [
         .init(
             pane: .navigation,
-            keywords: ["window", "switch", "menu bar", "focus", "raise"]),
+            keywords: ["window", "switch", "focus", "raise"]),
         .init(
             .navigationNavigation, "Enable navigation",
-            keywords: ["window switcher", "menu bar", "accessibility"]),
+            keywords: ["window switcher", "accessibility"]),
         .init(
             group: .navigationCommands, "Navigation commands",
-            keywords: ["shortcut", "hotkey", "alias", "launcher"]),
-        .init(
-            .navigationMenuSearch, "Show Apple menu items",
-            keywords: ["apple menu", "about this mac", "recent items", "sleep", "logo"]),
-        .init(
-            .navigationMenuSearch, "Disabled Applications",
-            keywords: ["exclude", "password manager", "ignore", "privacy", "menu bar"])
+            keywords: ["shortcut", "hotkey", "alias", "launcher"])
     ]
 
     private static let windowManagement: [SettingsSearchEntry] = [
@@ -487,36 +462,6 @@ enum SettingsSearchCatalog {
         .init(
             group: .calendarCalendars, "Calendars",
             keywords: ["accounts", "sources", "choose", "icloud", "google"])
-    ]
-
-    private static let extensions: [SettingsSearchEntry] = [
-        .init(
-            pane: .extensions,
-            keywords: ["raycast", "plugins", "store", "javascript"]),
-        .init(
-            .extensionsExtensions, "Enable extensions",
-            keywords: ["raycast", "third party", "javascript"]),
-        .init(
-            .extensionsInstall, "Search extensions",
-            keywords: ["store", "browse", "install", "registry"]),
-        .init(
-            group: .extensionsInstall, "Registries",
-            keywords: ["github", "source", "store"]),
-        .init(
-            .extensionsInstall, "Import from Raycast",
-            keywords: ["migrate", "existing"]),
-        .init(
-            .extensionsInstall, "Add from folder",
-            keywords: ["local", "develop", "sideload"]),
-        .init(
-            group: .extensionsInstalled, "Installed extensions",
-            keywords: ["library", "uninstall", "preferences", "appearance", "alias", "shortcut"]),
-        .init(
-            group: .extensionsCompatibility, "Compatibility",
-            keywords: ["supported", "unsupported", "raycast api"]),
-        .init(
-            .extensionsStorage, "Leftover files",
-            keywords: ["clean up", "disk", "reclaim", "cache"])
     ]
 
     private static let permissions: [SettingsSearchEntry] = [

@@ -28,9 +28,6 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case quicklinkSelectionFallback = "quicklinks.selectionFallback"
     case quicklinkConfirmsBeforeDelete = "quicklinks.confirmsBeforeDelete"
     case appleShortcutsEnabled = "appleShortcuts.enabled"
-    case fileSearchEnabled = "fileSearch.enabled"
-    case fileSearchScopes = "fileSearch.scopes"
-    case fileSearchIgnorePatterns = "fileSearch.ignorePatterns"
     case notesEnabled = "notes.enabled"
     case notesRendersMarkdown = "notes.rendersMarkdown"
     case notesShowsFormattingBar = "notes.showsFormattingBar"
@@ -38,8 +35,6 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case snippetsShowInLauncher = "snippets.showInLauncher"
     case snippetsFolder = "snippets.folder"
     case navigationEnabled = "navigation.enabled"
-    case menuSearchShowsAppleMenu = "navigation.menuSearchShowsAppleMenu"
-    case menuSearchDisabledApps = "navigation.menuSearchDisabledApps"
     case windowManagementEnabled = "windowManagement.enabled"
     case windowManagementShowInLauncher = "windowManagement.showInLauncher"
     case windowGap = "windowManagement.gap"
@@ -67,7 +62,6 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case menuBarLinkedEventsOnly = "calendar.menuBarLinkedEventsOnly"
     case calendarMenuBarHidesWhenEmpty = "calendar.menuBarHidesWhenEmpty"
     case hideCurrentEvent = "calendar.hideCurrentEventAfterMinutes"
-    case extensionsShowInLauncher = "extensions.showInLauncher"
 
     /// The top-level object the key sits in.
     var section: String { String(rawValue.prefix { $0 != "." }) }

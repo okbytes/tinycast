@@ -99,8 +99,8 @@ entered comes first, so the room you just left is one row away. Typing a new nam
   that fit its open windows here, each drawn differently; Stack only when nothing tidier fits — and
   store the choice for this display. A single choice says so in a message.
 - **⌘K** holds Enter Room, Next Layout, Remember Arrangement, Choose Windows… and Delete Room (**⌘⌫**, confirmed through `DialogController`). **⌘N** creates a room.
-- The screen claims ⇥ through `PaletteScreen.tab(at:backwards:)`, asked before `tabTarget` and the
-  palette's ring; every other screen keeps today's Tab.
+- The screen claims ⇥ through `PaletteScreen.tab(at:backwards:)`, asked before the palette's ring;
+  every other screen keeps today's Tab.
 
 `PaletteMode.roomWindows` is the picker, opened from a name typed on the Rooms screen (Create Room
 with no name opens that screen first), so the search field filters. The windows you can see come

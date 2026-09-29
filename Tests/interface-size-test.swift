@@ -100,9 +100,6 @@ struct InterfaceSizeTests {
             m.size.clipboardFilterMenuWidth, Theme.Size.clipboardFilterMenuWidth,
             "size.clipboardFilterMenuWidth")
         expect(
-            m.size.fileSearchFilterMenuWidth, Theme.Size.fileSearchFilterMenuWidth,
-            "size.fileSearchFilterMenuWidth")
-        expect(
             m.size.emojiCategoryMenuWidth, Theme.Size.emojiCategoryMenuWidth,
             "size.emojiCategoryMenuWidth")
         expect(m.size.menuIcon, Theme.Size.menuIcon, "size.menuIcon")
@@ -144,9 +141,6 @@ struct InterfaceSizeTests {
         expect(
             m.typography.searchFieldNSFont == Theme.Typography.searchFieldNSFont,
             "typography.searchFieldNSFont is the Theme font itself")
-
-        // Extensions duplicates the mechanism rather than importing it, so it is checked here too.
-        expect(ExtensionFormMetrics.base.scale, 1, "the form metrics base is unscaled")
     }
 
     // MARK: - Fonts
@@ -221,13 +215,6 @@ struct InterfaceSizeTests {
             expect(
                 m.size.dialogButtonHeight, m.size.menuButton - dialogButtonReduction,
                 "a dialog button stays the scaled reduction below a menu button at \(size.rawValue)")
-
-            let form = ExtensionFormMetrics(scale: size.scale)
-            expect(
-                form.popoverRowsMaxHeight
-                    == (form.popoverVisibleRows * (form.popoverRowHeight + form.popoverRowSpacing))
-                    .rounded(),
-                "a form popover still caps on a whole row at \(size.rawValue)")
         }
     }
 
@@ -275,7 +262,6 @@ struct InterfaceSizeTests {
             ("size.heroKeyCap", m.size.heroKeyCap), ("size.menuButton", m.size.menuButton),
             ("size.checkbox", m.size.checkbox), ("size.menuWidth", m.size.menuWidth),
             ("size.clipboardFilterMenuWidth", m.size.clipboardFilterMenuWidth),
-            ("size.fileSearchFilterMenuWidth", m.size.fileSearchFilterMenuWidth),
             ("size.emojiCategoryMenuWidth", m.size.emojiCategoryMenuWidth),
             ("size.menuIcon", m.size.menuIcon), ("size.menuBrandIcon", m.size.menuBrandIcon),
             ("size.barBrandIcon", m.size.barBrandIcon),

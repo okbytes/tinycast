@@ -48,14 +48,11 @@ final class AppCore {
     let pinnedEmoji = PinnedEmojiStore()
     let runningApps = RunningAppsMonitor()
     let palette = PaletteState()
-    let fileSearch = FileSearchSession()
     let dictionary = DictionarySession()
-    let menuSearch = MenuSearchSession()
     let windowSwitch = WindowSwitchSession()
     let activationPolicy = ActivationPolicy()
     let uninstall = UninstallSession()
     let notesStore: NotesStore
-    let extensions: ExtensionManager
 
     /// Set when a quicklink editor should open with Settings; the pane consumes it.
     var pendingQuicklinkEdit: QuicklinkEditRequest?
@@ -80,8 +77,7 @@ final class AppCore {
         core: self)
 
     @ObservationIgnored private(set) lazy var paletteCoordinator = PaletteCoordinator(
-        palette: palette, settings: settings, appIndex: appIndex,
-        fileSearch: fileSearch, menuSearch: menuSearch, windowSwitch: windowSwitch,
+        palette: palette, settings: settings, appIndex: appIndex, windowSwitch: windowSwitch,
         windowController: windowController)
     /// Its own window and lifecycle: neither coordinator shows or closes the other's surface.
     @ObservationIgnored private(set) lazy var settingsCoordinator = SettingsCoordinator(core: self)
@@ -93,9 +89,6 @@ final class AppCore {
         session: uninstall, palette: palette, paletteCoordinator: paletteCoordinator,
         appIndex: appIndex, runningApps: runningApps, hotKeys: hotKeys, favorites: favorites,
         visibility: visibility, ranking: launcherRanking, aliases: aliases, core: self)
-    @ObservationIgnored private(set) lazy var extensionCoordinator = ExtensionCoordinator(
-        extensions: extensions, palette: palette, paletteCoordinator: paletteCoordinator,
-        settingsCoordinator: settingsCoordinator, settings: settings, core: self)
     @ObservationIgnored private(set) lazy var windowCommandCoordinator = WindowCommandCoordinator(
         settings: settings, paletteCoordinator: paletteCoordinator, windowMover: windowMover,
         spaceSwitcher: spaceSwitcher, customSizes: customWindowSizes)
@@ -144,11 +137,9 @@ final class AppCore {
         quicklinkCoordinator: quicklinkCoordinator,
         windowCommandCoordinator: windowCommandCoordinator,
         windowLayoutCoordinator: windowLayoutCoordinator,
-        snippetCoordinator: snippetCoordinator, fileSearchCoordinator: fileSearchCoordinator,
-        menuSearchCoordinator: menuSearchCoordinator,
+        snippetCoordinator: snippetCoordinator,
         windowSwitchCoordinator: windowSwitchCoordinator,
-        notesCoordinator: notesCoordinator, extensionCoordinator: extensionCoordinator,
-        calendarCoordinator: calendarCoordinator,
+        notesCoordinator: notesCoordinator, calendarCoordinator: calendarCoordinator,
         core: self)
     @ObservationIgnored private(set) lazy var fallbackCoordinator = FallbackCoordinator(
         store: fallbacks, quicklinks: quicklinks, settings: settings, visibility: visibility,
@@ -164,12 +155,6 @@ final class AppCore {
         calcHistory: calcHistory, paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var calendarCoordinator = CalendarCoordinator(
         store: calendarStore, clock: meetingClock, appIndex: appIndex, settings: settings,
-        paletteCoordinator: paletteCoordinator, core: self)
-    @ObservationIgnored private(set) lazy var fileSearchCoordinator = FileSearchCoordinator(
-        settings: settings, appIndex: appIndex, session: fileSearch, palette: palette,
-        paletteCoordinator: paletteCoordinator, windowController: windowController, core: self)
-    @ObservationIgnored private(set) lazy var menuSearchCoordinator = MenuSearchCoordinator(
-        settings: settings, appIndex: appIndex, session: menuSearch, palette: palette,
         paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var windowSwitchCoordinator = WindowSwitchCoordinator(
         settings: settings, appIndex: appIndex, session: windowSwitch, palette: palette,
@@ -199,7 +184,6 @@ final class AppCore {
         appIndex = AppIndex(ranking: launcherRanking, aliases: aliases)
         let clipboardManager = ClipboardManager(store: clipboardStore, settings: settings)
         self.clipboardManager = clipboardManager
-        extensions = ExtensionManager(clipboardStore: clipboardStore)
         snippetsStore = SnippetsStore(repository: Self.snippetsRepository(for: settings))
         textInjector = TextInjector(
             clipboardManager: clipboardManager,
@@ -226,12 +210,7 @@ final class AppCore {
 
             appIndex.start(settings: settings)
             clipboardCoordinator.applyEnabled()
-            extensions.start(appIndex: appIndex, coordinator: extensionCoordinator)
-            extensionCoordinator.applyEnabled()
-            fileSearchCoordinator.applyEnabled()
             windowSwitchCoordinator.applyEnabled()
-            menuSearchCoordinator.applyEnabled()
-            fileSearchCoordinator.applyPolicy()
             notesCoordinator.applyEnabled()
             customCommands.onChange = { [weak self] _ in
                 self?.customCommandCoordinator.applyCustomCommandsPresence()
@@ -262,7 +241,6 @@ final class AppCore {
             }
             paletteCoordinator.onScreenOpening = { [weak self] mode in
                 switch mode {
-                case .menuSearch: self?.menuSearchCoordinator.load()
                 case .switchWindows: self?.windowSwitchCoordinator.load()
                 case .rooms, .roomWindows: self?.roomCoordinator.load()
                 default: break
@@ -300,12 +278,6 @@ final class AppCore {
             }
             hotKeys.onRunAppleShortcut = { [weak self] id in
                 self?.appleShortcutCoordinator.run(id: id)
-            }
-            hotKeys.onRunExtensionCommand = { [weak self] entryID in
-                self?.extensionCoordinator.runExtensionCommand(entryID: entryID)
-            }
-            extensions.onDidUninstall = { [weak self] entryIDs in
-                self?.extensionCoordinator.removeExtensionReferences(entryIDs: entryIDs)
             }
             appIndex.onScan = { [weak self] in
                 guard let self else { return }
@@ -367,25 +339,6 @@ final class AppCore {
         paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
     }
 
-    func handleOpenURL(_ url: URL) {
-        switch ExtensionOAuthSession.handleCallbackURL(url) {
-        case .delivered:
-            paletteCoordinator.showPalette(mode: .extensionCommand, restoreAnyMode: true)
-            return
-        case .expired:
-            showMessage("Sign-in expired — run the command again", tone: .danger)
-            return
-        case .ignored:
-            break
-        }
-        guard ExtensionDeepLink.claims(url) else { return }
-        guard let link = ExtensionDeepLink.parse(url: url) else {
-            paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
-            return
-        }
-        extensionCoordinator.runDeepLink(link)
-    }
-
     /// The store-backed half of the conflict message; `HotKeyManager` names the catalogs itself.
     private func hotKeyDisplayName(for action: HotKeyAction) -> String? {
         switch action {
@@ -406,8 +359,6 @@ final class AppCore {
             return customWindowSizes.size(id: id)?.name
         case .appleShortcut(let id):
             return appleShortcutCoordinator.name(of: id)
-        case .extensionCommand(let entryID):
-            return appIndex.apps.first { $0.kind == .extensionCommand && $0.id == entryID }?.name
         case .togglePalette, .command, .systemAction, .windowCommand:
             return nil
         }
@@ -495,14 +446,8 @@ final class AppCore {
             { _ = $0.clipboardEnabled }, reproject: { $0.clipboardCoordinator.applyEnabled() })
         track(
             { _ = $0.clipboardTextSearchEnabled }, reproject: { $0.applyClipboardTextSearch() })
-        track({ _ = $0.fileSearchEnabled }, reproject: { $0.fileSearchCoordinator.applyEnabled() })
-        // Two features, one switch: each coordinator gates only its own command and mode.
         track(
-            { _ = $0.navigationEnabled },
-            reproject: {
-                $0.windowSwitchCoordinator.applyEnabled()
-                $0.menuSearchCoordinator.applyEnabled()
-            })
+            { _ = $0.navigationEnabled }, reproject: { $0.windowSwitchCoordinator.applyEnabled() })
         track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
         track({ _ = $0.calendarEnabled }, reproject: { $0.calendarCoordinator.applyEnabled() })
         track(
@@ -521,11 +466,6 @@ final class AppCore {
                 _ = $0.menuBarLinkedEventsOnly
                 _ = $0.hideCurrentEvent
             }, reproject: { $0.calendarCoordinator.applyClock() })
-        track(
-            {
-                _ = $0.fileSearchScopes
-                _ = $0.fileSearchIgnorePatterns
-            }, reproject: { $0.fileSearchCoordinator.applyPolicy() })
         track({ _ = $0.snippetsEnabled }, reproject: { $0.snippetCoordinator.applySnippetsEnabled() })
         // Not a feature switch, but the same re-projection: a combo has the chord's ⇧ bit baked in.
         track({ _ = $0.hyperKeyIncludesShift }, reproject: { $0.applyHyperChord() })
@@ -538,9 +478,6 @@ final class AppCore {
         track(
             { _ = $0.clipboardRetention },
             reproject: { $0.clipboardCoordinator.applyRetention($0.settings.clipboardRetention) })
-        track(
-            { _ = $0.extensionsShowInLauncher },
-            reproject: { $0.extensionCoordinator.applyExtensionsLauncherPresence() })
         track({ _ = $0.snippetsFolder }, reproject: { $0.applySnippetsFolder() })
         track({ _ = $0.notesFolder }, reproject: { $0.applyNotesFolder() })
     }

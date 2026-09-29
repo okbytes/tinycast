@@ -272,8 +272,7 @@ with a card the way the calculator does.
 `ColorValue` (`Model/`, Foundation-only) is that parser. It takes the CSS spellings people copy —
 the four hex lengths, plus `rgb()`/`hsl()`/`oklch()` and their alpha forms in both the comma and
 CSS4 space-and-slash syntax — and stores **sRGB components**, so every notation derives from one
-source rather than a second parser that can drift from it. An extension's tints and grid swatches
-read the same parser, which is how a colour picker's `oklch()` swatch draws as its colour.
+source rather than a second parser that can drift from it.
 
 **A colour is rejected rather than approximated**, because a wrong swatch filed under Colors Only
 is worse than none. An HSL channel must carry its `%`, or `hsl(120, 100, 50)` clamps to white.
@@ -421,8 +420,8 @@ Carrying file bytes would make a backup unbounded and defeat the point of refere
 
 Every row is a drag source, so reaching another app costs one gesture instead of Reveal in Finder and
 a second drag. The press and the session are `onRowClick`'s `drag:` in
-`DesignSystem/Interaction/RowClick.swift`, shared with [File Search](file-search.md#dragging-out) and
-the launcher's [application rows](launcher.md#dragging-an-application-out); `ClipDrag.swift` is only
+`DesignSystem/Interaction/RowClick.swift`, shared with the launcher's
+[application rows](launcher.md#dragging-an-application-out); `ClipDrag.swift` is only
 what a clip hands over. `ClipboardItem.dragPayload` says in what flavour: the file URL
 for an image or a referenced file, a URL and its text for a link, plain text for the rest. It is
 derived and never persisted, like `textForm` beside it, and `textForm` stays the one answer to

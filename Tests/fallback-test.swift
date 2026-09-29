@@ -62,28 +62,28 @@ struct FallbackTests {
 
     static func ordering() {
         let define = Fallback.builtin(.define)
-        let files = Fallback.builtin(.searchFiles)
         let shell = Fallback.builtin(.runShellCommand)
         let link = Fallback.quicklink(UUID())
+        let other = Fallback.quicklink(UUID())
 
         check(
             "no stored order keeps the offered order",
-            Fallback.ordered([define, files, shell], by: []) == [define, files, shell])
+            Fallback.ordered([define, other, shell], by: []) == [define, other, shell])
 
         check(
             "a stored order is honoured",
-            Fallback.ordered([define, files, shell], by: [shell.id, define.id, files.id])
-                == [shell, define, files])
+            Fallback.ordered([define, other, shell], by: [shell.id, define.id, other.id])
+                == [shell, define, other])
 
         // A quicklink created after the last reorder must land at the end, not vanish.
         check(
             "an unseen fallback lands last",
-            Fallback.ordered([define, link, files], by: [files.id, define.id]) == [files, define, link])
+            Fallback.ordered([define, link, other], by: [other.id, define.id]) == [other, define, link])
 
         // A deleted quicklink's id is still stored; it must not resurrect or shift its neighbours.
         check(
             "a stored id with nothing behind it is skipped",
-            Fallback.ordered([define, files], by: [link.id, files.id, define.id]) == [files, define])
+            Fallback.ordered([define, other], by: [link.id, other.id, define.id]) == [other, define])
 
         check("nothing available is nothing offered", Fallback.ordered([], by: [define.id]).isEmpty)
     }

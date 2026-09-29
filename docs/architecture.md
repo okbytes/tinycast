@@ -16,7 +16,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │                                                                            │
 │ SearchRelevance · LauncherMatch · EntryNaming · ScriptRomanization ·       │
 │ LauncherOrder · LauncherSuggestions · LauncherRankingStore ·               │
-│ SearchScopes · FileSearch{Query,Result,Scope} ·                            │
+│ SearchScopes ·                                                             │
 │ Calculator/* · EmojiCatalog · EmojiGridGeometry ·                          │
 │ SystemAction · VolumeLevel ·                                               │
 │ WindowCommand · WindowPlacementEngine · WindowActionMemory ·               │
@@ -31,13 +31,12 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ HotKeySpelling · WindowManagementFileFormat ·                              │
 │ MeetingLink · MeetingEvent · UpcomingWindow · MeetingDay · MenuBarSummary  │
 │ AutoJoinPolicy · EventDraft ·                                              │
-│ MenuSearch{Item,Shortcut,Query,TreeNode,SnapshotPolicy,Target} ·           │
 │ WindowSwitch{Entry,Order,Query}                                            │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ consumed by
 ┌─ EFFECT ─────────────────────────▼─────────────────────────────────────────┐
 │ All platform I/O, one folder per feature.                                  │
-│ AppIndex · FileSearchService · SettingsPaneScanner ·                       │
+│ AppIndex · SettingsPaneScanner ·                                           │
 │ AXWindowAccess · AXScreens · WindowInventory · WindowLayoutRunner ·        │
 │ RoomWindowSweep · RoomRunner ·                                             │
 │ IconCache · WindowMover · UninstallScanner · UninstallRunner ·             │
@@ -45,13 +44,13 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ SnippetKeywordListener · NotesRepository · CurrencyRateStore · Paster ·    │
 │ HotKeyCenter · HyperKeyTap · ModifierTapMonitor · RunningAppsMonitor ·     │
 │ CalendarStore · MeetingLauncher · MeetingClock · CameraSession ·           │
-│ AXMenuAccess · WindowZOrder · WindowSwitchSweep ·                          │
+│ WindowZOrder · WindowSwitchSweep ·                                         │
 │ AppleShortcutRunner · SettingsFileRepository · SettingsFileMonitor ·       │
 │ WindowManagementSettingsFile                                               │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 55 @MainActor @Observable stores, sessions, indices and State types        │
+│ 50 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -93,7 +92,7 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 `CurrencyRateStore`, `FrequentEmojiStore`, `CalendarStore`), the managers, monitors and clocks
 (`ClipboardManager`, the opt-in `ClipboardTextIndexer`, the opt-in `SettingsFileRepository`,
 `HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
-(`AppSettings`, `PaletteState`, `FileSearchSession`, `MenuSearchSession`, `UninstallSession`,
+(`AppSettings`, `PaletteState`, `UninstallSession`,
 `MeetingClock`), `NotesStore`, the twenty-one feature coordinators, and the
 window controllers.
 
@@ -121,8 +120,7 @@ handed an input path and answers with bounded text down a pipe.
 
 `TinycastApp` (`@main`) declares only two `MenuBarExtra` scenes — Tinycast's own item and the
 calendar's, each inserted by one preference and independent of the other; everything else visible is
-driven imperatively from AppKit. Extension menu extras are dynamic `NSStatusItem`s owned entirely by
-`Features/Extensions/`, through `ExtensionManager`, with no scene or lifecycle wiring in the core.
+driven imperatively from AppKit.
 
 - **Command palette** — a borderless floating `NSPanel` (`Palette/PalettePanel.swift`) hosting SwiftUI
   via `NSHostingView`, managed by `PaletteWindowController`. It toggles between a compact bar and the
@@ -163,7 +161,7 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-55 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+50 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:
@@ -213,17 +211,16 @@ Tinycast/
                     AppDisplayName,
                     NotificationToken, AppPaths, Signposts, HealthTicker, Memo, ActivationPolicy,
                     Images/, Compression/
-  Resources/        RaycastRuntime.generated.js, the embedded extension runtime
   Palette/          the palette shell: PalettePanel, PaletteWindowController, RootPaletteView,
                     the PaletteScreen protocol, PaletteCoordinator, PaletteState, PaletteMode
   Windows/          the non-palette AppKit surfaces: AppWindowController, Dialog/, HUD/, About/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Clipboard/ Calculator/ Calendar/ Emoji/ FileSearch/ MenuSearch/ Notes/
+    Launcher/ Calculator/ Calendar/ Emoji/ Notes/
     Quicklinks/ Snippets/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/
     WindowManagement/ Onboarding/ Settings/
-    Extensions/
+    Clipboard/
         Model/      pure — the harness inputs
         Service/    effects — stores, monitors, runners, AppKit glue
         UI/         screens, views, and the feature's coordinator

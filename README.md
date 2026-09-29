@@ -19,8 +19,8 @@ RAM.**
          src="https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white"></a>
 </p>
 
-SwiftUI and AppKit, **zero third-party dependencies**, no Electron and no telemetry. It also **runs
-real Raycast extensions**, rendered as native SwiftUI. Free, open source, and staying that way.
+SwiftUI and AppKit, **zero third-party dependencies**, no Electron and no telemetry. Free, open
+source, and staying that way.
 
 For anything private, email [iabueammar@gmail.com](mailto:iabueammar@gmail.com).
 
@@ -34,8 +34,6 @@ For anything private, email [iabueammar@gmail.com](mailto:iabueammar@gmail.com).
   or every app at once.
 - **Global hotkey** — one shortcut summons the palette from anywhere.
 - **Per-app hotkeys** — bind a key to an app; press it to toggle (focus/hide).
-- **Search Files** — open files and folders from the folders you choose, through Spotlight, with no
-  index of our own.
 - **Dictionary** — look a word up with the Define Word command, or define whatever you typed from the
   launcher's fallbacks, read from the Mac's own dictionaries.
 - **Clipboard history** — text and images, searchable, pasted back into the app you were using.
@@ -56,7 +54,6 @@ For anything private, email [iabueammar@gmail.com](mailto:iabueammar@gmail.com).
 - **Notes** — an unlimited collection of plain Markdown files in one floating editor, searchable from
   the palette and rendered as you write.
 - **Emoji picker** — a searchable emoji grid, one keystroke away.
-- **Raycast extensions** — run the ones you already have natively, rendered as SwiftUI.
 - **Backup and import** — export your settings to a file, or import your setup from Raycast.
 
 ## Install

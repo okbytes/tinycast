@@ -13,7 +13,7 @@ in `Features/WindowManagement/`.
   deleting it, or updating the app never loses a setting, so there is nothing to migrate.
 - **Off by default, and only the pane turns it on.** `settingsFileEnabled` has no key in the file and is
   excluded from backups: a file or an import must never switch on something that reads a file.
-- **A capability grant never has a key.** Snippets, Extensions, Calendar access, Auto Join, Camera
+- **A capability grant never has a key.** Snippets, Calendar access, Auto Join, Camera
   Preview and clipboard text recognition are switched on only in the app, which asks first. `settings-file-test` checks those paths stay absent.
 - **`SettingsFileSchema`'s switch is exhaustive.** A new `SettingsFileKey` case fails to build until it
   is bound to a property.
@@ -24,8 +24,8 @@ in `Features/WindowManagement/`.
   formatting stays until then.
 - **Content and machine state never enter it.** Notes, snippets, custom commands and quicklinks stay
   where they are — the file can say which folder notes and snippets live in, never what is in them —
-  as do the palette's position, the extension toolchain, every shortcut outside window management,
-  and what a room learns by being entered.
+  as do the palette's position, every shortcut outside window management, and what a room learns
+  by being entered.
 
 ## Layout
 
@@ -69,8 +69,7 @@ target, so a file linked from a dotfiles repository stays linked.
 - **Turning it off** stops both directions and leaves the file on disk.
 
 A side effect of a setting runs from an `AppCore` `track` sink, never from a pane's `.onChange`: the file
-can change a setting while no pane is open. Clipboard retention and the extensions' launcher
-presence are the two that moved for this.
+can change a setting while no pane is open. Clipboard retention is the one that moved for this.
 
 ## The format
 

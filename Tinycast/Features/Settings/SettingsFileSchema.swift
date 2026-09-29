@@ -48,9 +48,6 @@ enum SettingsFileSchema {
         case .quicklinkSelectionFallback: return bind(settings, \.quicklinkSelectionFallback)
         case .quicklinkConfirmsBeforeDelete: return bind(settings, \.quicklinkConfirmsBeforeDelete)
         case .appleShortcutsEnabled: return bind(settings, \.appleShortcutsEnabled)
-        case .fileSearchEnabled: return bind(settings, \.fileSearchEnabled)
-        case .fileSearchScopes: return bind(settings, \.fileSearchScopes)
-        case .fileSearchIgnorePatterns: return bind(settings, \.fileSearchIgnorePatterns)
         case .notesEnabled: return bind(settings, \.notesEnabled)
         case .notesRendersMarkdown: return bind(settings, \.notesRendersMarkdown)
         case .notesShowsFormattingBar: return bind(settings, \.notesShowsFormattingBar)
@@ -58,8 +55,6 @@ enum SettingsFileSchema {
         case .snippetsShowInLauncher: return bind(settings, \.snippetsShowInLauncher)
         case .snippetsFolder: return bind(settings, \.snippetsFolder, accept: folder)
         case .navigationEnabled: return bind(settings, \.navigationEnabled)
-        case .menuSearchShowsAppleMenu: return bind(settings, \.menuSearchShowsAppleMenu)
-        case .menuSearchDisabledApps: return bind(settings, \.menuSearchDisabledApps)
         case .windowManagementEnabled: return bind(settings, \.windowManagementEnabled)
         case .windowManagementShowInLauncher:
             return bind(settings, \.windowManagementShowInLauncher)
@@ -91,7 +86,6 @@ enum SettingsFileSchema {
         case .menuBarLinkedEventsOnly: return bind(settings, \.menuBarLinkedEventsOnly)
         case .calendarMenuBarHidesWhenEmpty: return bind(settings, \.calendarMenuBarHidesWhenEmpty)
         case .hideCurrentEvent: return bind(settings, \.hideCurrentEvent)
-        case .extensionsShowInLauncher: return bind(settings, \.extensionsShowInLauncher)
         }
     }
 

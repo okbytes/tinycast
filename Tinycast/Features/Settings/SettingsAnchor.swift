@@ -35,11 +35,6 @@ extension SettingsAnchor {
 
     static let fallbacksFallbacks = Self(tab: .fallbacks, title: "Fallbacks")
 
-    static let fileSearchFileSearch = Self(tab: .fileSearch, title: "File Search")
-    static let fileSearchCommands = Self(tab: .fileSearch, title: "Commands")
-    static let fileSearchSearchScopes = Self(tab: .fileSearch, title: "Search Scopes")
-    static let fileSearchIgnorePatterns = Self(tab: .fileSearch, title: "Ignore Patterns")
-
     static let notesNotes = Self(tab: .notes, title: "Notes")
     static let notesOptions = Self(tab: .notes, title: "Options")
     static let notesCommands = Self(tab: .notes, title: "Commands")
@@ -50,7 +45,6 @@ extension SettingsAnchor {
 
     static let navigationNavigation = Self(tab: .navigation, title: "Navigation")
     static let navigationCommands = Self(tab: .navigation, title: "Commands")
-    static let navigationMenuSearch = Self(tab: .navigation, title: "Search Menu Bar Items")
 
     static let windowManagementWindowManagement = Self(
         tab: .windowManagement, title: "Window Management")
@@ -76,12 +70,6 @@ extension SettingsAnchor {
     static let calendarJoining = Self(tab: .calendar, title: "Joining")
     static let calendarMenuBar = Self(tab: .calendar, title: "Menu Bar")
     static let calendarCalendars = Self(tab: .calendar, title: "Calendars")
-
-    static let extensionsExtensions = Self(tab: .extensions, title: "Extensions")
-    static let extensionsCompatibility = Self(tab: .extensions, title: "Compatibility")
-    static let extensionsInstalled = Self(tab: .extensions, title: "Installed")
-    static let extensionsInstall = Self(tab: .extensions, title: "Install")
-    static let extensionsStorage = Self(tab: .extensions, title: "Storage")
 
     static let permissionsAccessibility = Self(tab: .permissions, title: "Accessibility")
     static let permissionsCalendars = Self(tab: .permissions, title: "Calendars")

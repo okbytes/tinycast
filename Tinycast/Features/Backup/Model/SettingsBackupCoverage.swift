@@ -26,9 +26,6 @@ enum SettingsBackupCoverage {
         "rootSearchSensitivity": .rootSearchSensitivity,
         "openOnCursorScreen": .openOnCursorScreen,
         "paletteDraggable": .paletteDraggable,
-        "fileSearchEnabled": .fileSearchEnabled,
-        "fileSearchScopes": .fileSearchScopes,
-        "fileSearchIgnorePatterns": .fileSearchIgnorePatterns,
         "notesEnabled": .notesEnabled,
         "notesRendersMarkdown": .notesRendersMarkdown,
         "notesShowsFormattingBar": .notesShowsFormattingBar,
@@ -36,8 +33,6 @@ enum SettingsBackupCoverage {
         "customCommandsShowInLauncher": .customCommandsShowInLauncher,
         "snippetsShowInLauncher": .snippetsShowInLauncher,
         "navigationEnabled": .navigationEnabled,
-        "menuSearchDisabledApps": .menuSearchDisabledApps,
-        "menuSearchShowsAppleMenu": .menuSearchShowsAppleMenu,
         "windowManagementEnabled": .windowManagementEnabled,
         "windowManagementShowInLauncher": .windowManagementShowInLauncher,
         "windowGap": .windowGap,
@@ -50,7 +45,6 @@ enum SettingsBackupCoverage {
         "quicklinkSelectionFallback": .quicklinkSelectionFallback,
         "quicklinkConfirmsBeforeDelete": .quicklinkConfirmsBeforeDelete,
         "appleShortcutsEnabled": .appleShortcutsEnabled,
-        "extensionsShowInLauncher": .extensionsShowInLauncher,
         "calendarShowInLauncher": .calendarShowInLauncher,
         "calendarLauncherLimit": .calendarLauncherLimit,
         "calendarIncludesTomorrow": .calendarIncludesTomorrow,
@@ -74,15 +68,6 @@ enum SettingsBackupCoverage {
             "Background OCR is an opt-in processing choice on this Mac; a backup must not enable it.",
         AppSettingsKey.snippetsEnabled.rawValue:
             "Doubles as keyword-expansion consent; an import must not enable keystroke listening.",
-        AppSettingsKey.extensionPackageManager.rawValue:
-            "Names a tool on this Mac; the machine a backup lands on may not have it.",
-        AppSettingsKey.extensionRegistries.rawValue:
-            "A registry is a source of executable code; adding one has to be a deliberate act.",
-        AppSettingsKey.extensionCustomSearchPaths.rawValue:
-            "Machine-local toolchain paths; the Mac a backup lands on may not have them, or may have "
-            + "something else there.",
-        AppSettingsKey.extensionsEnabled.rawValue:
-            "Doubles as consent to run third-party JavaScript; an import must not switch it on.",
         AppSettingsKey.palettePosition.rawValue:
             "Machine-local geometry: every entry names a display this Mac has, and no other one.",
         AppSettingsKey.paletteExpandedCenterDisplays.rawValue:

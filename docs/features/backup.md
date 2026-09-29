@@ -29,8 +29,7 @@ A backup carries five independently selectable categories, ticked on export and 
 - **The file carries a format version and a reader accepts only its own.** That is a guard, not a
   migration: the comparison is `==`, so an older and a newer file fail identically and by the same
   statement. Writing it any other way is the first line of a migration, and the project has none.
-- **Extensions and anything in `Caches` never travel.** An extension is third-party code and
-  third-party data; a cache regenerates on its own.
+- **Nothing in `Caches` travels.** A cache regenerates on its own.
 - **`BackupCategory` names every category, and its `descriptor` switch is exhaustive.** A new case
   fails to build until it names a label, a symbol, a bundle subpath and a count noun — the same
   bargain `AppEntry.Kind` makes, and why the bundle layout is never spelled out twice.
@@ -108,7 +107,7 @@ anything a day old on the next run, since a run killed mid-flight leaves its tre
 
 `settings-backup-test` asserts that every `AppSettingsKey` appears in exactly one table, that no field
 claims a key twice, that every exclusion names a real key and carries a non-empty reason, and that each
-capability-granting key — `snippetsEnabled`, `extensionsEnabled`, `calendarEnabled`,
+capability-granting key — `snippetsEnabled`, `calendarEnabled`,
 `autoJoinMeetings`, `cameraPreview` — is named individually as excluded. The
 duplication between `AppSettings` and this file is the point: it forces a decision about every new
 setting rather than defaulting it into a backup.

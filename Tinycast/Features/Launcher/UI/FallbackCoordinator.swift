@@ -43,7 +43,6 @@ final class FallbackCoordinator {
     /// The one funnel; each destination takes the query as the input it was already asking for.
     func run(_ fallback: Fallback, query: String) {
         switch fallback {
-        case .builtin(.searchFiles): core.fileSearchCoordinator.show(query: query)
         case .builtin(.runShellCommand): core.customCommandCoordinator.runShellCommand(query)
         case .builtin(.define): core.dictionaryCoordinator.show(term: query)
         case .quicklink(let id): core.quicklinkCoordinator.openQuicklink(id: id, filling: query)
@@ -69,7 +68,6 @@ final class FallbackCoordinator {
 
     private func isAvailable(_ builtin: Fallback.Builtin) -> Bool {
         switch builtin {
-        case .searchFiles: return settings.fileSearchEnabled
         // Its own capability: this shell is not the custom-command library's switch to hold.
         case .runShellCommand: return true
         // Settings › Commands is Define's only switch, so hiding the command there hides this too.

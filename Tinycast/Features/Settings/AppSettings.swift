@@ -290,22 +290,6 @@ final class AppSettings {
     }
 
     // Feature switches, off out of the box, and off means fully off.
-    var fileSearchEnabled: Bool {
-        didSet { defaults.set(fileSearchEnabled, forKey: Key.fileSearchEnabled.rawValue) }
-    }
-
-    /// Tilde-abbreviated, so a backup taken on one machine still points somewhere on another.
-    var fileSearchScopes: [String] {
-        didSet { defaults.set(fileSearchScopes, forKey: Key.fileSearchScopes.rawValue) }
-    }
-
-    /// Only what the user added; the shipped rules are compiled into `FileSearchIgnoreList`.
-    var fileSearchIgnorePatterns: [String] {
-        didSet {
-            defaults.set(fileSearchIgnorePatterns, forKey: Key.fileSearchIgnorePatterns.rawValue)
-        }
-    }
-
     var notesEnabled: Bool {
         didSet { defaults.set(notesEnabled, forKey: Key.notesEnabled.rawValue) }
     }
@@ -351,53 +335,6 @@ final class AppSettings {
 
     var navigationEnabled: Bool {
         didSet { defaults.set(navigationEnabled, forKey: Key.navigationEnabled.rawValue) }
-    }
-
-    /// Bundle IDs whose menu bar Search Menu Bar Items refuses to read at all.
-    var menuSearchDisabledApps: [String] {
-        didSet { defaults.set(menuSearchDisabledApps, forKey: Key.menuSearchDisabledApps.rawValue) }
-    }
-
-    /// Off: the Apple menu is the same on every app, so it would only pad every snapshot.
-    var menuSearchShowsAppleMenu: Bool {
-        didSet {
-            defaults.set(menuSearchShowsAppleMenu, forKey: Key.menuSearchShowsAppleMenu.rawValue)
-        }
-    }
-
-    /// Consent to run third-party JavaScript: it confirms, defaults off, rides no backup.
-    var extensionsEnabled: Bool {
-        didSet { defaults.set(extensionsEnabled, forKey: Key.extensionsEnabled.rawValue) }
-    }
-
-    var extensionsShowInLauncher: Bool {
-        didSet {
-            defaults.set(extensionsShowInLauncher, forKey: Key.extensionsShowInLauncher.rawValue)
-        }
-    }
-
-    /// Only a source registry needs one — the store serves extensions already built.
-    var extensionPackageManager: ExtensionPackageManager {
-        didSet {
-            defaults.set(
-                extensionPackageManager.rawValue, forKey: Key.extensionPackageManager.rawValue)
-        }
-    }
-
-    /// Seeded with the store and the official repository; a user can add their own.
-    var extensionRegistries: [ExtensionRegistry] {
-        didSet {
-            guard let data = try? JSONEncoder().encode(extensionRegistries) else { return }
-            defaults.set(data, forKey: Key.extensionRegistries.rawValue)
-        }
-    }
-
-    /// For a toolchain Tinycast doesn't know — mise or Nix shims are the common case.
-    var extensionCustomSearchPaths: [String] {
-        didSet {
-            defaults.set(
-                extensionCustomSearchPaths, forKey: Key.extensionCustomSearchPaths.rawValue)
-        }
     }
 
     /// Doubles as calendar-access consent, so only `CalendarCoordinator` may write it.
@@ -640,13 +577,6 @@ final class AppSettings {
             as? [String: [Double]] ?? [:]
         paletteExpandedCenterDisplays =
             Set(defaults.stringArray(forKey: Key.paletteExpandedCenterDisplays.rawValue) ?? [])
-        fileSearchEnabled = defaults.bool(forKey: Key.fileSearchEnabled.rawValue)
-        // Unset seeds home; a stored empty array is a cleared list that searches nothing.
-        fileSearchScopes =
-            defaults.stringArray(forKey: Key.fileSearchScopes.rawValue)
-            ?? FileSearchScope.defaultScopes
-        fileSearchIgnorePatterns =
-            defaults.stringArray(forKey: Key.fileSearchIgnorePatterns.rawValue) ?? []
         notesEnabled = defaults.bool(forKey: Key.notesEnabled.rawValue)
         notesRendersMarkdown =
             defaults.object(forKey: Key.notesRendersMarkdown.rawValue) == nil
@@ -665,21 +595,7 @@ final class AppSettings {
             defaults.object(forKey: Key.snippetsShowInLauncher.rawValue) == nil
             || defaults.bool(forKey: Key.snippetsShowInLauncher.rawValue)
         snippetsFolder = defaults.string(forKey: Key.snippetsFolder.rawValue)
-        // Opt-in, unlike its siblings: until it is asked for, nothing about extensions is loaded.
-        extensionsEnabled = defaults.bool(forKey: Key.extensionsEnabled.rawValue)
-        extensionsShowInLauncher =
-            defaults.object(forKey: Key.extensionsShowInLauncher.rawValue) == nil
-            || defaults.bool(forKey: Key.extensionsShowInLauncher.rawValue)
-        extensionPackageManager =
-            defaults.string(forKey: Key.extensionPackageManager.rawValue)
-            .flatMap(ExtensionPackageManager.init(rawValue:)) ?? .automatic
-        extensionRegistries =
-            defaults.data(forKey: Key.extensionRegistries.rawValue)
-            .flatMap { try? JSONDecoder().decode([ExtensionRegistry].self, from: $0) }
-            ?? ExtensionRegistry.defaults
-        extensionCustomSearchPaths =
-            defaults.stringArray(forKey: Key.extensionCustomSearchPaths.rawValue) ?? []
-        // Opt-in, like extensions: until it is asked for, EventKit is never loaded.
+        // Opt-in: until it is asked for, EventKit is never loaded.
         calendarEnabled = defaults.bool(forKey: Key.calendarEnabled.rawValue)
         calendarShowInLauncher =
             defaults.object(forKey: Key.calendarShowInLauncher.rawValue) == nil
@@ -716,9 +632,6 @@ final class AppSettings {
             .flatMap { $0 as? Int }
             .flatMap(HideCurrentEvent.init(rawValue:)) ?? .dontHide
         navigationEnabled = defaults.bool(forKey: Key.navigationEnabled.rawValue)
-        menuSearchDisabledApps =
-            defaults.stringArray(forKey: Key.menuSearchDisabledApps.rawValue) ?? []
-        menuSearchShowsAppleMenu = defaults.bool(forKey: Key.menuSearchShowsAppleMenu.rawValue)
         windowManagementEnabled = defaults.bool(forKey: Key.windowManagementEnabled.rawValue)
         windowManagementShowInLauncher =
             defaults.object(forKey: Key.windowManagementShowInLauncher.rawValue) == nil

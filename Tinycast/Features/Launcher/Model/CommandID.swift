@@ -5,8 +5,6 @@ enum CommandID: String, CaseIterable, Sendable {
     case calculatorHistory = "command:calculator-history"
     case clipboardHistory = "command:clipboard-history"
     case searchEmoji = "command:search-emoji"
-    case searchFiles = "command:search-files"
-    case searchMenuItems = "command:search-menu-items"
     case switchWindows = "command:switch-windows"
     case openCamera = "command:open-camera"
     case openInBrowser = "command:open-in-browser"
@@ -42,8 +40,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .calculatorHistory: return "Calculator History"
         case .clipboardHistory: return "Clipboard History"
         case .searchEmoji: return "Search Emoji & Symbols"
-        case .searchFiles: return "Search Files"
-        case .searchMenuItems: return "Search Menu Bar Items"
         case .switchWindows: return "Switch Windows"
         case .openCamera: return "Open Camera"
         case .openInBrowser: return "Open in Browser"
@@ -81,8 +77,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .calculatorHistory: return "plus.forwardslash.minus"
         case .clipboardHistory: return "doc.on.clipboard"
         case .searchEmoji: return "face.smiling"
-        case .searchFiles: return "doc.text.magnifyingglass"
-        case .searchMenuItems: return "menubar.rectangle"
         case .switchWindows: return "macwindow.on.rectangle"
         case .openCamera: return "camera"
         case .openInBrowser: return "globe"
@@ -119,7 +113,6 @@ enum CommandID: String, CaseIterable, Sendable {
     var suggestionPriority: Int? {
         switch self {
         case .clipboardHistory: 80
-        case .searchFiles: 70
         case .mySchedule: 60
         case .searchEmoji: 50
         case .createQuicklink, .createSnippet: 30

@@ -75,8 +75,8 @@ refreshes collapse into a single trailing scan.
 | --- | --- | --- | --- |
 | title | the display name | the query read into Latin | yes |
 | alternate titles | the bundle's names in the user's other languages and English, a renamed bundle's file name, `CFBundleAlternateNames`, a snippet's keyword | the query as typed | yes |
-| subtitle | an extension's title, or a row's own subtitle in its place | the query read into Latin | yes |
-| keywords | the declared Info.plist name, an extension command's `keywords`, a meeting's calendar, and the title and subtitle joined both ways | the query read into Latin | no — they only make an entry appear |
+| subtitle | a row's own subtitle | the query read into Latin | yes |
+| keywords | the declared Info.plist name, a meeting's calendar, and the title and subtitle joined both ways | the query read into Latin | no — they only make an entry appear |
 
 An entry appears when the user's alias is an exact or prefix hit, or when any field passes the
 sensitivity — an alias that is neither counts as one more alternate title. Bundle identifiers and
@@ -127,7 +127,7 @@ The first rule that separates two entries decides:
 1. An exact alias.
 2. Past three characters, an exact title or alternate title.
 3. An exact past search term.
-4. An exact subtitle, so typing an extension's title lists its commands.
+4. An exact subtitle.
 5. An alias prefix.
 6. A past search term that starts with the query.
 7. A past search term of three or more characters that the query runs at most three past.
@@ -142,8 +142,7 @@ The first rule that separates two entries decides:
 Two entries that both meet rule 2 go by search-term strength, then frecency; both meeting rule 3 go by
 frecency; both meeting rule 4 go by frecency, then the title's own score. The tiebreak settles the rest —
 what the empty list sorts by too — and is frecency, then having an alias, then kind priority, then the
-name. Rule 4 applies at any length, which is why `zed` lists the Zed extension's commands above
-the Zed app: rule 2 only protects an exact title past three characters.
+name. Rule 4 applies at any length: rule 2 only protects an exact title past three characters.
 
 ### Kind priority
 
@@ -228,10 +227,9 @@ rather than being dropped whole.
 
 ### Subtitles
 
-An extension's title is the subtitle of every command it ships; a command's own manifest subtitle takes
-its place, and the title then rides as a keyword. A subtitle ranks like a title in rule 8, and an exact
-one is rule 4: `brew` lists Brew's commands above any title that merely starts with it, by usage, then
-by the title's own score, then by name. The subtitle does not name the entry, so a title scoring the same wins rule 10.
+A subtitle ranks like a title in rule 8, and an exact one is rule 4: it lists above any title that
+merely starts with the query, by usage, then by the title's own score, then by name. The subtitle does
+not name the entry, so a title scoring the same wins rule 10.
 
 ### Category search
 
@@ -281,15 +279,14 @@ A **fallback** is the other half of the query-driven idea: a command the query i
 offered under a `Use “…” with…` header **below every result**, whatever the query says. A contextual
 row leads because it recognised the query; a fallback trails because nothing did.
 
-`Fallback` (`Launcher/Model/`) is the whole vocabulary — `.builtin(Builtin)` for the four shipped
+`Fallback` (`Launcher/Model/`) is the whole vocabulary — `.builtin(Builtin)` for the two shipped
 destinations and `.quicklink(UUID)` for a user's own. `Builtin` exists rather than a bare `CommandID`
-so `FallbackCoordinator.run` is **exhaustive**: a fifth built-in cannot compile without saying where
+so `FallbackCoordinator.run` is **exhaustive**: a third built-in cannot compile without saying where
 its query goes. `Fallback.id` is deliberately the row's own `AppEntry.id`, which is what lets a stored
 order name a live row across a rename or a reinstall.
 
 | Fallback | Where the query goes | Offered when |
 | --- | --- | --- |
-| Search Files | the file-search screen, already narrowed | `fileSearchEnabled` |
 | Run Shell Command | `/bin/zsh`, streamed into the Command Output window | always |
 | Define Word | the dictionary screen, already showing the entry (see [dictionary.md](dictionary.md)) | the Define Word command is visible in Settings › Commands |
 | a quicklink | its first `{argument}` | `quicklinksEnabled`, and the link has a placeholder |
@@ -321,7 +318,7 @@ pane as well as from the launcher, and reorders through ↑/↓ buttons like a f
 introducing this codebase's first drag-reorder.
 
 **A fallback row is not a result, and `LauncherScreen.Row` says so.** `.fallback` is its own case
-with a `fallback-` prefixed id, because Search Files can be a ranked hit *and* a fallback in the same
+with a `fallback-` prefixed id, because Define Word can be a ranked hit *and* a fallback in the same
 list, and two rows sharing one id would collapse in `ForEach`. That is also why `LauncherList` takes
 a `selectedRowID` rather than an entry id. Nothing about a fallback row is learned, pinned or
 revealed: `activate` routes to `FallbackCoordinator.run` instead of `LauncherCoordinator.launch`, and
@@ -349,12 +346,11 @@ beside it; edits store as typed and trim when the field loses focus, and a blank
 list filters by **membership only**, keeping the index's name order — re-ranking it per keystroke
 would move the row being edited out from under its own field editor. A pane with a hand-written row
 hands `AliasField` the key itself: Settings ▸ Quicklinks passes `Quicklink.entryID`, Settings ▸
-Commands passes `CustomCommand.entryID`, Settings ▸ Extensions passes `extension:<name>/<command>`,
-and each dims the field when the entry is hidden from launcher search, whose entry the ranker never
+Commands passes `CustomCommand.entryID`, and each dims the field when the entry is hidden from launcher search, whose entry the ranker never
 sees.
 
 Aliases ride along in a settings backup (`launcherAliases`), and deleting what an alias points at —
-uninstalling an app, deleting a quicklink or custom command, uninstalling an extension — removes it
+uninstalling an app, deleting a quicklink or custom command — removes it
 with the entry's other per-entry preferences.
 
 ### Alternate names
@@ -427,12 +423,12 @@ so the sectioned view stays 1:1 with the flat selection.
 `LauncherSuggestions.select` chooses at most five from every visible entry that is not a favorite, a
 meeting or Tinycast itself:
 
-1. up to two apps or extensions installed in the last five minutes and never opened —
+1. up to two apps installed in the last five minutes and never opened —
    `AppEntry.installedAt` is the bundle's added-to-directory date;
 2. entries with a score above 1 and no bound shortcut, in empty-list order — a shortcut is already the
    faster way in;
 3. while fewer than five, built-in commands with no alias or shortcut, by
-   `CommandID.suggestionPriority`: Clipboard History, Search Files, My Schedule, Search Emoji &
+   `CommandID.suggestionPriority`: Clipboard History, My Schedule, Search Emoji &
    Symbols, then Create Quicklink and Create Snippet. A command whose feature is off is absent from the
    index, so it is never offered.
 
@@ -562,7 +558,7 @@ execution semantics.
 feature is enabled. Activation hides the palette without restoring focus and calls the matching
 `NotesCoordinator` action; each `HotKeyAction` reaches that same boundary and rechecks enablement.
 
-`AppIndex` projects the three commands together from `notesEnabled`, independently of File Search and
+`AppIndex` projects the three commands together from `notesEnabled`, independently of
 Quicklinks. They represent collection actions rather than individual notes, so Notes adds no
 `AppEntry.Kind` or launcher section — it owns them through `SettingsTab.ownedCommands` instead, which
 is what keeps them out of Settings › Commands while they stay in the launcher's Commands section. See
@@ -577,7 +573,7 @@ and three places read it: `FeatureCommandsSection` draws the pane's rows from it
 category gate for it in both `isVisible` and `allowsHotKey`. Stamping the entry rather than sniffing its
 id is what keeps "which pane owns this" out of the entry-ID namespace.
 
-Nine panes own commands today — File Search, Notes, Snippets, Navigation, Window Management,
+Eight panes own commands today — Notes, Snippets, Navigation, Window Management,
 Clipboard, Emoji, Calendar and Quicklinks. What is left in Settings › Commands is the set no feature
 switch governs: Calculator History, Open Camera, the three backup commands, Tinycast Settings, About
 and Quit.
@@ -588,11 +584,10 @@ value — so a command may be moved between owners without migrating anything.
 
 ## Navigation commands
 
-`CommandID.switchWindows` opens every running app's windows as a palette screen, and
-`CommandID.searchMenuItems` does the same for the front app's menu bar. Both are plain command
-entries — no new `AppEntry.Kind` and no `VisibilityStore` category — owned by Settings › Navigation
-through `SettingsTab.ownedCommands`, so `navigationEnabled` is their switch. Their invariants and
-internals live in [navigation.md](navigation.md) and [menu-search.md](menu-search.md).
+`CommandID.switchWindows` opens every running app's windows as a palette screen. It is a plain command
+entry — no new `AppEntry.Kind` and no `VisibilityStore` category — owned by Settings › Navigation
+through `SettingsTab.ownedCommands`, so `navigationEnabled` is its switch. Its invariants and
+internals live in [navigation.md](navigation.md).
 
 > **Invariant:** `Tests/fuzz-test.swift` compiles the real `Launcher/Model/LauncherMatch.swift` and
 > `LauncherOrder.swift`, so both must stay Foundation-only and pure. There is no copy of the ranking
@@ -683,7 +678,7 @@ favorite, alias and learned ranking survive the round trip, and its shortcut kee
 
 The row is offered only where Settings can undo it, and `KindDescriptor.canHideFromSearch` is that
 rule — per kind, and a new `Kind` case has to answer it to compile. Applications, System Settings,
-Commands, System Actions, Window Commands, Window Layouts, Rooms and extension commands each
+Commands, System Actions, Window Commands, Window Layouts and Rooms each
 draw a per-row checkbox in their pane, so they carry it. Custom commands, quicklinks and snippets do
 not: their panes list a record with its own switches, not a launcher checkbox — a hide nothing in
 Settings can visibly undo is a trap, not a shortcut.
@@ -712,7 +707,7 @@ alone — is the one rule: a Settings pane or a shortcut dropped on another app 
 and every new kind has to say so to build.
 
 The row uses `onRowTap(drag:)` from `DesignSystem/Interaction/RowClick.swift`, the tap-shaped sibling
-of the clipboard's and File Search's `onRowClick(drag:)`. A launcher click launches rather than
+of the clipboard's `onRowClick(drag:)`. A launcher click launches rather than
 selects, so the press **activates on the release** — the one moment a press is known not to have
 become a drag. A row that cannot drag gets plain `onTapGesture`, so every other kind, the fallbacks
 and the lead card keep SwiftUI's own gesture. The operation is **copy only**, as

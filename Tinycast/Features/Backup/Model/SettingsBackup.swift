@@ -44,9 +44,6 @@ struct SettingsBackup: Codable {
         var openOnCursorScreen: Bool?
         // Safe to carry: it grants no permission class, just repositions the window.
         var paletteDraggable: Bool?
-        var fileSearchEnabled: Bool?
-        var fileSearchScopes: [String]?
-        var fileSearchIgnorePatterns: [String]?
         var notesEnabled: Bool?
         var notesRendersMarkdown: Bool?
         var notesShowsFormattingBar: Bool?
@@ -56,8 +53,6 @@ struct SettingsBackup: Codable {
         var snippetsShowInLauncher: Bool?
         // Safe to carry: it grants no permission class paste doesn't already prompt for.
         var navigationEnabled: Bool?
-        var menuSearchDisabledApps: [String]?
-        var menuSearchShowsAppleMenu: Bool?
         var windowManagementEnabled: Bool?
         var windowManagementShowInLauncher: Bool?
         var windowGap: Int?
@@ -67,7 +62,6 @@ struct SettingsBackup: Codable {
         // Carried, unlike `snippetsEnabled`: opening a link grants no permission class of its own.
         var quicklinksEnabled: Bool?
         var quicklinksShowInLauncher: Bool?
-        var extensionsShowInLauncher: Bool?
         var quicklinkOpensNewWindow: Bool?
         var quicklinkSelectionFallback: String?
         var quicklinkConfirmsBeforeDelete: Bool?
@@ -151,9 +145,6 @@ extension SettingsBackup {
             rootSearchSensitivity: s.rootSearchSensitivity.rawValue,
             openOnCursorScreen: s.openOnCursorScreen,
             paletteDraggable: s.paletteDraggable,
-            fileSearchEnabled: s.fileSearchEnabled,
-            fileSearchScopes: s.fileSearchScopes,
-            fileSearchIgnorePatterns: s.fileSearchIgnorePatterns,
             notesEnabled: s.notesEnabled,
             notesRendersMarkdown: s.notesRendersMarkdown,
             notesShowsFormattingBar: s.notesShowsFormattingBar,
@@ -161,8 +152,6 @@ extension SettingsBackup {
             customCommandsShowInLauncher: s.customCommandsShowInLauncher,
             snippetsShowInLauncher: s.snippetsShowInLauncher,
             navigationEnabled: s.navigationEnabled,
-            menuSearchDisabledApps: s.menuSearchDisabledApps,
-            menuSearchShowsAppleMenu: s.menuSearchShowsAppleMenu,
             windowManagementEnabled: s.windowManagementEnabled,
             windowManagementShowInLauncher: s.windowManagementShowInLauncher,
             windowGap: s.windowGap,
@@ -171,7 +160,6 @@ extension SettingsBackup {
             windowRoomsShowInLauncher: s.windowRoomsShowInLauncher,
             quicklinksEnabled: s.quicklinksEnabled,
             quicklinksShowInLauncher: s.quicklinksShowInLauncher,
-            extensionsShowInLauncher: s.extensionsShowInLauncher,
             quicklinkOpensNewWindow: s.quicklinkOpensNewWindow,
             quicklinkSelectionFallback: s.quicklinkSelectionFallback.rawValue,
             quicklinkConfirmsBeforeDelete: s.quicklinkConfirmsBeforeDelete,
@@ -387,18 +375,6 @@ extension SettingsBackup {
             count += 1
         }
         // Writing through AppSettings is enough; AppCore's sinks re-project the rest.
-        if let flag = s.fileSearchEnabled {
-            settings.fileSearchEnabled = flag
-            count += 1
-        }
-        if let scopes = s.fileSearchScopes {
-            settings.fileSearchScopes = scopes
-            count += 1
-        }
-        if let patterns = s.fileSearchIgnorePatterns {
-            settings.fileSearchIgnorePatterns = patterns
-            count += 1
-        }
         if let flag = s.notesEnabled {
             settings.notesEnabled = flag
             count += 1
@@ -427,14 +403,6 @@ extension SettingsBackup {
             settings.navigationEnabled = flag
             count += 1
         }
-        if let apps = s.menuSearchDisabledApps {
-            settings.menuSearchDisabledApps = apps
-            count += 1
-        }
-        if let flag = s.menuSearchShowsAppleMenu {
-            settings.menuSearchShowsAppleMenu = flag
-            count += 1
-        }
         if let flag = s.windowManagementEnabled {
             settings.windowManagementEnabled = flag
             count += 1
@@ -461,10 +429,6 @@ extension SettingsBackup {
         }
         if let flag = s.quicklinksEnabled {
             settings.quicklinksEnabled = flag
-            count += 1
-        }
-        if let flag = s.extensionsShowInLauncher {
-            settings.extensionsShowInLauncher = flag
             count += 1
         }
         if let flag = s.quicklinksShowInLauncher {

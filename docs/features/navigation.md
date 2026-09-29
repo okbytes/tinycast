@@ -1,18 +1,16 @@
 # Navigation
 
-Two commands that move you somewhere rather than changing something, behind one switch:
-**Switch Windows** raises any open window of any running app, and **Search Menu Bar Items** presses
-any item in the front app's menu bar. The second has its own page —
-[menu-search.md](menu-search.md) — because its internals are a menu walk; this page owns the
-switcher and the pane the two share.
+One command that moves you somewhere rather than changing something, behind one switch:
+**Switch Windows** raises any open window of any running app. This page owns the switcher and its
+pane.
 
-Ships **off**. Settings › Navigation is the switch, and while it is off neither command is in the
-launcher and a still-recorded shortcut for either does nothing.
+Ships **off**. Settings › Navigation is the switch, and while it is off the command is not in the
+launcher and a still-recorded shortcut for it does nothing.
 
 ## Invariants
 
 - **The sweep is synchronous, and that is deliberate.** `WindowSwitchSweep.snapshot` visits apps and
-  their windows — one level, two AX reads each — where the menu walk descends a tree. A
+  their windows — one level, two AX reads each. A
   `Task.detached` here would buy a "Reading windows…" state nobody would ever see, and cost a
   revision counter to keep superseded sweeps from publishing. `WindowInventory` made the same call.
 - **A live `AXUIElement` never leaves the main actor, and never outlives the show.** The pure entry
@@ -75,7 +73,7 @@ and takes every window whose subrole is `AXStandardWindow`. That is looser than
 what a switcher is for, and a window on another Space reports no frame until it is raised, so
 requiring one would hide it.
 
-Each element gets a 0.2 s messaging timeout, the same as the layout inventory and the menu walk, so
+Each element gets a 0.2 s messaging timeout, the same as the layout inventory, so
 one hung app cannot stall the summon.
 
 The app icon rides on the entry as a `FileIconStamp` and its bundle URL, and the row draws it through
@@ -104,30 +102,16 @@ window's app quit between the sweep and the ↵.
 
 ## Wiring
 
-- **`CommandID.switchWindows`** (`command:switch-windows`) and `CommandID.searchMenuItems` are both
-  named by `SettingsTab.navigation.ownedCommands`, which is the whole of what moves the second out of
+- **`CommandID.switchWindows`** (`command:switch-windows`) is named by
+  `SettingsTab.navigation.ownedCommands`, which is the whole of what moves it out of
   Settings › Commands: `LauncherItemsSection` filters on `settingsOwner == nil`, and `VisibilityStore`
-  skips the `Enable Commands` category gate for a pane-owned command. Neither adds an
-  `AppEntry.Kind`, a `HotKeyAction` case or a `VisibilityStore` category — they are plain `.command`
-  entries.
+  skips the `Enable Commands` category gate for a pane-owned command. It adds no `AppEntry.Kind`,
+  `HotKeyAction` case or `VisibilityStore` category — it is a plain `.command` entry.
 - **`navigationEnabled`** (off) is the switch. `AppCore.observeFeatureSwitches` tracks it once and
-  reprojects into both coordinators; each owns only its own command and its own palette mode, so
-  neither knows about the other. `AppIndex.isCommandEnabled` feeds `hotKeys.allowsAction`, so both
-  shortcuts go dead with the switch, and each `show()` re-guards the flag anyway.
-- **`menuSearchDisabledApps`** (empty) is the exclusion list. It ships with no seeded entries, unlike
-  the clipboard's: a menu read only ever happens because the user asked for one.
-- **`menuSearchShowsAppleMenu`** (off) lists the Apple menu's own items. Off by default because that
-  menu is identical under every app, so it would pad every snapshot with the same ~50 rows;
-  [menu-search.md](menu-search.md) owns how it is applied.
-- **Both ride in the pane's own `Search Menu Bar Items` section, beside the command row itself.**
-  `FeatureCommandsSection` takes `excluding: [.searchMenuItems]` and the section draws that one
-  command through `FeatureCommandRow`, so a command added to `ownedCommands` later still appears
-  under `Commands` without a second edit. A list of excluded apps in a box of its own read as
-  belonging to the pane rather than to one command, which is what this section exists to fix;
-  `DisabledApplicationsList` is the shared half — the rows and the picker — that Settings ›
-  Clipboard still wraps in a `DisabledApplicationsSection` of its own.
-- Both settings ride in backups. Neither grants a permission class of its own — Accessibility is
-  already required for paste — which is the call `windowManagementEnabled` made, and the opposite of
+  reprojects into the coordinator. `AppIndex.isCommandEnabled` feeds `hotKeys.allowsAction`, so the
+  shortcut goes dead with the switch, and `show()` re-guards the flag anyway.
+- The setting rides in backups. It grants no permission class of its own — Accessibility is already
+  required for paste — which is the call `windowManagementEnabled` made, and the opposite of
   `snippetsEnabled`.
 - **There is deliberately no "Show in launcher" switch.** The per-command checkboxes in
   `FeatureCommandsSection` already are one, and a second would be a switch over rows the pane lists.

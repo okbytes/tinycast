@@ -52,10 +52,9 @@ extension SettingsTab {
         switch self {
         case .quicklinks:
             [.createQuicklink, .searchQuicklinks, .importQuicklinks, .exportQuicklinks]
-        case .fileSearch: [.searchFiles]
         case .notes: [.showNotes, .createNote, .searchNotes]
         case .snippets: [.searchSnippets, .createSnippet]
-        case .navigation: [.switchWindows, .searchMenuItems]
+        case .navigation: [.switchWindows]
         case .windowManagement:
             [.createWindowLayout, .captureWindowLayout, .switchRoom, .createRoom]
         case .clipboard: [.clipboardHistory]

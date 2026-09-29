@@ -43,15 +43,6 @@ struct SettingsBackupTest {
         check(
             naming("no two backup fields claim the same key", Array(doubleClaimed)),
             doubleClaimed.isEmpty)
-        check(
-            "fileSearchEnabled rides the settings backup",
-            mirrored["fileSearchEnabled"] == .fileSearchEnabled)
-        check(
-            "file search scopes ride the settings backup",
-            mirrored["fileSearchScopes"] == .fileSearchScopes)
-        check(
-            "user ignore patterns ride the settings backup",
-            mirrored["fileSearchIgnorePatterns"] == .fileSearchIgnorePatterns)
         check("notes enablement rides the settings backup", mirrored["notesEnabled"] == .notesEnabled)
         check(
             "Markdown rendering rides the settings backup",
@@ -68,7 +59,7 @@ struct SettingsBackupTest {
 
         // Named one by one: a backup now carries content, so it is far likelier to be sent on.
         for key: AppSettingsKey in [
-            .snippetsEnabled, .extensionsEnabled, .calendarEnabled, .autoJoinMeetings,
+            .snippetsEnabled, .calendarEnabled, .autoJoinMeetings,
             .cameraPreview
         ] {
             check(

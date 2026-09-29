@@ -8,20 +8,10 @@ enum PaletteShortcut: Equatable {
     case delete
     /// ⌃⇧X.
     case deleteAll
-    /// ⇧⌘C.
-    case copyFile
-    /// ⌥⌘C.
-    case copyName
-    /// ⌃⌘C.
-    case copyPath
     /// ⇧⌘T.
     case copyText
     /// ⇧⌘↵, matched by the Return handler rather than `resolve`.
     case copyCalculation
-    /// ⇧⌘V.
-    case pasteFile
-    /// ⌘Y.
-    case quickLook
     /// ⇧⌘F.
     case toggleFavorite
     /// ⇧⌘H.
@@ -45,14 +35,7 @@ enum PaletteShortcut: Equatable {
         matches: (Character) -> Bool
     ) -> Self? {
         if isDeleteKey { return command ? .commandDelete : nil }
-        if command, matches("c") {
-            if shift { return .copyFile }
-            if option { return .copyName }
-            return control ? .copyPath : nil
-        }
-        if command, shift, matches("v") { return .pasteFile }
         if command, shift, matches("t") { return .copyText }
-        if command, matches("y") { return .quickLook }
         if control, matches("x") { return shift ? .deleteAll : .delete }
         if command, shift, matches("f") { return .toggleFavorite }
         if command, shift, matches("h") { return .hideFromSearch }
@@ -66,8 +49,7 @@ enum PaletteShortcut: Equatable {
     /// The compact bar shows no selection, so a chord aimed at a highlighted row waits for the list.
     var requiresExpanded: Bool {
         switch self {
-        case .copyFile, .copyName, .copyPath, .copyText, .pasteFile, .quickLook, .toggleFavorite,
-            .hideFromSearch, .quit, .restart:
+        case .copyText, .toggleFavorite, .hideFromSearch, .quit, .restart:
             true
         case .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot, .newItem,
             .settings, .copyCalculation:
@@ -77,10 +59,10 @@ enum PaletteShortcut: Equatable {
 
     var closesMenu: Bool {
         switch self {
-        case .delete, .deleteAll, .copyFile, .copyName, .copyPath, .copyText, .copyCalculation,
-            .quickLook, .toggleFavorite, .hideFromSearch, .newItem, .settings:
+        case .delete, .deleteAll, .copyText, .copyCalculation, .toggleFavorite, .hideFromSearch,
+            .newItem, .settings:
             true
-        case .commandDelete, .pasteFile, .quit, .restart, .pin, .favoriteSlot:
+        case .commandDelete, .quit, .restart, .pin, .favoriteSlot:
             false
         }
     }

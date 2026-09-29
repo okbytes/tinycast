@@ -40,26 +40,17 @@ struct PaletteShortcutTests {
         expect(resolve(nil, delete: true), nil, "a bare backspace stays with the field")
         expect(resolve(nil, control: true, delete: true), nil, "⌃⌫ is no row chord")
 
-        expect(resolve("c", command: true, shift: true), .copyFile, "⇧⌘C copies the file")
-        expect(resolve("c", command: true, option: true), .copyName, "⌥⌘C copies the name")
-        expect(resolve("c", command: true, control: true), .copyPath, "⌃⌘C copies the path")
         expect(resolve("c", command: true), nil, "bare ⌘C stays with the search field")
         expect(
-            resolve("c", command: true, shift: true, option: true, control: true), .copyFile,
-            "Shift is read first when several second modifiers are held")
-        expect(
-            resolve("c", command: true, option: true, control: true), .copyName,
-            "Option is read before Control")
+            resolve("c", command: true, shift: true, option: true, control: true), nil,
+            "no second modifier makes ⌘C a row chord")
 
-        expect(resolve("v", command: true, shift: true), .pasteFile, "⇧⌘V pastes the file")
         expect(resolve("v", command: true), nil, "bare ⌘V stays with the search field")
         expect(resolve("t", command: true, shift: true), .copyText, "⇧⌘T copies an image's text")
         expect(resolve("t", command: true), nil, "bare ⌘T stays with the search field")
         expect(
             resolve("t", command: true, shift: true, option: true), .copyText,
             "an extra Option still reads ⇧⌘T")
-        expect(resolve("y", command: true), .quickLook, "⌘Y toggles Quick Look")
-        expect(resolve("y", command: true, shift: true), .quickLook, "an extra Shift still reads ⌘Y")
 
         expect(resolve("x", control: true), .delete, "⌃X deletes the row")
         expect(resolve("x", shift: true, control: true), .deleteAll, "⌃⇧X deletes everything")
@@ -88,8 +79,7 @@ struct PaletteShortcutTests {
         expect(resolve("a"), nil, "typing is never a chord")
 
         let expanded: [PaletteShortcut] = [
-            .copyFile, .copyName, .copyPath, .copyText, .pasteFile, .quickLook, .toggleFavorite,
-            .hideFromSearch, .quit, .restart
+            .copyText, .toggleFavorite, .hideFromSearch, .quit, .restart
         ]
         let anywhere: [PaletteShortcut] = [
             .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot(0), .newItem,
@@ -103,11 +93,11 @@ struct PaletteShortcutTests {
         }
 
         let closing: [PaletteShortcut] = [
-            .delete, .deleteAll, .copyFile, .copyName, .copyPath, .copyText, .copyCalculation,
-            .quickLook, .toggleFavorite, .hideFromSearch, .newItem, .settings
+            .delete, .deleteAll, .copyText, .copyCalculation, .toggleFavorite, .hideFromSearch,
+            .newItem, .settings
         ]
         let leaving: [PaletteShortcut] = [
-            .commandDelete, .pasteFile, .quit, .restart, .pin, .favoriteSlot(0)
+            .commandDelete, .quit, .restart, .pin, .favoriteSlot(0)
         ]
         for shortcut in closing {
             expect(shortcut.closesMenu, "\(shortcut) closes an open menu")

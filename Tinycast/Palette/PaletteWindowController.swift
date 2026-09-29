@@ -147,8 +147,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     /// Pop to Root Search: reset now, or after the delay unless a reopen consumes it.
     private func schedulePopToRoot() {
-        // Don't pop to root if an extension is waiting for OAuth authorization in the browser.
-        guard !core.extensions.isAuthorizing else { return }
         popToRootTimer?.invalidate()
         let timeout = core.settings.popToRootTimeout
         guard timeout != .immediately else {
@@ -158,7 +156,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         popToRootTimer = Timer.scheduledTimer(withTimeInterval: timeout.interval, repeats: false) {
             [weak self] _ in
             MainActor.assumeIsolated {
-                guard let self, !self.core.extensions.isAuthorizing else { return }
+                guard let self else { return }
                 self.popToRootTimer = nil
                 self.popToRoot()
             }
@@ -173,7 +171,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     /// Skip the Pop to Root Search delay, for a close that means to reset as well as hide.
     func popToRootNow() {
-        guard !core.extensions.isAuthorizing else { return }
         popToRootTimer?.invalidate()
         popToRootTimer = nil
         popToRoot()
@@ -353,19 +350,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             guard let core = self?.core, core.palette.query.isEmpty else { return false }
             // A form field owns the key: the text it deletes is the field's, not a query's.
             if core.palette.isEditingField { return false }
-            if core.palette.mode == .extensionCommand {
-                core.extensionCoordinator.exitExtensionScreen()
-                return true
-            }
             if core.palette.pop() { return true }
             guard core.palette.mode != .launcher else { return false }
             core.palette.prepare(mode: .launcher)
-            return true
-        }
-        // Handled at the panel: a focused preview answers Escape before the palette's own handler.
-        panel.onEscape = { [weak self] in
-            guard let self, core.palette.fileSearchQuickLook else { return false }
-            core.palette.fileSearchQuickLook = false
             return true
         }
         // Handled at the panel: the field editor or a missing main menu eats these first.
