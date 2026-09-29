@@ -5,7 +5,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case application
         case systemSettings
         case command
-        case quickAction
         case customCommand
         case snippet
         case systemAction
@@ -33,11 +32,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                 return KindDescriptor(
                     label: "Command", sectionTitle: "Commands",
                     openVerb: "Run Command", canHideFromSearch: true,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
-            case .quickAction:
-                return KindDescriptor(
-                    label: "Quick Action", sectionTitle: "Quick Actions",
-                    openVerb: "Run Quick Action", canHideFromSearch: true,
                     canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
             case .customCommand:
                 return KindDescriptor(
@@ -172,9 +166,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         switch kind {
         case .command:
             return CommandCatalog.command(for: self)?.hotKeyAction
-        case .quickAction:
-            if let command = CommandCatalog.command(for: self) { return command.hotKeyAction }
-            return CustomQuickAction.id(fromEntryID: id).map { .quickAction(id: $0) }
         case .application:
             return bundleID.map { .app(bundleID: $0) }
         case .systemSettings:
@@ -223,8 +214,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case .snippet: return "text.quote"
         case .customCommand: return CustomCommand.sfSymbol
         case .command: return CommandCatalog.command(for: self)?.sfSymbol ?? "questionmark"
-        case .quickAction:
-            return CommandCatalog.command(for: self)?.sfSymbol ?? CustomQuickAction.sfSymbol
         case .systemAction: return SystemActionCatalog.action(forEntryID: id)?.sfSymbol ?? "questionmark"
         case .windowCommand:
             return WindowCommandCatalog.command(forEntryID: id)?.sfSymbol
@@ -268,14 +257,6 @@ extension AppEntry {
             id: size.entryID, name: size.name,
             url: URL(string: "tinycast://window-size/" + size.id.uuidString)!,
             bundleID: nil, kind: .windowCommand)
-    }
-
-    /// The one row a custom Quick Action draws, wherever it is offered from.
-    init(_ action: CustomQuickAction) {
-        self.init(
-            id: action.entryID, name: action.name,
-            url: URL(string: "tinycast://quick-action/" + action.id.uuidString)!,
-            bundleID: nil, kind: .quickAction, symbolName: action.iconSymbol)
     }
 
     /// The one row a custom command draws, wherever it is offered from.
@@ -381,7 +362,6 @@ final class AppIndex {
     private var windowRoomEntries: [AppEntry] = []
     private var quicklinkEntries: [AppEntry] = []
     private var appleShortcutEntries: [AppEntry] = []
-    private var customQuickActionEntries: [AppEntry] = []
     private var extensionEntries: [AppEntry] = []
     private var meetingEntries: [AppEntry] = []
     /// The catalog's commands a disabled feature hides; the Commands slice is recomputed from it.
@@ -407,10 +387,6 @@ final class AppIndex {
     /// The always-relevant built-ins, plus whatever a disabled feature has not hidden.
     private var commandEntries: [AppEntry] {
         visibleCatalogEntries.filter { $0.kind == .command }
-    }
-
-    private var quickActionEntries: [AppEntry] {
-        visibleCatalogEntries.filter { $0.kind == .quickAction } + customQuickActionEntries
     }
 
     private var visibleCatalogEntries: [AppEntry] {
@@ -447,14 +423,6 @@ final class AppIndex {
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         guard entries != customCommandEntries else { return }
         customCommandEntries = entries
-        publishEntries()
-    }
-
-    /// Replaces the custom Quick Action slice, which shares its section with the shipped four.
-    func setCustomQuickActions(_ actions: [CustomQuickAction]) {
-        let entries = actions.sorted(by: CustomQuickAction.precedes).map(AppEntry.init)
-        guard entries != customQuickActionEntries else { return }
-        customQuickActionEntries = entries
         publishEntries()
     }
 
@@ -657,7 +625,7 @@ final class AppIndex {
                 extensionEntries + quicklinkEntries + appleShortcutEntries + snippetEntries
                     + Self.systemActionEntries + windowLayoutEntries + windowRoomEntries
                     + windowCommandEntries
-                    + customWindowSizeEntries + customCommandEntries + quickActionEntries
+                    + customWindowSizeEntries + customCommandEntries
                     + commandEntries)
         guard updated != apps else { return }
         apps = updated
@@ -740,13 +708,12 @@ final class AppIndex {
         return ordered
     }
 
-    /// Meetings keep their own card, AI is never pushed, and Tinycast opening Tinycast goes nowhere.
+    /// Meetings keep their own card, and Tinycast opening Tinycast goes nowhere.
     private func suggestions(
         from entries: [AppEntry], usage: LauncherRankingStore.Snapshot, hotKeys: HotKeyManager
     ) -> [AppEntry] {
         let eligible = entries.filter {
-            $0.kind != .meeting && $0.settingsOwner != .ai
-                && !($0.bundleID?.hasPrefix(Self.ownBundlePrefix) ?? false)
+            $0.kind != .meeting && !($0.bundleID?.hasPrefix(Self.ownBundlePrefix) ?? false)
         }
         return LauncherSuggestions.select(from: eligible, now: usage.now) { entry in
             // `hotKeyAction` is nil for an extension command, whose shortcut is keyed by entry ID.
@@ -767,7 +734,6 @@ final class AppIndex {
         LauncherOrder.Signals(
             alias: aliases.alias(for: entry.preferenceKey).map { SearchText($0, transliterated: false) },
             usage: usage.usage(for: entry.preferenceKey),
-            priority: entry.kind.descriptor.rankPriority, title: entry.name,
-            boostedTerms: CommandCatalog.command(for: entry)?.boostedTerms ?? [])
+            priority: entry.kind.descriptor.rankPriority, title: entry.name)
     }
 }

@@ -15,7 +15,7 @@ DISPLAY_NAME="${DISPLAY_NAME:-Tinycast}"
 BUNDLE_ID="${BUNDLE_ID:-com.tinycast.app}"
 CASK="${CASK:-tinycast}"
 
-# Everything below this line is for the download page; the update window cuts here.
+# Everything below this line is for the download page.
 MARKER="<!-- tinycast:install -->"
 # Discord rejects a component over 4000 characters, and a wall of bullets reads worse than a taste.
 DISCORD_BUDGET=1200
@@ -40,7 +40,7 @@ GENERATED="$(gh api "repos/${REPO}/releases/generate-notes" "${NOTES_ARGS[@]}" -
 
 COMPARE_URL="$(printf '%s\n' "$GENERATED" | sed -n 's|^\*\*Full Changelog\*\*: \(.*\)$|\1|p' | tail -n1)"
 
-# A bare `#304` still autolinks on the web and fits the 460pt update window; the full URL does neither.
+# A bare `#304` still autolinks on the web and reads shorter in Discord; the full URL does neither.
 CHANGELOG="$(printf '%s\n' "$GENERATED" | sed -E \
     -e '/^\*\*Full Changelog\*\*:/d' \
     -e "s|https://github\.com/${REPO}/pull/([0-9]+)|#\1|g")"

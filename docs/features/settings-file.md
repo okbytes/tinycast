@@ -14,8 +14,7 @@ in `Features/WindowManagement/`.
 - **Off by default, and only the pane turns it on.** `settingsFileEnabled` has no key in the file and is
   excluded from backups: a file or an import must never switch on something that reads a file.
 - **A capability grant never has a key.** Snippets, Extensions, Calendar access, Auto Join, Camera
-  Preview, Quick Actions, MCP and clipboard text recognition are switched on only in the app, which
-  asks first. `settings-file-test` checks those paths stay absent.
+  Preview and clipboard text recognition are switched on only in the app, which asks first. `settings-file-test` checks those paths stay absent.
 - **`SettingsFileSchema`'s switch is exhaustive.** A new `SettingsFileKey` case fails to build until it
   is bound to a property.
 - **A bad edit never costs a setting.** A key the file leaves out keeps its value; a value Tinycast
@@ -23,10 +22,10 @@ in `Features/WindowManagement/`.
   applies nothing. An invalid record in a list is skipped and reported, and the rest still apply.
 - **Applying the file never writes it.** Only a change made in the app rewrites the file, so hand
   formatting stays until then.
-- **Content and machine state never enter it.** Notes, snippets, custom commands, quicklinks, MCP
-  servers and AI connections stay where they are — the file can say which folder notes and snippets
-  live in, never what is in them — as do the palette's position, the extension toolchain,
-  every shortcut outside window management, and what a room learns by being entered.
+- **Content and machine state never enter it.** Notes, snippets, custom commands and quicklinks stay
+  where they are — the file can say which folder notes and snippets live in, never what is in them —
+  as do the palette's position, the extension toolchain, every shortcut outside window management,
+  and what a room learns by being entered.
 
 ## Layout
 
@@ -70,8 +69,8 @@ target, so a file linked from a dotfiles repository stays linked.
 - **Turning it off** stops both directions and leaves the file on disk.
 
 A side effect of a setting runs from an `AppCore` `track` sink, never from a pane's `.onChange`: the file
-can change a setting while no pane is open. Clipboard retention, AI retention and the extensions'
-launcher presence are the three that moved for this.
+can change a setting while no pane is open. Clipboard retention and the extensions' launcher
+presence are the two that moved for this.
 
 ## The format
 
@@ -85,8 +84,7 @@ because the app rewrites the file.
     "showInMenuBar": true,
     "popToRootSeconds": 0,
     "escapeKeyBehavior": "navigateBackOrClose",
-    "autoSwitchInputSource": null,
-    "supportReminders": true
+    "autoSwitchInputSource": null
   },
   "clipboard": {
     "enabled": true,
@@ -106,10 +104,6 @@ Where a number has a special case, the case is a word:
 | Key | Values |
 | --- | --- |
 | `clipboard.retentionDays` | 1, 7, 30, 90, 180, 365, `"forever"` |
-| `ai.retentionDays` | 7, 30, 90, `"forever"` |
-| `ai.newChatAfterMinutes` | 2, 5, 10, 30, `"never"` |
-| `ai.toolRounds` | 10, 25, 50, 100, `"unlimited"` |
-| `ai.opensTo` | `"recent"`, `"newConversation"` |
 | `calendar.launcherLimit` | 1, 3, 5, `"all"` |
 | `calendar.menuBar` | `"disabled"`, `"meetingIcon"`, `"meetingTitle"` |
 | `calendar.menuBarUpcomingEvents` | `"today"`, or 2, 5, 10, 30 minutes before |

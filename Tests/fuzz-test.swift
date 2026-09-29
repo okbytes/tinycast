@@ -174,7 +174,6 @@ struct FuzzTest {
         /// Most recent last, as the store keeps them.
         var terms: [String] = []
         var priority = 3
-        var boosted: Set<String> = []
 
         var profile: SearchProfile {
             FuzzTest.profile(name, alternates: alternates, subtitle: subtitle, keywords: keywords)
@@ -184,7 +183,7 @@ struct FuzzTest {
             LauncherOrder.Signals(
                 alias: alias.map { SearchText($0, transliterated: false) },
                 usage: LauncherUsage(frecency: frecency, searchTerms: terms), priority: priority,
-                title: name, boostedTerms: boosted)
+                title: name)
         }
     }
 
@@ -204,19 +203,6 @@ struct FuzzTest {
         check(
             "an exact alias beats an exact title",
             first("fig", [Item(name: "Fig"), Item(name: "Figma", alias: "fig")]) == "Figma")
-        check(
-            "a boosted term beats a stronger alignment",
-            first("chat", [Item(name: "ChatGPT"), Item(name: "AI Chat", boosted: ["ai", "chat"])])
-                == "AI Chat")
-        check(
-            "…until the other entry is the one the user opens more",
-            first(
-                "chat",
-                [
-                    Item(name: "ChatGPT", frecency: 300),
-                    Item(name: "AI Chat", frecency: 101, boosted: ["chat"])
-                ])
-                == "ChatGPT")
         check(
             "past three letters an exact title beats any habit",
             first("notes", [Item(name: "Search Notes", frecency: 900, terms: ["notes"]), Item(name: "Notes")])
@@ -334,7 +320,7 @@ struct FuzzTest {
             Item(name: "Visual Studio Code", keywords: ["Code"], priority: 4),
             Item(name: "Game Center", priority: 1), Item(name: "Sound", priority: 1),
             Item(name: "Tinycast Settings"), Item(name: "Calculator History"),
-            Item(name: "AI Chat", boosted: ["ai", "chat"]), Item(name: "Search Files"),
+            Item(name: "Search Files"),
             Item(name: "Search Notes"), Item(name: "Show Notes"), Item(name: "Set Volume"),
             Item(name: "Search", subtitle: "Brew"), Item(name: "Upgrade", subtitle: "Brew"),
             Item(name: "Signature Block", alternates: ["sig"])
@@ -369,7 +355,6 @@ struct FuzzTest {
             ("code", "Visual Studio Code", "a last word, where Xcode only matches mid-word"),
             ("gc", "Google Chrome", "initials, over a pane sharing them"),
             ("calcu", "Calculator", "an app wins the tie with the command named after it"),
-            ("ai", "AI Chat", "a boosted term over an app it ties"),
             ("notes", "Notes", "past three letters, an exact title wins"),
             ("cafe", "Café Noir", "an accent typed without it"), ("ｃａｆｅ", "Café Noir", "…full-width"),
             ("微信", "微信", "a Chinese name typed in Chinese"), ("weixin", "微信", "…as pinyin"),

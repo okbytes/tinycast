@@ -172,8 +172,7 @@ The log is an `NSTextView` and only the undrawn tail is appended; a quarter-mega
 re-laid-out per line is seconds of work. The run publishes each append as an explicit `delta` and
 `revision`, so the view adds just that when it is exactly one step behind and redraws from the whole
 log otherwise — a new run, a trim, or a window reopened onto a finished one. Past 256 KiB the head is dropped. Following the tail stops
-when the reader scrolls up and resumes when they reach the bottom, the same band the chat transcript
-uses.
+when the reader scrolls up and resumes when they reach the bottom.
 
 **The window replaces the failure dialog rather than joining it**, so a run is never reported twice;
 the success pill is skipped for the same reason.

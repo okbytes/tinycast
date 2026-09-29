@@ -38,7 +38,7 @@ enum CommandCatalog {
     ) -> AppEntry {
         AppEntry(
             id: id.rawValue, name: id.name, url: url ?? placeholderURL(id), bundleID: nil,
-            kind: id.entryKind, settingsOwner: id.owner, subtitle: subtitle)
+            kind: .command, settingsOwner: id.owner, subtitle: subtitle)
     }
 
     nonisolated private static func placeholderURL(_ id: CommandID) -> URL {
@@ -52,8 +52,6 @@ extension SettingsTab {
         switch self {
         case .quicklinks:
             [.createQuicklink, .searchQuicklinks, .importQuicklinks, .exportQuicklinks]
-        case .ai: [.quickAI, .aiChat]
-        case .quickActions: [.fixGrammar, .rewrite, .translate, .summarize]
         case .fileSearch: [.searchFiles]
         case .notes: [.showNotes, .createNote, .searchNotes]
         case .snippets: [.searchSnippets, .createSnippet]
@@ -77,8 +75,4 @@ extension CommandID {
         SettingsTab.allCases.reduce(into: [:]) { table, tab in
             for command in tab.ownedCommands { table[command] = tab }
         }
-
-    var entryKind: AppEntry.Kind {
-        builtInQuickAction == nil ? .command : .quickAction
-    }
 }

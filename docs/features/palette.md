@@ -61,12 +61,8 @@ SwiftUI search field re-focuses. `prepare` is one of four motions over the scree
 [Navigation](#navigation).
 
 Hiding schedules Pop to Root Search, and `PaletteWindowController.popToRoot` is its only path: the
-palette returns to the launcher *and* chat starts a new conversation, at once or after
-`popToRootTimeout`, unless a re-summon inside that window consumes the pending reset first. An
-unfinished chat is a thing being done, exactly like a typed query, so the screen and the conversation
-are reset together rather than the screen alone. A reply still streaming is the one exception — it was
-asked for, and resetting would throw the answer away. Nothing is lost either way: a conversation is
-written to Chat History, and the AI Chat window's sidebar, as soon as it has a message.
+palette returns to the launcher, at once or after `popToRootTimeout`, unless a re-summon inside that
+window consumes the pending reset first.
 
 Each `PaletteMode` maps to one type conforming to `PaletteScreen`, and the protocol is what keeps the
 selection invariant honest: a screen exposes `rows` as its single source of visible order, and the
@@ -96,12 +92,12 @@ every screen but the clipboard, which lands past its pins
 | `.dictionary` | `DictionaryScreen` | `DictionaryEntryView` (see [dictionary.md](dictionary.md)) |
 | `.extensionCommand` | `ExtensionCommandScreen` | `ExtensionCommandView` (see [extensions.md](extensions.md)) |
 
-**Tab rings the three surfaces a reader opens directly — launcher → AI chat → clipboard → launcher**
-— unless the screen claims it through `tabTarget(from:backwards:)` (an extension's `Form` walks its
-own fields), or the selected row declares arguments, in which case it walks those fields first (see
-below); every other mode stays off the ring, and is reached by a command or a global hotkey, with
-Uninstall only from a launcher app's Actions menu, scoped to that app. Chat is skipped whole when
-`aiEnabled` is off, which leaves the launcher ↔ clipboard flip the ring replaced.
+**Tab rings the two surfaces a reader opens directly — launcher ↔ clipboard** — unless the screen
+claims it through `tabTarget(from:backwards:)` (an extension's `Form` walks its own fields), or the
+selected row declares arguments, in which case it walks those fields first (see below); every other
+mode stays off the ring, and is reached by a command or a global hotkey, with Uninstall only from a
+launcher app's Actions menu, scoped to that app. Clipboard is skipped when `clipboardEnabled` is off,
+which leaves Tab on the launcher with nowhere to go.
 
 ### Navigation
 
@@ -120,7 +116,7 @@ that returning looks like never having left — and offers four motions over it:
 | Motion | Meaning |
 | --- | --- |
 | `prepare(mode:)` | become the root: open fresh, drop the stack |
-| `replace(mode:)` | swap the screen, keep what it was opened over (a new chat, not a new root) |
+| `replace(mode:)` | swap the screen, keep what it was opened over |
 | `push(mode:)` | open over the current screen, which a back step returns to |
 | `pushCarryingQuery(mode:)` | the same step, with the query and row kept: Tab's hop into the ring |
 | `pop()` | restore the screen underneath; `false` when this one is the root |
@@ -148,23 +144,14 @@ pops, a root one closes — so `backHelp` says which, rather than promising a st
 a close. It lights to `textPrimary` under the pointer over `Theme.Duration.hover`, and
 `HeaderBackButton` keeps that hover state to itself so the header around it never re-renders.
 
-The launcher advertises the first hop in the header — `Quick AI` beside a `⇥` cap, the footer's own
-pairing of a label with its key. It is drawn only when Tab really would open Quick AI, a condition read
-back out of `PaletteTabAction` rather than restated, so a hint can never promise a destination the
-key does not go to: an argument field to walk takes Tab first, and the hint steps aside for it.
+`PaletteTabAction` decides where Tab goes *and* what happens to the typed text: both ends
+`.carryQuery` — the text rides along, since one search narrows either list — and a sub-screen exits
+to the launcher.
 
-`PaletteTabAction` decides where Tab goes *and* what happens to the typed text. The clipboard hands
-the query over, since one search narrows either list. **From the launcher, Tab `.ask`s** — Quick AI opens
-fresh with the typed text already sent, so one key turns a search into a question. Leaving chat is
-still a `.freshScreen`: that field holds a half-written message rather than a query, and a draft
-dropped into a filter matches nothing. `.ask` is its own case rather than a `carryQuery(.ai)` because
-the text is submitted, not seeded, and the hint reads the case back out (`== .ask`) instead of
-restating the rule.
-
-**A ring hop is a step, so Escape walks back out the way Tab came in** — launcher → chat → clipboard
-takes two presses to unwind, and the back chevron's tooltip stops promising a step it cannot take.
-The launcher is the ring's root, so the hop that closes the ring resets the stack instead of stacking
-a third screen; ringing round forever therefore never grows the stack past two.
+**A ring hop is a step, so Escape walks back out the way Tab came in** — launcher → clipboard takes
+one press to unwind, and the back chevron's tooltip stops promising a step it cannot take. The
+launcher is the ring's root, so the hop that closes the ring resets the stack instead of stacking
+another screen; ringing round forever therefore never grows the stack past two.
 
 ### Inline row arguments
 
@@ -393,8 +380,8 @@ the arrow outside it, and AppKit's own alternation over the field came straight 
 `RootPaletteView` holds a single `OpenMenu?` rather than a flag per menu, so "at most one is open" is
 structural instead of a pair of `onChange` handlers pushing each other closed. The ⌘K Actions menu
 hangs `.bottomTrailing`, the app menu `.bottomLeading`, and everything drawn as a header control —
-the clipboard type filter, the AI model and effort menus, an `options=` argument field's choices and
-a running command's `searchBarAccessory` dropdown — hangs `.belowHeaderTrailing`, under its own
+the clipboard type filter, an `options=` argument field's choices and a running command's
+`searchBarAccessory` dropdown — hangs `.belowHeaderTrailing`, under its own
 button. `menuContent` resolves the open case to one `PaletteMenuContent` — a row count, a row action
 and a view built on demand — so ↑/↓, plain ↵, Esc and the click-away catcher serve every menu without
 knowing which is up. A screen supplies its rows as a `PopoverMenuContent` through `actions(at:)` and
@@ -404,8 +391,7 @@ both its ⌘K panel and its search-bar dropdown, and the reason the seam exists 
 [extensions.md](extensions.md)). The view is a closure because `moveMenu` resolves the open menu on
 every arrow key and needs the row count alone. Every open path goes through `open(_:highlighting:)`
 and states where the highlight starts: the first row, except the pop-up-shaped menus — the type
-filter, the AI model and effort menus, an extension's search-bar dropdown — which open on the choice
-they already hold.
+filter, an extension's search-bar dropdown — which open on the choice they already hold.
 
 **The click-away catcher answers either mouse button.** A left press arrives as a `DragGesture`, so a
 drifting press still dismisses the way a native menu's does; a right press arrives through

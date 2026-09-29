@@ -17,12 +17,8 @@ enum Theme {
         static let xxxl: CGFloat = 28
         /// Gap under a category header, shared by every palette list's `SectionHeader`.
         static let sectionHeaderBottom: CGFloat = 4
-        /// Clearance under the last message, so its actions row belongs to it, not to the footer.
-        static let chatTranscriptBottom: CGFloat = 28
-        /// A stream grows the transcript as the reader descends, so an exact-bottom test runs away.
+        /// A stream grows the log as the reader descends, so an exact-bottom test runs away.
         static let chatFollowTailSlack: CGFloat = 44
-        /// Extra leading between a transcript's lines, so a long reply reads as paragraphs.
-        static let chatLine: CGFloat = 4
         /// Space above every header but the first, reading as the previous section's close.
         static let sectionSpacing: CGFloat = 12
         /// Emoji tiles need a little more separation so adjacent category grids stay distinct.
@@ -140,17 +136,10 @@ enum Theme {
         static let menuButton: CGFloat = 36
         static let noteGlyph: CGFloat = 16
         static let noteEmptyGlyph: CGFloat = 28
-        /// Hit target for a chat message footer glyph; its caption symbol floats inside it.
-        static let chatMessageAction: CGFloat = 16
         /// A one-pixel markdown rule and table header separator.
         static let hairline: CGFloat = 1
         static let markdownListMarker: CGFloat = 20
         static let markdownQuoteBar: CGFloat = 2
-        /// The chat composer's context ring, track and fill alike.
-        static let contextRingStroke: CGFloat = 2
-        /// The chat window's drop outline and the length of its dashes.
-        static let dropHintStroke: CGFloat = 2
-        static let dropHintDash: CGFloat = 6
         /// The uninstall list's leading checkbox / lock glyph.
         static let checkbox: CGFloat = 16
         static let clipboardListWidth: CGFloat = 290
@@ -181,15 +170,6 @@ enum Theme {
         static let menuBrandIcon: CGFloat = 14
         /// The same mark in a header bar button, matched to the callout symbol beside it.
         static let barBrandIcon: CGFloat = 12
-        /// A sent image in the transcript; a staged one is a small preview in a composer pill.
-        static let chatImageThumb: CGFloat = 96
-        static let chatAttachmentGlyph: CGFloat = 16
-        /// A staged file's preview in its pill, kept under the pill's height so it reads inside it.
-        static let chatAttachmentThumb: CGFloat = 18
-        /// The window composer's remove button; small, but what makes a mispaste recoverable.
-        static let chatAttachmentRemove: CGFloat = 14
-        /// Tighter than the gap inside the pill, so the thumbnail reads as filling it.
-        static let chatAttachmentInset: CGFloat = 3
         /// The clipboard preview's player; `VideoPlayer` expands unbounded without a height.
         static let clipboardMediaHeight: CGFloat = 260
         /// The preview pane is ~460pt wide, so 900px stays crisp at 2× without over-decoding.
@@ -205,23 +185,6 @@ enum Theme {
         static let settingsRowIcon: CGFloat = 20
         /// A sidebar glyph inside its tinted tile; the tile's inset brings it to the row icon's size.
         static let settingsSidebarGlyph: CGFloat = 14
-        /// AI Chat's opening size; the user owns it from there, autosaved.
-        static let aiChatWindow = CGSize(width: 960, height: 660)
-        static let aiChatWindowMinimum = CGSize(width: 680, height: 440)
-        static let aiChatSidebarMinimum: CGFloat = 240
-        static let aiChatSidebarMaximum: CGFloat = 340
-        /// The sidebar's search capsule, a row's height so it lines up with the list below it.
-        static let aiChatSearchField: CGFloat = 28
-        static let aiChatDetailMinimum: CGFloat = 440
-        /// The transcript and composer column; past this a line of prose stops being readable.
-        static let aiChatReadingWidth: CGFloat = 760
-        /// The composer grows with its text up to this, then scrolls inside itself.
-        static let aiChatComposerMaxHeight: CGFloat = 180
-        static let chatContextGauge: CGFloat = 14
-        /// A source chip's title before it middle-truncates, so three chips share a row.
-        static let chatSourceTitle: CGFloat = 200
-        /// The context card's width: a label column and a value one, with room for a model name.
-        static let chatContextCard: CGFloat = 300
         /// A grouped `Form` row's control height.
         static let settingsControlHeight: CGFloat = 28
         static let emojiSkinToneGlyph: CGFloat = 13
@@ -266,16 +229,6 @@ enum Theme {
         static let cameraPreview = CGSize(width: 420, height: 236)
         /// 16:9 again, wider: the standalone camera is the surface, not a confirmation on one.
         static let cameraStage = CGSize(width: 560, height: 315)
-        /// Wider than a dialog: a Quick Action's result is prose to read, not a sentence to answer.
-        static let quickActionPanel: CGFloat = 520
-        /// Matched to the title's cap height; a row-sized glyph beside it reads as an error.
-        static let quickActionHeaderIcon: CGFloat = 14
-        /// The dissolve ramp below each bar's clear zone, measured against text behind the title.
-        static let quickActionScrollFade: CGFloat = 40
-        /// Past this the result scrolls, so a long summary cannot grow the panel off the screen.
-        static let quickActionPanelBody: CGFloat = 320
-        /// Keeps a two-word grammar fix from collapsing the panel to a slot.
-        static let quickActionPanelMinBody: CGFloat = 44
         /// Transient volume HUD shown after any volume or mute command.
         static let hudWidth: CGFloat = 200
         static let hudHeight: CGFloat = 100
@@ -314,7 +267,6 @@ enum Theme {
         /// A pop-up chevron turning between its closed and open directions.
         static let menuChevron: TimeInterval = 0.34
         static let copyFeedback: TimeInterval = 1.2
-        static let chatFooter: TimeInterval = 0.12
         /// A Settings search result scrolling its section into view, then the pulse that marks it.
         static let settingsReveal: TimeInterval = 0.28
         static let settingsFlash: TimeInterval = 2.0
@@ -377,11 +329,7 @@ enum Theme {
         static let markdownHeading2 = Font.title3.weight(.semibold)
         static let markdownHeading3 = Font.headline
         static let code = Font.system(.callout, design: .monospaced)
-        static let inlineCode = Font.body.monospaced()
         static let bar = Font.callout.weight(.medium)
-        /// A staged chat attachment's name beside the search text; the NSFont measures the chip.
-        static let chip = Font.callout
-        @MainActor static let chipNSFont = NSFont.preferredFont(forTextStyle: .callout)
         /// A dropdown control's trailing chevron, deliberately smaller than the label it follows.
         static let disclosure = Font.caption.weight(.semibold)
         static let menuRow = Font.body
@@ -491,12 +439,6 @@ enum Theme {
         static let destructive = Color.red
         /// Success tint: the leading glyph of a `.success` dialog.
         static let success = Color.green
-        /// Caution tint, short of destructive: a chat context nearly full.
-        static let warning = Color.orange
-        /// The window's own page, for a card that must hide the transcript it floats over.
-        static let windowSurface = Color(nsColor: .windowBackgroundColor)
-        /// Where a dropped file will land: the chat window's dashed outline.
-        static let dropTarget = Color.accentColor
         /// Progress tint: the message pill's spinner while the work behind it is still running.
         static let progress = Color.blue
         /// The command output window's page: a flat surface the log sits directly on.

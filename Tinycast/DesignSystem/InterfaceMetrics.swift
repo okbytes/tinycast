@@ -29,9 +29,7 @@ struct InterfaceMetrics: Equatable, Sendable {
         var sectionHeaderBottom: CGFloat { scaledPoints(Theme.Spacing.sectionHeaderBottom, scale) }
         var sectionSpacing: CGFloat { scaledPoints(Theme.Spacing.sectionSpacing, scale) }
         var emojiSectionSpacing: CGFloat { scaledPoints(Theme.Spacing.emojiSectionSpacing, scale) }
-        var chatTranscriptBottom: CGFloat { scaledPoints(Theme.Spacing.chatTranscriptBottom, scale) }
         var chatFollowTailSlack: CGFloat { scaledPoints(Theme.Spacing.chatFollowTailSlack, scale) }
-        var chatLine: CGFloat { scaledPoints(Theme.Spacing.chatLine, scale) }
     }
 
     struct Radius: Equatable, Sendable {
@@ -100,19 +98,6 @@ struct InterfaceMetrics: Equatable, Sendable {
 
         var markdownListMarker: CGFloat { scaledPoints(Theme.Size.markdownListMarker, scale) }
         var markdownQuoteBar: CGFloat { scaledPoints(Theme.Size.markdownQuoteBar, scale) }
-        var chatMessageAction: CGFloat { scaledPoints(Theme.Size.chatMessageAction, scale) }
-        var chatImageThumb: CGFloat { scaledPoints(Theme.Size.chatImageThumb, scale) }
-        var chatAttachmentGlyph: CGFloat { scaledPoints(Theme.Size.chatAttachmentGlyph, scale) }
-        var chatAttachmentThumb: CGFloat { scaledPoints(Theme.Size.chatAttachmentThumb, scale) }
-        var chatAttachmentRemove: CGFloat { scaledPoints(Theme.Size.chatAttachmentRemove, scale) }
-        var chatAttachmentInset: CGFloat { scaledPoints(Theme.Size.chatAttachmentInset, scale) }
-
-        var quickActionPanel: CGFloat { scaledPoints(Theme.Size.quickActionPanel, scale) }
-        var quickActionHeaderIcon: CGFloat { scaledPoints(Theme.Size.quickActionHeaderIcon, scale) }
-        var quickActionScrollFade: CGFloat { scaledPoints(Theme.Size.quickActionScrollFade, scale) }
-        var quickActionPanelBody: CGFloat { scaledPoints(Theme.Size.quickActionPanelBody, scale) }
-        var quickActionPanelMinBody: CGFloat { scaledPoints(Theme.Size.quickActionPanelMinBody, scale) }
-
         var dialogCompactWidth: CGFloat { scaledPoints(Theme.Size.dialogCompactWidth, scale) }
         var dialogWidth: CGFloat { scaledPoints(Theme.Size.dialogWidth, scale) }
         var dialogButtonHeight: CGFloat {
@@ -169,10 +154,7 @@ struct InterfaceMetrics: Equatable, Sendable {
                 ? Theme.Typography.code
                 : .system(size: nsFont(.callout).pointSize, design: .monospaced)
         }
-        var inlineCode: Font { font(Theme.Typography.inlineCode, .body).monospaced() }
         var bar: Font { font(Theme.Typography.bar, .callout, .medium) }
-        var chip: Font { font(Theme.Typography.chip, .callout) }
-        @MainActor var chipNSFont: NSFont { scale == 1 ? Theme.Typography.chipNSFont : nsFont(.callout) }
         var disclosure: Font { font(Theme.Typography.disclosure, .caption1, .semibold) }
         var menuRow: Font { font(Theme.Typography.menuRow, .body) }
         var menuShortcut: Font { font(Theme.Typography.menuShortcut, .callout) }

@@ -78,7 +78,6 @@ struct PaletteShortcutTests {
         expect(resolve("r", command: true), .restart, "⌘R restarts the app")
         expect(resolve("r", command: true, shift: true), .restart, "an extra Shift still reads ⌘R")
 
-        expect(resolve("j", command: true), .continueInChat, "⌘J continues Quick AI in AI Chat")
         expect(resolve("n", command: true), .newItem, "⌘N starts a new one")
         expect(resolve("n", command: true, shift: true), nil, "⇧⌘N is not the new-item chord")
         expect(resolve(",", command: true, option: true), .settings, "⌥⌘, opens the screen's settings")
@@ -93,7 +92,7 @@ struct PaletteShortcutTests {
             .hideFromSearch, .quit, .restart
         ]
         let anywhere: [PaletteShortcut] = [
-            .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot(0), .continueInChat, .newItem,
+            .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot(0), .newItem,
             .settings, .copyCalculation
         ]
         for shortcut in expanded {
@@ -108,7 +107,7 @@ struct PaletteShortcutTests {
             .quickLook, .toggleFavorite, .hideFromSearch, .newItem, .settings
         ]
         let leaving: [PaletteShortcut] = [
-            .commandDelete, .pasteFile, .quit, .restart, .pin, .favoriteSlot(0), .continueInChat
+            .commandDelete, .pasteFile, .quit, .restart, .pin, .favoriteSlot(0)
         ]
         for shortcut in closing {
             expect(shortcut.closesMenu, "\(shortcut) closes an open menu")

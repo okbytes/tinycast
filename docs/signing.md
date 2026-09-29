@@ -115,24 +115,10 @@ missing its entitlement ships a permission that can never be granted.
 
 ## The Developer ID migration
 
-`BundleSignature` already accepts a bundle signed by the Tinycast team under Apple's Developer ID
-chain, even though releases are still signed with `Tinycast Self-Signed`. That is deliberate and
-staged: the updater compares signatures before it installs, so the code that trusts the new identity
-has to reach users *before* the first build carrying it. Until the switch it also accepts the running
-app's own leaf, which is the only thing a copy installed earlier knows how to check.
-
-The requirement pins the team rather than the certificate, so a Developer ID renewal strands nobody.
-It deliberately omits the `notarized` keyword — that resolves a ticket through `syspolicyd` or the
-network, and the updater verifies in a cache directory Gatekeeper has never assessed, so an offline
-Mac would refuse a bundle the chain already proves is ours.
-
 **The Developer ID identity stays a CI-only fact.** When the switch happens it is named on the
 release workflow's `xcodebuild` line and nowhere else: `project.yml` keeps signing with
 `Tinycast Self-Signed`, so a contributor keeps building with the one they created in §1 — same name,
 their own key, never shared. Nothing about local development changes.
-
-**Keep `Tinycast Self-Signed` in the login keychain after the switch.** It is the only way to ship a
-build that a copy predating the migration could still install.
 
 ## Quarantine (separate from signing)
 

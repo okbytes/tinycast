@@ -26,8 +26,6 @@ enum LauncherOrder {
         /// Which kind wins a full tie; higher first.
         var priority: Int
         var title: String
-        /// Queries this entry wins until the user opens a rival more.
-        var boostedTerms: Set<String> = []
     }
 
     static func ranked<Item>(
@@ -104,7 +102,6 @@ enum LauncherOrder {
     /// Nil when the entry does not match at all.
     private struct Facts {
         let alias: AliasHit
-        let isBoosted: Bool
         let titleExact: Bool
         /// The best of the title and alternate titles; an exact hit is `Int.max`.
         let title: Int
@@ -117,7 +114,6 @@ enum LauncherOrder {
             let latinLength = query.latin.units.count
             let typedLength = query.typed.units.count
             alias = signals.alias.map { Self.aliasHit($0, query.typed) } ?? .none
-            isBoosted = signals.boostedTerms.contains(query.term)
             let titleMatch = LauncherMatch.match(query.latin, in: profile.title)
             var alternateTitles = profile.alternateTitles
             if alias == .none, let text = signals.alias { alternateTitles.append(text) }
@@ -200,11 +196,6 @@ enum LauncherOrder {
         guard let x = a.facts, let y = b.facts else { return tiebreak(a, b) }
         if x.alias != y.alias, x.alias == .exact || y.alias == .exact {
             return x.alias == .exact ? -1 : 1
-        }
-        if x.isBoosted != y.isBoosted {
-            let (boosted, other) = x.isBoosted ? (a, b) : (b, a)
-            let used = other.signals.usage.frecency
-            if !(used > 1 && used > boosted.signals.usage.frecency) { return x.isBoosted ? -1 : 1 }
         }
         if length > 3, x.titleExact || y.titleExact {
             guard x.titleExact, y.titleExact else { return x.titleExact ? -1 : 1 }

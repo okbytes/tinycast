@@ -19,8 +19,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     /// Live only between mouse-down and mouse-up on a drag handle; nil means a move was ours.
     private var drag: DragSession?
     private let dropGuides = PaletteDropGuideController()
-    /// ⌘V: `Edit ▸ Paste` claims it before `sendEvent` whenever the board also carries text.
-    private var pasteMonitor: Any?
     /// ⌘⎋: the window server claims it, so no keystroke is left for the responder chain to see.
     private lazy var commandEscapeTap = CommandEscapeTap { [weak self] in
         guard let self, self.panel?.isKeyWindow == true else { return false }
@@ -98,11 +96,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         }
     }
 
-    // Isolated so teardown may touch the main-actor monitor; the block is already weak.
-    isolated deinit {
-        if let pasteMonitor { NSEvent.removeMonitor(pasteMonitor) }
-    }
-
     /// The character a bare-⌘ chord names, through the ASCII layout so an IME cannot move it.
     private static func commandCharacter(from event: NSEvent) -> String? {
         guard !event.isARepeat,
@@ -122,27 +115,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         case "=", "+": return .zoomIn
         case "-": return .zoomOut
         default: return nil
-        }
-    }
-
-    /// A local monitor sees the key before menu dispatch; returning nil swallows it.
-    private func installPasteMonitor() {
-        pasteMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
-            [weak self] event in
-            guard let self, self.panel?.isKeyWindow == true,
-                Self.commandCharacter(from: event) == "v"
-            else { return event }
-            return self.attachPastedFile() ? nil : event
-        }
-    }
-
-    /// Read once here: ⌘V is a keystroke path, and both routes want the same answer.
-    private func attachPastedFile() -> Bool {
-        let files = PasteboardFiles.urls(on: .general)
-        switch core.palette.mode {
-        case .ai: return core.quickAICoordinator.attachPastedFile(files: files)
-        case .launcher: return core.quickAICoordinator.attachPastedFileFromLauncher(files: files)
-        default: return false
         }
     }
 
@@ -385,15 +357,11 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
                 core.extensionCoordinator.exitExtensionScreen()
                 return true
             }
-            if core.palette.mode == .ai, core.quickAICoordinator.removeLastAttachment() {
-                return true
-            }
             if core.palette.pop() { return true }
             guard core.palette.mode != .launcher else { return false }
             core.palette.prepare(mode: .launcher)
             return true
         }
-        installPasteMonitor()
         // Handled at the panel: a focused preview answers Escape before the palette's own handler.
         panel.onEscape = { [weak self] in
             guard let self, core.palette.fileSearchQuickLook else { return false }

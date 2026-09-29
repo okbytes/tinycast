@@ -352,9 +352,8 @@ as `.ignored`, so a fallback never cancels itself. The argument prompt is the on
 `isPromptingForArguments` is set, the listener neither matches nor reports activity, because typing
 into the prompt and clicking **Expand** is the reader finishing the expansion, not abandoning it.
 The flag clears the buffer on both edges, so argument text can never trigger a nested expansion.
-Delivery then settles exactly once either way:
-Quick Actions raise a HUD and keep the reply on the clipboard, while snippets pass no failure handler
-and stay as silent as before, because a speculative expansion that declined is not news.
+Delivery then settles exactly once either way, and a snippet passes no failure handler, staying
+silent, because a speculative expansion that declined is not news.
 
 ## External edits and conflicts
 

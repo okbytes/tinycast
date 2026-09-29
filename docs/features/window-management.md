@@ -143,8 +143,7 @@ size suits every screen, so the size is the user's.
   bad import keeps the record.
 
 A custom size shares the window commands' `AppEntry.Kind`, their launcher section and their
-`windowManagementShowInLauncher` switch, the way custom Quick Actions share the shipped four's:
-`WindowCommandCatalog` claims an entry first, and `CustomWindowSize.id(fromEntryID:)` the rest.
+`windowManagementShowInLauncher` switch: `WindowCommandCatalog` claims an entry first, and `CustomWindowSize.id(fromEntryID:)` the rest.
 
 ## Cycling and Restore
 

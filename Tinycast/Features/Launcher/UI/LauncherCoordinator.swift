@@ -82,15 +82,6 @@ final class LauncherCoordinator {
             runCommand(id)
             return
         }
-        if app.kind == .quickAction {
-            if let command = CommandCatalog.command(for: app) {
-                runCommand(command)
-                return
-            }
-            guard let id = CustomQuickAction.id(fromEntryID: app.id) else { return }
-            core.quickActionCoordinator.run(id: id)
-            return
-        }
         if app.kind == .customCommand {
             guard let id = CustomCommand.id(fromEntryID: app.id) else { return }
             customCommandCoordinator.runCustomCommand(id: id, values: arguments)
@@ -154,7 +145,7 @@ final class LauncherCoordinator {
         case .snippet:
             let snippetID = String(app.id.dropFirst("snippet:".count))
             snippetCoordinator.expandSnippet(id: snippetID, target: previous)
-        case .command, .quickAction, .customCommand, .systemAction, .windowCommand, .windowLayout,
+        case .command, .customCommand, .systemAction, .windowCommand, .windowLayout,
             .windowRoom, .quicklink, .appleShortcut, .extensionCommand, .meeting:
             break  // handled above
         }
@@ -163,19 +154,6 @@ final class LauncherCoordinator {
     /// The one funnel a built-in command runs through, from a palette row or its global shortcut.
     func runCommand(_ id: CommandID) {
         switch id {
-        case .quickAI:
-            core.quickAICoordinator.show()
-        case .aiChat:
-            dismissPalette()
-            core.aiChatCoordinator.showWindow()
-        case .fixGrammar:
-            core.quickActionCoordinator.run(.fixGrammar)
-        case .rewrite:
-            core.quickActionCoordinator.run(.rewrite)
-        case .translate:
-            core.quickActionCoordinator.run(.translate)
-        case .summarize:
-            core.quickActionCoordinator.run(.summarize)
         case .calculatorHistory:
             paletteCoordinator.togglePalette(mode: .calculatorHistory)
         case .clipboardHistory:
@@ -249,18 +227,12 @@ final class LauncherCoordinator {
         case .importFromRaycast:
             dismissPalette()
             settingsCoordinator.showBackupSettings()
-        case .checkForUpdates:
-            dismissPalette()
-            core.updateCoordinator.checkForUpdates()
         case .settings:
             dismissPalette()
             settingsCoordinator.showSettings()
         case .about:
             dismissPalette()
             settingsCoordinator.showAbout()
-        case .support:
-            dismissPalette()
-            core.supportCoordinator.showSupport()
         case .quit:
             NSApp.terminate(nil)
         }

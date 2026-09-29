@@ -128,8 +128,8 @@ jobs:
           DISPLAY_NAME: ${{ steps.meta.outputs.display_name }}
         run: ./Scripts/verify-signature.sh "$RUNNER_TEMP/DerivedData/Build/Products/Release/${DISPLAY_NAME}.app"
 
-      # Two artifacts from one build: the DMG people download and the cask installs, and the zip
-      # the in-app updater installs — it expands with `ditto` instead of mounting a volume.
+      # Two artifacts from one build: the DMG people download and the cask installs, and a zip for
+      # anyone who would rather expand with `ditto` than mount a volume.
       - name: Package DMG and ZIP
         env:
           DISPLAY_NAME: ${{ steps.meta.outputs.display_name }}
@@ -151,8 +151,8 @@ jobs:
           name: Tinycast-${{ steps.meta.outputs.full_version }}
           path: dist/
 
-      # The changelog GitHub derives from the merged PRs, with the install text below a marker the
-      # update window cuts at. Nothing is committed anywhere — see docs/release.md.
+      # The changelog GitHub derives from the merged PRs, with the install text below a marker only
+      # a download page needs. Nothing is committed anywhere — see docs/release.md.
       - name: Compose release notes
         env:
           GH_TOKEN: ${{ github.token }}
@@ -292,15 +292,15 @@ jobs:
           echo "Using $XCODE_PATH"
           echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> "$GITHUB_ENV"
 
-      # The SAME identity as the thin build, and a hard failure if it is missing: the in-app updater
-      # compares the staged bundle's leaf certificate against the running app's before installing.
+      # The SAME identity as the thin build, and a hard failure if it is missing: every shipping
+      # bundle carries the one signature users' TCC grants were made against.
       - name: Import signing certificate
         env:
           P12_BASE64: ${{ secrets.SIGNING_P12_BASE64 }}
           P12_PASSWORD: ${{ secrets.SIGNING_P12_PASSWORD }}
         run: |
           if [ -z "${P12_BASE64}" ]; then
-            echo "::error::SIGNING_P12_BASE64 not set — a differently-signed build cannot self-update."
+            echo "::error::SIGNING_P12_BASE64 not set — a differently-signed build drops users' TCC grants."
             exit 1
           fi
           KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"

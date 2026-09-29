@@ -157,8 +157,7 @@ indented code, footnotes, reference links and blocks nested inside quotes stay p
 (a pipe row, a delimiter row with as many cells, then the pipe rows after it) also stays plain text, but
 is recognised so it gets no inline styling: it shows in the code font, with wrapped rows hanging under
 their first line, and a delimiter row typed under existing rows restyles all of them.
-The whole note is reparsed on each edit. The AI chat's `MarkdownBlock` is a separate read-only parser
-and is not shared.
+The whole note is reparsed on each edit.
 
 ### Rendering
 

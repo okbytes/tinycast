@@ -125,39 +125,36 @@ shows anything that aligns.
 The first rule that separates two entries decides:
 
 1. An exact alias.
-2. A boosted term — `ai` and `chat` for AI Chat — unless the other entry is used more.
-3. Past three characters, an exact title or alternate title.
-4. An exact past search term.
-5. An exact subtitle, so typing an extension's title lists its commands.
-6. An alias prefix.
-7. A past search term that starts with the query.
-8. A past search term of three or more characters that the query runs at most three past.
-9. The best score over the title, alternate titles and subtitle.
-10. Frecency.
-11. The title's own score.
-12. A title or alternate title that starts with the query, so `ap` puts App Store above AirPort
+2. Past three characters, an exact title or alternate title.
+3. An exact past search term.
+4. An exact subtitle, so typing an extension's title lists its commands.
+5. An alias prefix.
+6. A past search term that starts with the query.
+7. A past search term of three or more characters that the query runs at most three past.
+8. The best score over the title, alternate titles and subtitle.
+9. Frecency.
+10. The title's own score.
+11. A title or alternate title that starts with the query, so `ap` puts App Store above AirPort
     Utility, which reaches the same score by skipping to `Port`.
-13. Kind priority.
-14. The name, compared numerically.
+12. Kind priority.
+13. The name, compared numerically.
 
-Two entries that both meet rule 3 go by search-term strength, then frecency; both meeting rule 4 go by
-frecency; both meeting rule 5 go by frecency, then the title's own score. The tiebreak settles the rest —
+Two entries that both meet rule 2 go by search-term strength, then frecency; both meeting rule 3 go by
+frecency; both meeting rule 4 go by frecency, then the title's own score. The tiebreak settles the rest —
 what the empty list sorts by too — and is frecency, then having an alias, then kind priority, then the
-name. Rule 5 applies at any length, which is why `zed` lists the Zed extension's commands above
-the Zed app: rule 3 only protects an exact title past three characters.
+name. Rule 4 applies at any length, which is why `zed` lists the Zed extension's commands above
+the Zed app: rule 2 only protects an exact title past three characters.
 
-### Kind priority and boosts
+### Kind priority
 
 - **Apps win the ties.** `KindDescriptor.rankPriority` puts applications (4) above command-like kinds
   (3), quicklinks (2), and System Settings panes and meetings (1), so a first-party app is never
   shadowed by the Tinycast command named after it: Calculator over Calculator History.
-- **One boosted command.** Only AI Chat carries boosted terms (`CommandID.boostedTerms`); boosting Show
-  Notes would shadow Apple's Notes.
 - **Two entries with the same alias** fall through to the next rule.
 
 `settings` is the case these were measured against. Apple declares `Settings` in System Settings'
-`CFBundleAlternateNames`, so it is an exact alternate title and wins rule 3; the command is named
-`Tinycast Settings`, like About, Quit and Support Tinycast, so nothing ties it there.
+`CFBundleAlternateNames`, so it is an exact alternate title and wins rule 2; the command is named
+`Tinycast Settings`, like About and Quit, so nothing ties it there.
 
 ## One fold, everywhere
 
@@ -232,9 +229,9 @@ rather than being dropped whole.
 ### Subtitles
 
 An extension's title is the subtitle of every command it ships; a command's own manifest subtitle takes
-its place, and the title then rides as a keyword. A subtitle ranks like a title in rule 9, and an exact
-one is rule 5: `brew` lists Brew's commands above any title that merely starts with it, by usage, then
-by the title's own score, then by name. The subtitle does not name the entry, so a title scoring the same wins rule 11.
+its place, and the title then rides as a keyword. A subtitle ranks like a title in rule 8, and an exact
+one is rule 4: `brew` lists Brew's commands above any title that merely starts with it, by usage, then
+by the title's own score, then by name. The subtitle does not name the entry, so a title scoring the same wins rule 10.
 
 ### Category search
 
@@ -292,7 +289,6 @@ order name a live row across a rename or a reinstall.
 
 | Fallback | Where the query goes | Offered when |
 | --- | --- | --- |
-| Quick AI | a fresh Quick AI chat, question already sent (`QuickAICoordinator.ask`) | `aiEnabled` |
 | Search Files | the file-search screen, already narrowed | `fileSearchEnabled` |
 | Run Shell Command | `/bin/zsh`, streamed into the Command Output window | always |
 | Define Word | the dictionary screen, already showing the entry (see [dictionary.md](dictionary.md)) | the Define Word command is visible in Settings › Commands |
@@ -325,7 +321,7 @@ pane as well as from the launcher, and reorders through ↑/↓ buttons like a f
 introducing this codebase's first drag-reorder.
 
 **A fallback row is not a result, and `LauncherScreen.Row` says so.** `.fallback` is its own case
-with a `fallback-` prefixed id, because Quick AI can be a ranked hit *and* a fallback in the same
+with a `fallback-` prefixed id, because Search Files can be a ranked hit *and* a fallback in the same
 list, and two rows sharing one id would collapse in `ForEach`. That is also why `LauncherList` takes
 a `selectedRowID` rather than an entry id. Nothing about a fallback row is learned, pinned or
 revealed: `activate` routes to `FallbackCoordinator.run` instead of `LauncherCoordinator.launch`, and
@@ -336,7 +332,7 @@ revealed: `activate` routes to `FallbackCoordinator.run` instead of `LauncherCoo
 `AliasStore` (`Launcher/Service/`) keeps one user-chosen alias per entry, keyed by `preferenceKey`
 like favorites and learned ranking, so every entry kind — apps, commands, quicklinks, snippets —
 can carry one. An alias is deliberate in a way no vendor field is, so an exact hit is rule 1 and a
-prefix hit rule 6. Only a hit **from its start** earns those rules; anywhere else the alias ranks as
+prefix hit rule 5. Only a hit **from its start** earns those rules; anywhere else the alias ranks as
 an alternate title by score, so `dark` finds an alias `toggle light / dark`, while `term` inside
 `iterm` never beats Terminal's own prefix. `AppIndex` reads the alias at rank time, keying its
 memos on the store's revision.
@@ -429,8 +425,7 @@ so the sectioned view stays 1:1 with the flat selection.
 ### Suggestions
 
 `LauncherSuggestions.select` chooses at most five from every visible entry that is not a favorite, a
-meeting, an AI command or Tinycast itself. AI is the lowest priority, so Quick AI and AI Chat are
-never suggested, however often they are opened:
+meeting or Tinycast itself:
 
 1. up to two apps or extensions installed in the last five minutes and never opened —
    `AppEntry.installedAt` is the bundle's added-to-directory date;
@@ -561,26 +556,6 @@ Only the display name is indexed. Activation resolves the stable UUID through th
 to `ShellCommandRunner`; see [custom-commands.md](custom-commands.md) for persistence, hotkeys and
 execution semantics.
 
-## Quick Actions
-
-`AppEntry.Kind.quickAction` is one section holding both halves. `CommandID.fixGrammar`, `.rewrite`,
-`.translate` and `.summarize` publish the shipped four while `quickActionsEnabled` is on, each
-carrying the action's own title and glyph so the launcher row and the settings row can never drift.
-`CommandID.init(_ action: BuiltInQuickAction)` is exhaustive, so a fifth cannot reach the launcher
-without one. They report `CommandID.entryKind`, the one place a catalog command claims a section other
-than Commands.
-
-Custom actions arrive through `AppIndex.setCustomQuickActions` as `quick-action:<uuid>` entries,
-sorted by when they were made, and bind `HotKeyAction.quickAction(id:)`.
-
-Quick Actions are one of the panes in `SettingsTab.ownedCommands`, so `Enable Commands` does not reach
-them. **There is deliberately no `Enable Quick Actions` category toggle** either: a
-`LauncherItemsSection(kind: .quickAction)` would be a second switch over rows the pane already lists.
-
-Activation hands the action to `QuickActionCoordinator.run(_:)` **without** hiding the palette first:
-the coordinator reads the displaced app and then hides, because after the hide the frontmost app is
-Tinycast. See [quick-actions.md](quick-actions.md).
-
 ## Notes commands
 
 `CommandID.showNotes`, `.createNote`, and `.searchNotes` publish the three Notes entry points while the
@@ -602,10 +577,10 @@ and three places read it: `FeatureCommandsSection` draws the pane's rows from it
 category gate for it in both `isVisible` and `allowsHotKey`. Stamping the entry rather than sniffing its
 id is what keeps "which pane owns this" out of the entry-ID namespace.
 
-Eleven panes own commands today — AI, Quick Actions, File Search, Notes, Snippets, Navigation,
-Window Management, Clipboard, Emoji, Calendar and Quicklinks. What is left in Settings › Commands is
-the set no feature switch governs: Calculator History, Open Camera, the three backup commands, Check
-for Updates, Tinycast Settings, About, Support and Quit.
+Nine panes own commands today — File Search, Notes, Snippets, Navigation, Window Management,
+Clipboard, Emoji, Calendar and Quicklinks. What is left in Settings › Commands is the set no feature
+switch governs: Calculator History, Open Camera, the three backup commands, Tinycast Settings, About
+and Quit.
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw
@@ -708,7 +683,7 @@ favorite, alias and learned ranking survive the round trip, and its shortcut kee
 
 The row is offered only where Settings can undo it, and `KindDescriptor.canHideFromSearch` is that
 rule — per kind, and a new `Kind` case has to answer it to compile. Applications, System Settings,
-Commands, Quick Actions, System Actions, Window Commands, Window Layouts, Rooms and extension commands each
+Commands, System Actions, Window Commands, Window Layouts, Rooms and extension commands each
 draw a per-row checkbox in their pane, so they carry it. Custom commands, quicklinks and snippets do
 not: their panes list a record with its own switches, not a launcher checkbox — a hide nothing in
 Settings can visibly undo is a trap, not a shortcut.
