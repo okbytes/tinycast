@@ -3,6 +3,28 @@
 What this fork is for, and what comes next. Ordered by payoff over effort. Items move to a
 feature doc once they ship; nothing here is a promise about order.
 
+## Where things stand
+
+A personal fork of abue-ammar/tinycast, stripped to the features its owner uses, as a Raycast
+replacement without AI, monetisation or Raycast compatibility. Work happens on branch `strip-ai`
+with one commit per checkpoint. Every checkpoint passed the full definition of done in
+[docs/testing.md](docs/testing.md): harnesses, warning-free Debug build, lint, purity grep, docs.
+
+Known flakes under parallel load: `clipboard-text-test` (timing-based scheduler) and
+`icon-cache-test` (icon rendering). Both pass in isolation.
+
+Findings from the initial survey that still shape the plan:
+
+- `AppCore` is an 850-line service locator and `RootPaletteView` a 1,300-line view; both are
+  where new wiring lands, so touch them surgically.
+- Two fuzzy scorers exist: `LauncherMatch` for the root search, `SearchRelevance` for every
+  sub-screen.
+- Persistence is mixed (SQLite, UserDefaults JSON, loose JSON, `.md` files) and most writes are
+  `try?`, so failures are silent.
+- Space switching synthesizes a trackpad-swipe `CGEvent` with undocumented fields; expect it to
+  break on OS updates.
+- The Hyper key remaps Caps Lock by shelling out to `hidutil` and wipes any other mapping.
+
 ## Done
 
 - Removed AI, MCP, Quick Actions, the Support window and reminder, the in-app updater, the website.
