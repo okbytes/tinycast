@@ -51,7 +51,6 @@ system-wide chord, and HIToolbox's TIS APIs remain the public input-source mecha
 | build, run or regenerate data | [development.md](docs/development.md) |
 | add or restyle any view | [ui.md](docs/ui.md) |
 | touch one feature's internals | [features/](docs/features/) — each opens with its invariants |
-| package or ship a build | [release.md](docs/release.md) |
 
 ## Non-negotiables
 

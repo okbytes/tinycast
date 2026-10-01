@@ -1,7 +1,6 @@
 # Development
 
-The local loop: set up, build, run, regenerate. Shipping a build is [release.md](release.md);
-verifying a change is [testing.md](testing.md).
+The local loop: set up, build, run, regenerate. Verifying a change is [testing.md](testing.md).
 
 ## Requirements
 
@@ -164,8 +163,7 @@ Xcode's re-indent (⌃I), as it always has been. Two consequences worth knowing:
 - `force_try` is an error; `force_cast` only warns, because the AX and AppKit bridges have four
   legitimate ones.
 
-Errors block, warnings do not. No CI runs this script; CodeRabbit runs SwiftLint on each PR but not
-the settings-search check, so run it locally before you open one.
+Errors block, warnings do not. Nothing runs this script for you.
 
 ## Generated data
 
