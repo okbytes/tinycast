@@ -175,7 +175,9 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return Quicklink.id(fromEntryID: id).map { .quicklink(id: $0) }
         case .appleShortcut:
             return AppleShortcut.id(fromEntryID: id).map { .appleShortcut(id: $0) }
-        case .snippet, .meeting:
+        case .snippet:
+            return StoredSnippet.id(fromEntryID: id).map { .snippet(id: $0) }
+        case .meeting:
             return nil
         }
     }
@@ -297,6 +299,7 @@ final class AppIndex {
     struct Results: Equatable {
         var entries: [AppEntry] = []
         var favoriteCount = 0
+        var meetingCount = 0
         var suggestionCount = 0
     }
 
@@ -477,7 +480,7 @@ final class AppIndex {
             .filter { $0.snippet.isEnabled }
             .map { record in
                 AppEntry(
-                    id: "snippet:\(record.id)",
+                    id: record.entryID,
                     name: record.snippet.name,
                     url: record.fileURL,
                     bundleID: nil,
@@ -650,8 +653,11 @@ final class AppIndex {
                 showsSuggestions ? suggestions(from: split.rest, usage: usage, hotKeys: hotKeys) : []
             let shown = Set(suggested.map(\.id))
             let rest = byUsage(split.rest.filter { !shown.contains($0.id) }, usage: usage)
+            // Above Suggestions: a meeting is worth opening only until it ends.
+            let meetings = rest.filter { $0.kind == .meeting }
             return Results(
-                entries: split.favorites + suggested + rest, favoriteCount: split.favorites.count,
+                entries: split.favorites + meetings + suggested + rest.filter { $0.kind != .meeting },
+                favoriteCount: split.favorites.count, meetingCount: meetings.count,
                 suggestionCount: suggested.count)
         }
     }
@@ -673,7 +679,6 @@ final class AppIndex {
         }
     }
 
-    /// Each kind's run sorted by usage; the runs keep publication order, which is section order.
     private func byUsage(_ entries: [AppEntry], usage: LauncherRankingStore.Snapshot) -> [AppEntry] {
         var ordered: [AppEntry] = []
         ordered.reserveCapacity(entries.count)
@@ -681,8 +686,12 @@ final class AppIndex {
         while start < entries.endIndex {
             let kind = entries[start].kind
             let end = entries[start...].firstIndex { $0.kind != kind } ?? entries.endIndex
-            ordered += LauncherOrder.byUsage(
-                Array(entries[start..<end]), signals: { self.signals(for: $0, usage: usage) })
+            if kind == .meeting {
+                ordered.append(contentsOf: entries[start..<end])
+            } else {
+                ordered += LauncherOrder.byUsage(
+                    Array(entries[start..<end]), signals: { self.signals(for: $0, usage: usage) })
+            }
             start = end
         }
         return ordered

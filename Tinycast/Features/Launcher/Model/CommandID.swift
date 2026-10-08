@@ -4,6 +4,7 @@ import Foundation
 enum CommandID: String, CaseIterable, Sendable {
     case calculatorHistory = "command:calculator-history"
     case clipboardHistory = "command:clipboard-history"
+    case pasteSequentially = "command:paste-sequentially"
     case searchEmoji = "command:search-emoji"
     case switchWindows = "command:switch-windows"
     case openCamera = "command:open-camera"
@@ -39,6 +40,7 @@ enum CommandID: String, CaseIterable, Sendable {
         switch self {
         case .calculatorHistory: return "Calculator History"
         case .clipboardHistory: return "Clipboard History"
+        case .pasteSequentially: return "Paste Sequentially"
         case .searchEmoji: return "Search Emoji & Symbols"
         case .switchWindows: return "Switch Windows"
         case .openCamera: return "Open Camera"
@@ -76,6 +78,7 @@ enum CommandID: String, CaseIterable, Sendable {
         switch self {
         case .calculatorHistory: return "plus.forwardslash.minus"
         case .clipboardHistory: return "doc.on.clipboard"
+        case .pasteSequentially: return "list.bullet.clipboard"
         case .searchEmoji: return "face.smiling"
         case .switchWindows: return "macwindow.on.rectangle"
         case .openCamera: return "camera"

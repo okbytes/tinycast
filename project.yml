@@ -17,7 +17,10 @@ settings:
     # Create it once — see docs/signing.md.
     CODE_SIGN_IDENTITY: "Tinycast Self-Signed"
     SWIFT_STRICT_CONCURRENCY: complete
+    TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app
   configs:
+    Debug:
+      TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app.dev
     Release:
       # Release-only: library validation refuses Debug's `.debug.dylib`, whose team never matches.
       ENABLE_HARDENED_RUNTIME: YES
@@ -38,6 +41,10 @@ targets:
         excludes:
           - Features/Clipboard/Service/ClipboardTextExtractor.swift
           - Features/Clipboard/Service/ClipboardTextHelper.swift
+          - Resources/EmojiKeywords
+      # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
+      - path: Tinycast/Resources/EmojiKeywords
+        type: folder
       # Rooms' MIT licence asks the notice to travel with the binary, not just the repo.
       - path: NOTICE.md
         buildPhase: resources
@@ -51,7 +58,7 @@ targets:
           subpath: Contents/Helpers
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.tinycast.app
+        PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER)"
         INFOPLIST_FILE: Tinycast/Info.plist
         CODE_SIGN_ENTITLEMENTS: Tinycast/Tinycast.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: tinycast
@@ -65,7 +72,6 @@ targets:
         # inheriting — and corrupting — the installed app's state.
         Debug:
           PRODUCT_NAME: Tinycast Dev
-          PRODUCT_BUNDLE_IDENTIFIER: com.tinycast.app.dev
 
   ClipboardTextHelper:
     type: tool

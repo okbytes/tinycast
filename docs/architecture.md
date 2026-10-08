@@ -110,7 +110,7 @@ fine too; deciding something with one is what the rule forbids. `showNotice`, `c
 
 New long-lived state belongs on `AppCore`, wired in `start()`. Do not create a competing singleton: this is a singleton, not a container.
 
-Clipboard text recognition is the one feature that leaves the process. `AppCore` owns the indexer;
+Clipboard text recognition runs outside the process. `AppCore` owns the indexer;
 the stateless `ClipboardTextWorker` runs one bundled `ClipboardTextHelper` per item, from
 `Contents/Helpers`, and reaps it before returning. Vision's and PDFKit's allocations therefore belong
 to a process that exits, and the helper — which has no database, clipboard or settings access — is
@@ -135,9 +135,9 @@ driven imperatively from AppKit.
   unreliable for accessory apps, so this is deliberate. Their lifecycles are independent of the
   palette's in both directions.
 - **Notes** — a persistent, titled, non-activating `NotesPanel` managed by `NotesWindowController`.
-  The user owns its size and AppKit autosaves the frame; its TextKit 2 editor renders Markdown over the
-  literal source, switches among local Markdown files and stays visible on focus loss. The displayed
-  string is the canonical file source; there is no source/display mapping.
+  Its height fits the note up to 860pt and AppKit autosaves the frame; its TextKit 2 editor renders
+  Markdown over the literal source, switches among local Markdown files and stays visible on focus
+  loss. The displayed string is the canonical file source; there is no source/display mapping.
   See [features/notes.md](features/notes.md).
 - **The main menu** — shaped by `TinycastApp`'s `.commands`, which rebinds ⌘Q to Close Window for
   Settings. It is only ever on screen while a titled window is open, so it is those windows' menu

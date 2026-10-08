@@ -83,6 +83,7 @@ every screen but the clipboard, which lands past its pins
 | `.calculatorHistory` | `CalculatorHistoryScreen` | `CalculatorHistoryList` |
 | `.emoji` | `EmojiScreen` | `EmojiGridView` |
 | `.schedule` | `ScheduleScreen` | `ScheduleList` (see [calendar.md](calendar.md)) |
+| `.meetingDetails` | `MeetingDetailsScreen` | `MeetingDetailsView` (see [calendar.md](calendar.md#the-details-page)) |
 | `.uninstall` | `UninstallScreen` | `UninstallList` (see [uninstall.md](uninstall.md)) |
 | `.quicklinks` | `QuicklinkListScreen` | `QuicklinkList` + preview (see [quicklinks.md](quicklinks.md#search-quicklinks)) |
 | `.snippets` | `SnippetsScreen` | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets)) |
@@ -330,6 +331,10 @@ editor's own storage, so the bound `query` stays empty for the whole romanisatio
 would sit under the in-flight pinyin. `PalettePanel` publishes the editor's `hasMarkedText()` as
 `PaletteState.isComposing`, and the placeholder is gated on `query.isEmpty && !isComposing`.
 
+The same empty `query` would read as "nothing left to delete" to the bare-backspace step back, so
+`PalettePanel.sendEvent` asks the editor's `hasMarkedText()` itself and lets Backspace through to the
+IME while a composition is in flight. That covers every screen.
+
 The observation follows first responder, since SwiftUI hands the window's one field editor to
 whichever field holds focus, and it watches `NSTextView.didChangeSelectionNotification`. Measured,
 that is the **only** notification a marked-text change posts: `NSText.didChangeNotification` fires on
@@ -450,6 +455,9 @@ caret, mouse selection and standard editing commands.
 - The caret is hidden by clearing SwiftUI's **own** live field editor's `insertionPointColor`. SwiftUI
   force-casts its field editor to a private subclass, so vending a custom one crashes. The searchable
   menu draws no caret of its own; AppKit draws the caret in its field editor.
+- SwiftUI resolves `tint` into a fixed caret colour on focus and never refreshes it, and the search
+  field keeps focus across hide and show. `PalettePanel.makeFirstResponder` re-colours the editor with
+  the dynamic `textPrimary`, so the caret follows a Light/Dark switch.
 
 ## ↵ never commits the search field
 

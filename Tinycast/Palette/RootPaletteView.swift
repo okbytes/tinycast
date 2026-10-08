@@ -79,6 +79,8 @@ struct RootPaletteView: View {
             return ScheduleScreen(
                 store: calendarStore, clock: meetingClock, core: core, vm: vm,
                 openActions: openActions)
+        case .meetingDetails:
+            return MeetingDetailsScreen(store: calendarStore, core: core)
         case .clipboard:
             return ClipboardScreen(
                 store: store, core: core, vm: vm, openActions: openActions,
@@ -260,6 +262,11 @@ struct RootPaletteView: View {
         content
             .onChange(of: vm.emojiCategoryFilter) { land() }
             .onChange(of: core.pinnedEmoji.revision) { emojiGridChanged() }
+            .onChange(of: (screen as? EmojiScreen)?.frequentlyUsed) { old, new in
+                guard let old, let new else { return }
+                (screen as? EmojiScreen)?.frequentlyUsedChanged(from: old, to: new)
+                emojiGridChanged()
+            }
             .onChange(of: vm.emojiGridColumnsOverride) { emojiGridChanged() }
             .onChange(of: settings.emojiGridColumns) { emojiGridChanged() }
             // ⌘0 / ⌘+ / ⌘- arrive as a token, like ⌘. does. See `PaletteState.emojiGridZoomToken`.
@@ -307,6 +314,7 @@ struct RootPaletteView: View {
                     dictionary.reset()
                 }
                 if vm.mode != .switchWindows { windowSwitch.reset() }
+                if vm.mode != .meetingDetails { calendarStore.clearDetails() }
                 if vm.mode != .rooms, vm.mode != .roomWindows { core.roomCoordinator.screensDidClose() }
             }
             // `prepare` may change nothing else, so this still lands the list as freshly opened.
@@ -316,6 +324,12 @@ struct RootPaletteView: View {
             }
             // ⌘. arrives as a token rather than a key press. See `PaletteState.pinChordToken`.
             .onChange(of: vm.pinChordToken) { performShortcut(.pin) }
+            .onChange(of: vm.queryRewriteToken) {
+                if menuOpen { closeMenus() }
+                searchFocused = true
+                // Next turn, past the refocus that selects all, so typing extends the answer.
+                Task { @MainActor in (hostWindow as? PalettePanel)?.moveFieldEditorCaretToEnd() }
+            }
             // ⌘1…⌘0 arrives as a slot index from AppKit keyCode matching.
             .onChange(of: vm.favoriteSlotToken) {
                 if let index = vm.favoriteSlotIndex { performShortcut(.favoriteSlot(index)) }
@@ -511,7 +525,8 @@ struct RootPaletteView: View {
                     .frame(width: metrics.size.headerIconSlot)
                     .windowDraggable(settings.paletteDraggable, onBegan: beginDrag, onEnded: endDrag)
             }
-            headerGutter(width: metrics.spacing.md)
+            // slot + xl equals a row's icon + lg, so the query starts where the row titles do.
+            headerGutter(width: metrics.spacing.xl)
             // One structural position: a field inside a branch loses first responder when it flips.
             headerField
             if let accessory = headerAccessory {
@@ -590,7 +605,7 @@ struct RootPaletteView: View {
         let font = metrics.typography.searchFieldNSFont
         let text = vm.query.isEmpty ? searchPrompt : vm.query
         let typed = (text as NSString).size(withAttributes: [.font: font]).width
-        let chrome = metrics.size.headerIconSlot + metrics.spacing.md * 4
+        let chrome = metrics.size.headerIconSlot + metrics.spacing.md * 3 + metrics.spacing.xl
         let room = metrics.size.panelWidth - accessory.width - chrome
         // +3pt so the caret sits after the last glyph rather than on top of it.
         return min(
@@ -823,6 +838,11 @@ struct RootPaletteView: View {
             let screen = screen
             let selection = selection(in: screen)
             if modifiers.contains([.command, .control]), screen.tertiary(at: selection) { return true }
+            if modifiers.contains([.command, .shift]),
+                screen.perform(.copyCalculation, at: selection)
+            {
+                return true
+            }
             if modifiers.contains(.command) { return screen.secondary(at: selection) }
             if modifiers.contains(.option) {
                 return screen.pasteKeepingWindowOpen(at: selection)

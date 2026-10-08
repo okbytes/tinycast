@@ -129,7 +129,7 @@ final class LauncherCoordinator {
             guard let bundleID = app.bundleID else { return }
             AppLauncher.openSettingsPane(bundleID: bundleID)
         case .snippet:
-            let snippetID = String(app.id.dropFirst("snippet:".count))
+            guard let snippetID = StoredSnippet.id(fromEntryID: app.id) else { return }
             snippetCoordinator.expandSnippet(id: snippetID, target: previous)
         case .command, .customCommand, .systemAction, .windowCommand, .windowLayout,
             .windowRoom, .quicklink, .appleShortcut, .meeting:
@@ -144,6 +144,8 @@ final class LauncherCoordinator {
             paletteCoordinator.togglePalette(mode: .calculatorHistory)
         case .clipboardHistory:
             paletteCoordinator.togglePalette(mode: .clipboard)
+        case .pasteSequentially:
+            core.clipboardCoordinator.pasteNextInSequence()
         case .searchEmoji:
             paletteCoordinator.togglePalette(mode: .emoji)
         case .switchWindows:
@@ -245,11 +247,11 @@ final class LauncherCoordinator {
     }
 
     /// Quits the app behind an entry; a no-op (palette stays put) when it isn't running.
-    func quit(_ app: AppEntry) {
+    func quit(_ app: AppEntry, force: Bool = false) {
         guard app.kind == .application, let bundleID = app.bundleID else { return }
         // Nothing here takes focus, so hand it back unless that app is on its way out.
         let quittingPreviousApp = windowController.previousApp?.bundleIdentifier == bundleID
-        guard AppLauncher.quit(bundleID: bundleID) else { return }
+        guard AppLauncher.quit(bundleID: bundleID, force: force) else { return }
         paletteCoordinator.hidePalette(restoreFocus: !quittingPreviousApp)
     }
 }

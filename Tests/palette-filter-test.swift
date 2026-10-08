@@ -1,6 +1,6 @@
 import Foundation
 
-/// ⌘P opens exactly one filter, and every mode that had no filter before still has none.
+/// ⌘P targets only the current screen's header menu.
 @main
 @MainActor
 struct PaletteFilterTests {

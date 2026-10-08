@@ -71,10 +71,11 @@ struct SettingsBackup: Codable {
         var calendarShowInLauncher: Bool?
         var calendarLauncherLimit: Int?
         // Carried: it narrows what is read rather than widening what may be reached.
-        var calendarIncludesTomorrow: Bool?
+        var calendarSpan: Int?
         var joinWindowMinutes: Int?
         // `autoJoinMeetings` and `cameraPreview` are absent: an import must arm neither.
         var autoJoinConfirms: Bool?
+        var autoJoinNamedProvidersOnly: Bool?
         var menuBarEvents: Int?
         var calendarMenuBarDisplay: Int?
         var menuBarLinkedEventsOnly: Bool?
@@ -166,9 +167,10 @@ extension SettingsBackup {
             appleShortcutsEnabled: s.appleShortcutsEnabled,
             calendarShowInLauncher: s.calendarShowInLauncher,
             calendarLauncherLimit: s.calendarLauncherLimit.rawValue,
-            calendarIncludesTomorrow: s.calendarIncludesTomorrow,
+            calendarSpan: s.calendarSpan.rawValue,
             joinWindowMinutes: s.joinWindowMinutes.rawValue,
             autoJoinConfirms: s.autoJoinConfirms,
+            autoJoinNamedProvidersOnly: s.autoJoinNamedProvidersOnly,
             menuBarEvents: s.menuBarEvents.rawValue,
             calendarMenuBarDisplay: s.calendarMenuBarDisplay.rawValue,
             menuBarLinkedEventsOnly: s.menuBarLinkedEventsOnly,
@@ -461,8 +463,8 @@ extension SettingsBackup {
             settings.calendarLauncherLimit = limit
             count += 1
         }
-        if let flag = s.calendarIncludesTomorrow {
-            settings.calendarIncludesTomorrow = flag
+        if let raw = s.calendarSpan, let span = MeetingSpan(rawValue: raw) {
+            settings.calendarSpan = span
             count += 1
         }
         if let raw = s.joinWindowMinutes, let window = JoinWindow(rawValue: raw) {
@@ -471,6 +473,10 @@ extension SettingsBackup {
         }
         if let flag = s.autoJoinConfirms {
             settings.autoJoinConfirms = flag
+            count += 1
+        }
+        if let flag = s.autoJoinNamedProvidersOnly {
+            settings.autoJoinNamedProvidersOnly = flag
             count += 1
         }
         if let raw = s.menuBarEvents, let lead = MenuBarEvents(rawValue: raw) {

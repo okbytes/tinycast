@@ -1,6 +1,6 @@
 import Carbon.HIToolbox
 
-/// C entry point: decode the `EventRef` to a plain value before crossing into actor code.
+@MainActor
 private func hotKeyCarbonEventHandler(
     _: EventHandlerCallRef?, event: EventRef?, userData: UnsafeMutableRawPointer?
 ) -> OSStatus {
@@ -17,7 +17,7 @@ private func hotKeyCarbonEventHandler(
     )
     guard error == noErr else { return error }
     let center = Unmanaged<HotKeyCenter>.fromOpaque(userData).takeUnretainedValue()
-    return MainActor.assumeIsolated { center.handle(hotKeyID) }
+    return center.handle(hotKeyID)
 }
 
 /// The Carbon layer only; which shortcuts exist is `HotKeyManager`'s business.
@@ -99,7 +99,9 @@ final class HotKeyCenter {
         ]
         InstallEventHandler(
             dispatcher,
-            hotKeyCarbonEventHandler,
+            { @MainActor call, event, userData in
+                hotKeyCarbonEventHandler(call, event: event, userData: userData)
+            },
             eventTypes.count,
             &eventTypes,
             Unmanaged.passUnretained(self).toOpaque(),
