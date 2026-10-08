@@ -65,7 +65,7 @@ struct PaletteShortcutTests {
         expect(
             resolve("f", command: true, shift: true, control: true), .toggleFavorite,
             "an extra Control still reads ⇧⌘F")
-        expect(resolve("f", command: true), nil, "⌘F is not the favorite chord")
+        expect(resolve("f", command: true), .showInFinder, "⌘F shows the row in Finder")
         expect(resolve("h", command: true, shift: true), .hideFromSearch, "⇧⌘H hides the row")
         expect(resolve("h", command: true), nil, "⌘H is not the hide chord")
         expect(resolve("q", shift: true, control: true), .quit, "⌃⇧Q quits the app")
@@ -78,6 +78,10 @@ struct PaletteShortcutTests {
 
         expect(resolve("n", command: true), .newItem, "⌘N starts a new one")
         expect(resolve("n", command: true, shift: true), nil, "⇧⌘N is not the new-item chord")
+        expect(resolve("e", command: true), .edit, "⌘E edits the row")
+        expect(resolve("e", command: true, shift: true), nil, "⇧⌘E is not the edit chord")
+        expect(resolve("d", command: true), .duplicate, "⌘D duplicates the row")
+        expect(resolve("d", command: true, shift: true), nil, "⇧⌘D is not the duplicate chord")
         expect(resolve(",", command: true, option: true), .settings, "⌥⌘, opens the screen's settings")
         expect(resolve(",", command: true), nil, "⌘, stays the app's own Settings")
 
@@ -87,7 +91,7 @@ struct PaletteShortcutTests {
 
         let expanded: [PaletteShortcut] = [
             .copyText, .openInApp, .showDetails, .toggleFavorite, .hideFromSearch, .quit, .forceQuit,
-            .restart
+            .restart, .edit, .duplicate, .showInFinder
         ]
         let anywhere: [PaletteShortcut] = [
             .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot(0), .newItem,
@@ -102,7 +106,7 @@ struct PaletteShortcutTests {
 
         let closing: [PaletteShortcut] = [
             .delete, .deleteAll, .copyText, .copyCalculation, .openInApp, .showDetails,
-            .toggleFavorite, .hideFromSearch, .newItem, .settings
+            .toggleFavorite, .hideFromSearch, .newItem, .settings, .edit, .duplicate, .showInFinder
         ]
         let leaving: [PaletteShortcut] = [
             .commandDelete, .quit, .forceQuit, .restart, .pin, .favoriteSlot(0)

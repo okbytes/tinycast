@@ -28,6 +28,12 @@ enum PaletteShortcut: Equatable {
     case restart
     /// ⌘N, a new one of whatever the screen holds.
     case newItem
+    /// ⌘E, the row opened in its editor.
+    case edit
+    /// ⌘D.
+    case duplicate
+    /// ⌘F, for a screen whose ⌘↵ already does something else.
+    case showInFinder
     /// ⌥⌘,, the screen's own settings; ⌘, alone stays the app's.
     case settings
     /// ⌘., which AppKit binds to `cancelOperation:`, so it arrives as a token instead of a key.
@@ -45,11 +51,13 @@ enum PaletteShortcut: Equatable {
         if command, !shift, matches("o") { return .openInApp }
         if command, !shift, matches("i") { return .showDetails }
         if control, matches("x") { return shift ? .deleteAll : .delete }
-        if command, shift, matches("f") { return .toggleFavorite }
+        if command, matches("f") { return shift ? .toggleFavorite : .showInFinder }
         if command, shift, matches("h") { return .hideFromSearch }
         if control, shift, matches("q") { return option ? .forceQuit : .quit }
         if command, matches("r") { return .restart }
         if command, !shift, matches("n") { return .newItem }
+        if command, !shift, matches("e") { return .edit }
+        if command, !shift, matches("d") { return .duplicate }
         if command, option, matches(",") { return .settings }
         return nil
     }
@@ -58,7 +66,7 @@ enum PaletteShortcut: Equatable {
     var requiresExpanded: Bool {
         switch self {
         case .copyText, .openInApp, .showDetails, .toggleFavorite, .hideFromSearch, .quit,
-            .forceQuit, .restart:
+            .forceQuit, .restart, .edit, .duplicate, .showInFinder:
             true
         case .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot, .newItem,
             .settings, .copyCalculation:
@@ -69,7 +77,7 @@ enum PaletteShortcut: Equatable {
     var closesMenu: Bool {
         switch self {
         case .delete, .deleteAll, .copyText, .copyCalculation, .openInApp, .showDetails,
-            .toggleFavorite, .hideFromSearch, .newItem, .settings:
+            .toggleFavorite, .hideFromSearch, .newItem, .settings, .edit, .duplicate, .showInFinder:
             true
         case .commandDelete, .quit, .forceQuit, .restart, .pin, .favoriteSlot:
             false
