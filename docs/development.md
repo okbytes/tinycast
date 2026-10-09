@@ -8,8 +8,8 @@ The local loop: set up, build, run, regenerate. Verifying a change is [testing.m
 - Xcode 26 — it provides the SwiftUI macro plugin and the SDK.
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen), and for linting:
   `brew install swiftlint`.
-- Node, for the generators and for the two stub servers `run-tests.sh` drives. It is the only
-  scripting runtime here — building the app still needs none of it.
+- Node, for the generators and `run-tests.sh --index`. It is the only scripting runtime here —
+  building the app still needs none of it.
 
 ## First-time setup
 
