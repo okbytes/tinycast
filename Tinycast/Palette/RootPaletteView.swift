@@ -350,6 +350,7 @@ struct RootPaletteView: View {
             .onAppear {
                 searchFocused = true
                 land()
+                focusPendingArgument()
             }
             // Several paths flip `paletteIsCollapsed`, so resize the window to match.
             .onChange(of: core.paletteCoordinator.paletteIsCollapsed) {
