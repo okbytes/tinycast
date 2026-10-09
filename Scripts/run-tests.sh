@@ -218,6 +218,12 @@ run palette-placement-test Tinycast/Platform/Appearance.swift \
                            Tinycast/DesignSystem/InterfaceMetrics.swift \
                            Tinycast/Features/Settings/InterfaceSize.swift \
                            Tinycast/Palette/PalettePlacement.swift
+run palette-menu-click-test Tinycast/Platform/Appearance.swift \
+                           Tinycast/DesignSystem/Theme.swift \
+                           Tinycast/Platform/WindowLevel.swift \
+                           Tinycast/Platform/NotificationToken.swift \
+                           Tinycast/DesignSystem/Interaction/KeyboardFocus.swift \
+                           Tinycast/Palette/PalettePanel.swift
 run scroll-reveal-test     Tinycast/DesignSystem/Scrolling/SelectionReveal.swift
 run keyboard-focus-test    Tinycast/DesignSystem/Interaction/KeyboardFocus.swift
 run hover-arming-test      Tinycast/Palette/HoverArming.swift \
