@@ -7,9 +7,6 @@
 
 set -uo pipefail
 
-# Take turns with other projects' builds through xcode-lock (~/.local/bin, from chezmoi) when it is installed.
-[ -n "${XCODE_LOCK_HELD:-}" ] || ! command -v xcode-lock >/dev/null || exec xcode-lock "$0" "$@"
-
 # Absolute: the workers re-enter this script after the cd, where a relative $0 would not resolve.
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/.." || exit 1
