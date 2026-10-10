@@ -34,7 +34,6 @@ Findings from the initial survey that still shape the plan:
   `try?`, so failures are silent.
 - Space switching synthesizes a trackpad-swipe `CGEvent` with undocumented fields; expect it to
   break on OS updates.
-- The Hyper key remaps Caps Lock by shelling out to `hidutil` and wipes any other mapping.
 
 ## Done
 
@@ -85,7 +84,8 @@ change.
 
 - Surface a failed registration (another app owns the chord) instead of showing it as bound.
 - Check against system shortcuts via `CopySymbolicHotKeys` before recording.
-- The Hyper key's Caps Lock remap must preserve other `hidutil` mappings and self-heal after a crash.
+- Key remapping beyond Hyper and Meh: per-key chords, tap-versus-hold roles, external keyboards.
+- `HyperKeyPhysicalKey` now names the Meh key's choice too; rename it to say so.
 
 ## Window management
 

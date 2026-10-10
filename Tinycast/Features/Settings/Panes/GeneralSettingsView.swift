@@ -3,7 +3,7 @@ import SwiftUI
 struct GeneralSettingsView: View {
     @Environment(AppCore.self) private var core
     @Environment(AppSettings.self) private var settings
-    private var hyperTap: HyperKeyTap { core.hyperKeyTap }
+    private var keyRemap: KeyRemapManager { core.keyRemap }
     private var launcherRanking: LauncherRankingStore { core.launcherRanking }
     @State private var confirmingRankingReset = false
     @State private var inputSources: [InputSourceSwitcher.Option] = []
@@ -20,11 +20,33 @@ struct GeneralSettingsView: View {
                 settings.hyperKey = key
                 // A Quick Press choice is meaningless for a different key.
                 settings.hyperKeyQuickPress = .none
+                if key == settings.mehKey { settings.mehKey = .none }
                 if key != .none { Permissions.ensureAccessibility() }
             })
     }
 
-    /// The missing-permission half is its own row, so it can carry the button that fixes it.
+    /// The Hyper key is not offered, unless an import already put it here and it must still show.
+    private var mehKeyChoices: [HyperKeyPhysicalKey] {
+        HyperKeyPhysicalKey.allCases.filter {
+            $0 == .none || $0 != settings.hyperKey || $0 == settings.mehKey
+        }
+    }
+
+    private var mehKeySelection: Binding<HyperKeyPhysicalKey> {
+        Binding(
+            get: { settings.mehKey },
+            set: { key in
+                settings.mehKey = key
+                if key != .none { Permissions.ensureAccessibility() }
+            })
+    }
+
+    private var mehSubtitle: String {
+        guard settings.mehKey != .none else { return "Remap one key to ⌃⌥⇧ held together." }
+        return "\(settings.mehKey.title) sends ⌃⌥⇧."
+    }
+
+    /// The missing-setup half is its own row, so it can carry the button that fixes it.
     private var hyperSubtitle: String {
         guard settings.hyperKey != .none else { return "Remap one key to \(hyperGlyphs) held together." }
         return "\(settings.hyperKey.title) sends \(hyperGlyphs), shown as ✦ in shortcuts."
@@ -117,17 +139,7 @@ struct GeneralSettingsView: View {
                     Text(hyperSubtitle)
                 }
 
-                if hyperTap.status == .needsAccessibility {
-                    HStack(alignment: .center, spacing: Theme.Spacing.lg) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
-                            .frame(width: Theme.Size.settingsRowIcon)
-                        Text("Remapping needs Accessibility access.")
-                            .foregroundStyle(.orange)
-                        Spacer(minLength: Theme.Spacing.lg)
-                        Button("Grant Access…") { Permissions.openAccessibilitySettings() }
-                    }
-                }
+                KeyRemapStatusRow(status: keyRemap.status)
 
                 if settings.hyperKey.hasOriginalFunction {
                     Picker(selection: $settings.hyperKeyQuickPress) {
@@ -147,6 +159,15 @@ struct GeneralSettingsView: View {
                 }
                 // Flipping it re-points recorded chords, so it needs a chord to mean.
                 .settingsEnabled(settings.hyperKey != .none)
+
+                Picker(selection: mehKeySelection) {
+                    ForEach(mehKeyChoices) { key in
+                        Text(key.title).tag(key)
+                    }
+                } label: {
+                    SettingsRowTitle(.generalHyperKey, "Meh Key")
+                    Text(mehSubtitle)
+                }
             } header: {
                 SettingsSectionHeader(.generalHyperKey)
             }
@@ -324,5 +345,70 @@ private struct InterfaceSizeRow: View {
         .accessibilityLabel(size.title)
         .accessibilityAddTraits(selected ? [.isSelected] : [])
         .help(size.title)
+    }
+}
+
+/// What still stands between a bound key and a working remap, with the button that fixes it.
+private struct KeyRemapStatusRow: View {
+    let status: KeyRemapManager.Status
+    @Environment(\.openURL) private var openURL
+
+    private struct Problem {
+        let message: String
+        var action: String?
+        var fix: (@MainActor @Sendable () -> Void)?
+    }
+
+    var body: some View {
+        if let problem {
+            HStack(alignment: .center, spacing: Theme.Spacing.lg) {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .frame(width: Theme.Size.settingsRowIcon)
+                Text(problem.message)
+                    .foregroundStyle(.orange)
+                Spacer(minLength: Theme.Spacing.lg)
+                if let action = problem.action, let fix = problem.fix {
+                    Button(action, action: fix)
+                }
+            }
+        }
+    }
+
+    private var problem: Problem? {
+        let getDriver: @MainActor @Sendable () -> Void = { [openURL] in
+            openURL(KeyRemapManager.driverDownloadURL)
+        }
+        switch status {
+        case .off, .starting, .active:
+            return nil
+        case .driverMissing:
+            return Problem(
+                message: "Remapping needs the Karabiner virtual keyboard driver.",
+                action: "Get Driver…", fix: getDriver)
+        case .driverUnsupported:
+            return Problem(
+                message: "This version of the keyboard driver isn't supported.",
+                action: "Get Driver…", fix: getDriver)
+        case .helperUnreachable:
+            return Problem(
+                message: "Tinycast can't reach its keyboard helper. It needs a build signed with a team ID.")
+        case .noBuiltInKeyboard:
+            return Problem(message: "This Mac has no built-in keyboard to remap.")
+        case .keyboardInUse:
+            return Problem(message: "Another app, such as Karabiner-Elements, is holding the keyboard.")
+        case .needsApproval:
+            return Problem(
+                message: "Allow Tinycast's keyboard helper to run.",
+                action: "Open Login Items…", fix: KeyRemapManager.openLoginItemsSettings)
+        case .driverNotRunning:
+            return Problem(
+                message: "The keyboard driver isn't running. Allow it under Driver Extensions.",
+                action: "Open Settings…", fix: KeyRemapManager.openLoginItemsSettings)
+        case .needsAccessibility:
+            return Problem(
+                message: "Remapping needs Accessibility access.",
+                action: "Grant Access…", fix: Permissions.openAccessibilitySettings)
+        }
     }
 }

@@ -44,6 +44,11 @@ The app target builds and embeds `ClipboardTextHelper` under `Contents/Helpers`,
 Build the app scheme to include it; copying only the main executable omits OCR support. The helper's
 executable name stays fixed even when release builds override the app's product name for a channel.
 
+`TinycastKeyboardHelper` is embedded the same way, and a build step writes its LaunchDaemon plist to
+`Contents/Library/LaunchDaemons/`. Running it needs pqrs's driver package installed and a build signed
+by a team: both sides of its XPC connection require the same team ID, which `Tinycast Self-Signed`
+does not have. See [key-remap.md](features/key-remap.md#setup).
+
 ### The dev channel
 
 Debug builds are a separate channel: **`Tinycast Dev.app`**, bundle id `com.tinycast.app.dev`. Every
@@ -66,8 +71,8 @@ Consequences worth knowing:
   and onboarding unseen. Grant and bind once; it persists across rebuilds, because the fixed build path
   and the `Tinycast Self-Signed` identity keep the TCC grant alive.
 - Don't bind the same global hotkey in both — whichever registered first wins.
-- The Hyper Key's Caps Lock remap is `hidutil` state, which is **system-wide, not per-bundle**: quitting
-  one build clears the remap for the other, which then needs a rebind or a relaunch to restore it.
+- Each channel registers its own keyboard helper, but both seize the same built-in keyboard: give
+  the Hyper and Meh keys to one build at a time.
 
 ## Editor
 

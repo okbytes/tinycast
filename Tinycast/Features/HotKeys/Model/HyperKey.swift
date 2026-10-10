@@ -1,7 +1,6 @@
-import Carbon.HIToolbox
-import CoreGraphics
+import Foundation
 
-/// The physical key remapped to the Hyper chord. See docs/features/hotkeys.md#the-hyper-key.
+/// A physical key remapped to the Hyper or Meh chord. See docs/features/key-remap.md.
 enum HyperKeyPhysicalKey: String, CaseIterable, Identifiable, Sendable {
     case none
     case capsLock
@@ -23,40 +22,20 @@ enum HyperKeyPhysicalKey: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Virtual key code of the physical key, `nil` only for `.none`.
-    var keyCode: Int? {
+    /// The key's keyboard-page HID usage, `nil` only for `.none`.
+    var hidUsage: UInt16? {
         switch self {
         case .none: return nil
-        case .capsLock: return kVK_CapsLock
-        case .rightControl: return kVK_RightControl
-        case .rightShift: return kVK_RightShift
-        case .rightOption: return kVK_RightOption
-        case .rightCommand: return kVK_RightCommand
+        case .capsLock: return 0x39
+        case .rightControl: return 0xE4
+        case .rightShift: return 0xE5
+        case .rightOption: return 0xE6
+        case .rightCommand: return 0xE7
         }
     }
-
-    /// The keycode the tap watches; Caps Lock is HID-remapped to F18 while it serves as Hyper.
-    var tapKeyCode: Int? {
-        self == .capsLock ? kVK_F18 : keyCode
-    }
-
-    /// Whether presses arrive as keyDown/keyUp (Caps Lock via F18) or as `flagsChanged`.
-    var tapUsesKeyEvents: Bool { self == .capsLock }
 
     /// Keys that do something on their own when not remapped — these get the Quick Press row.
     var hasOriginalFunction: Bool { self == .capsLock }
-
-    /// The generic flag this key contributes, so the tap can strip it when outside the set.
-    var ownFlag: CGEventFlags? {
-        switch self {
-        case .none: return nil
-        case .capsLock: return .maskAlphaShift
-        case .rightControl: return .maskControl
-        case .rightShift: return .maskShift
-        case .rightOption: return .maskAlternate
-        case .rightCommand: return .maskCommand
-        }
-    }
 
     /// Quick Press label for triggering the key's original function.
     var quickPressOriginalTitle: String? {

@@ -11,6 +11,7 @@ enum SettingsBackupCoverage {
         "hyperKey": .hyperKey,
         "hyperKeyIncludesShift": .hyperKeyIncludesShift,
         "hyperKeyQuickPress": .hyperKeyQuickPress,
+        "mehKey": .mehKey,
         "showInMenuBar": .showInMenuBar,
         "emojiSkinTone": .emojiSkinTone,
         "emojiGridColumns": .emojiGridColumns,

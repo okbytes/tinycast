@@ -160,6 +160,9 @@ enum SettingsSearchCatalog {
             .generalHyperKey, "Include Shift (⇧)",
             keywords: ["modifier", "chord"]),
         .init(
+            .generalHyperKey, "Meh Key",
+            keywords: ["modifier", "remap", "chord", "control option shift"]),
+        .init(
             .generalCalculator, "Number format",
             keywords: ["decimal", "comma", "separator", "locale", "region", "thousands"]),
         .init(

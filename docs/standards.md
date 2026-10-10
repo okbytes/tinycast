@@ -81,11 +81,17 @@ fit the table.
 | `Index` | A searchable collection, rebuilt as its inputs change |
 | `Engine` | A pure evaluator: input → output |
 | `Policy` | A pure decision — no state, no effects |
+| `Client` | One connection to a service outside the process, and its protocol |
+| `Seizer` | Holds a HID device exclusively and hands its input on |
+| `Worker` | Runs a job on a process or thread of its own, holding nothing between jobs |
+| `Mailbox` | The one lock-guarded handoff between threads that otherwise share nothing |
+| `Watchdog` | Ends a process that has stopped making progress |
 
 `Manager` is the one worth thinking twice about. It means *lifecycle plus policy*, which is a lot for one
-type, so there are only two: `ClipboardManager` (polls, and owns the capture policy and the paste-side
-handshake) and `HotKeyManager` (persists bindings, and drives Carbon registration and double-tap
-dispatch). A third is fine if it genuinely owns both halves — but check first whether `Store`, `Monitor`
+type, so there are only three: `ClipboardManager` (polls, and owns the capture policy and the paste-side
+handshake), `HotKeyManager` (persists bindings, and drives Carbon registration and double-tap
+dispatch) and `KeyRemapManager` (registers and connects the keyboard helper, and decides what it is
+told). Another is fine if it genuinely owns both halves — but check first whether `Store`, `Monitor`
 or `Coordinator` describes it better, because usually one of them does.
 
 `Registry` and `ViewModel` are retired: a static table is a `Catalog`, shared app state is a `State`.

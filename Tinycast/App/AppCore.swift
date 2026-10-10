@@ -25,7 +25,7 @@ final class AppCore {
         syntheticEventTag: Paster.tinycastEventTag)
     let textInjector: TextInjector
     let hotKeys = HotKeyManager()
-    let hyperKeyTap = HyperKeyTap()
+    let keyRemap = KeyRemapManager()
     let windowMover = WindowMover()
     let spaceSwitcher = SpaceSwitcher()
     let inputSourceSwitcher = InputSourceSwitcher()
@@ -255,7 +255,7 @@ final class AppCore {
             Task { await emojiIndex.load(languages: Locale.preferredLanguages) }
             currencyRates.start()
 
-            hyperKeyTap.healthTicker = healthTicker
+            keyRemap.healthTicker = healthTicker
             hotKeys.modifierTapMonitor.healthTicker = healthTicker
             snippetListener.healthTicker = healthTicker
 
@@ -316,8 +316,7 @@ final class AppCore {
                 windowLayoutIDs: Set(windowLayouts.layouts.map(\.id)),
                 windowRoomIDs: Set(rooms.rooms.map(\.id)),
                 customWindowSizeIDs: Set(customWindowSizes.sizes.map(\.id)))
-            // Keeps running while Carbon pauses: the recorder needs its rewritten flags.
-            hyperKeyTap.start(settings: settings)
+            keyRemap.start(settings: settings)
 
             snippetsStore.onSnapshot = { [weak self] snapshot in
                 guard let self else { return }
@@ -411,8 +410,7 @@ final class AppCore {
     func prepareForTermination() {
         settingsFile?.flush()
         clipboardTextIndexer?.stop()
-        // Caps Lock first: its remap is the one teardown that outlives the process.
-        hyperKeyTap.prepareForTermination()
+        keyRemap.prepareForTermination()
         windowLayoutCoordinator.prepareForTermination()
         roomCoordinator.prepareForTermination()
         inputSourceSwitcher.endSession()

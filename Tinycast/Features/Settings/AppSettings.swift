@@ -166,7 +166,7 @@ final class AppSettings {
         didSet { defaults.set(showInMenuBar, forKey: Key.showInMenuBar.rawValue) }
     }
 
-    /// The physical key remapped to the Hyper chord; `HyperKeyTap` reacts via its observer.
+    /// The physical key remapped to the Hyper chord; `KeyRemapManager` reacts via its observer.
     var hyperKey: HyperKeyPhysicalKey {
         didSet { defaults.set(hyperKey.rawValue, forKey: Key.hyperKey.rawValue) }
     }
@@ -180,6 +180,11 @@ final class AppSettings {
         didSet {
             defaults.set(hyperKeyQuickPress.rawValue, forKey: Key.hyperKeyQuickPress.rawValue)
         }
+    }
+
+    /// The physical key remapped to the Meh chord, ⌃⌥⇧.
+    var mehKey: HyperKeyPhysicalKey {
+        didSet { defaults.set(mehKey.rawValue, forKey: Key.mehKey.rawValue) }
     }
 
     /// Preferred skin tone applied to modifier-capable emoji at render and copy time.
@@ -539,6 +544,8 @@ final class AppSettings {
             defaults.string(forKey: Key.hyperKeyQuickPress.rawValue)
             .flatMap(HyperKeyQuickPress.init)
             ?? .none
+        mehKey =
+            defaults.string(forKey: Key.mehKey.rawValue).flatMap(HyperKeyPhysicalKey.init) ?? .none
         emojiSkinTone =
             defaults.string(forKey: Key.emojiSkinTone.rawValue).flatMap(EmojiSkinTone.init) ?? .none
         emojiGridColumns =

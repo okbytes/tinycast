@@ -99,6 +99,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift` |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `palette-menu-click-test` | `Palette/PalettePanel.swift` — complete click-away presses and subsequent control activation |
+| `key-remap-test` | all of `KeyRemap/Model/` — the driver's wire bytes, report packing, the top-row map and the remap engine |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
 | `fallback-test` | `Launcher/Model/Fallback.swift`, plus the `CommandID` and `Quicklink` ids it is built from |
 | `dictionary-test` | `Dictionary/Model/DictionaryEntry.swift`, `DictionaryMarkup.swift` — a real XHTML record and the plain-text fallback, read into page blocks |

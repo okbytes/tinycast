@@ -42,7 +42,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ IconCache · WindowMover · UninstallScanner · UninstallRunner ·             │
 │ SystemActionRunner · QuicklinkLauncher · TextInjector ·                    │
 │ SnippetKeywordListener · NotesRepository · CurrencyRateStore · Paster ·    │
-│ HotKeyCenter · HyperKeyTap · ModifierTapMonitor · RunningAppsMonitor ·     │
+│ HotKeyCenter · KeyRemapManager · ModifierTapMonitor · RunningAppsMonitor · │
 │ CalendarStore · MeetingLauncher · MeetingClock · CameraSession ·           │
 │ WindowZOrder · WindowSwitchSweep ·                                         │
 │ AppleShortcutRunner · SettingsFileRepository · SettingsFileMonitor ·       │
@@ -91,7 +91,7 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 `FavoritesStore`, `VisibilityStore`, `AliasStore`, `LauncherRankingStore`, `CalculatorHistoryStore`,
 `CurrencyRateStore`, `FrequentEmojiStore`, `CalendarStore`), the managers, monitors and clocks
 (`ClipboardManager`, the opt-in `ClipboardTextIndexer`, the opt-in `SettingsFileRepository`,
-`HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
+`HotKeyManager`, `KeyRemapManager`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
 (`AppSettings`, `PaletteState`, `UninstallSession`,
 `MeetingClock`), `NotesStore`, the twenty-one feature coordinators, and the
 window controllers.
@@ -115,6 +115,11 @@ the stateless `ClipboardTextWorker` runs one bundled `ClipboardTextHelper` per i
 `Contents/Helpers`, and reaps it before returning. Vision's and PDFKit's allocations therefore belong
 to a process that exits, and the helper — which has no database, clipboard or settings access — is
 handed an input path and answers with bounded text down a pipe.
+
+Key remapping runs in a second bundled helper, `TinycastKeyboardHelper`, which is a root LaunchDaemon
+rather than a child process: seizing the built-in keyboard and driving pqrs's virtual one both need
+root. `KeyRemapManager` on `AppCore` registers it with `SMAppService` and configures it over XPC; the
+helper holds the keyboard only while that session is open. See [key-remap.md](features/key-remap.md).
 
 ## Entry points and windows
 

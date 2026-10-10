@@ -41,6 +41,7 @@ targets:
         excludes:
           - Features/Clipboard/Service/ClipboardTextExtractor.swift
           - Features/Clipboard/Service/ClipboardTextHelper.swift
+          - Features/KeyRemap/Helper
           - Resources/EmojiKeywords
       # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
       - path: Tinycast/Resources/EmojiKeywords
@@ -56,6 +57,35 @@ targets:
         copy:
           destination: wrapper
           subpath: Contents/Helpers
+      - target: TinycastKeyboardHelper
+        link: false
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
+    # SMAppService only registers a daemon whose plist ships inside the bundle; the label and
+    # Mach service are per channel, so Tinycast Dev runs a helper of its own. No KeepAlive:
+    # launchd starts the helper on Tinycast's first message, and it exits once idle.
+    postBuildScripts:
+      - name: Keyboard Helper LaunchDaemon
+        script: |
+          set -eu
+          label="${PRODUCT_BUNDLE_IDENTIFIER}.keyboard-helper"
+          plist="${SCRIPT_OUTPUT_FILE_0}"
+          mkdir -p "$(dirname "$plist")"
+          rm -f "$plist"
+          /usr/libexec/PlistBuddy \
+            -c "Add :Label string $label" \
+            -c "Add :BundleProgram string Contents/Helpers/TinycastKeyboardHelper" \
+            -c "Add :AssociatedBundleIdentifiers array" \
+            -c "Add :AssociatedBundleIdentifiers:0 string $PRODUCT_BUNDLE_IDENTIFIER" \
+            -c "Add :MachServices dict" \
+            -c "Add :MachServices:$label bool true" \
+            -c "Add :ProcessType string Interactive" \
+            "$plist"
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons/$(PRODUCT_BUNDLE_IDENTIFIER).keyboard-helper.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER)"
@@ -86,4 +116,22 @@ targets:
         # and gives the module a name with a space in it.
         EXECUTABLE_NAME: ClipboardTextHelper
         PRODUCT_MODULE_NAME: ClipboardTextHelper
+        SKIP_INSTALL: YES
+
+  TinycastKeyboardHelper:
+    type: tool
+    platform: macOS
+    sources:
+      - Tinycast/Features/KeyRemap/Model
+      - Tinycast/Features/KeyRemap/Helper
+    settings:
+      base:
+        # Pinned for the same release.yml PRODUCT_NAME reason as ClipboardTextHelper; the signing
+        # identifier is the daemon's label, which is what the app's XPC peer check matches.
+        EXECUTABLE_NAME: TinycastKeyboardHelper
+        PRODUCT_MODULE_NAME: TinycastKeyboardHelper
+        PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER).keyboard-helper"
+        # A bare tool signs under its file name; an embedded Info.plist makes the bundle id stick.
+        GENERATE_INFOPLIST_FILE: YES
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
         SKIP_INSTALL: YES

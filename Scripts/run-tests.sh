@@ -268,6 +268,7 @@ run fallback-test          Tinycast/Features/Launcher/Model/Fallback.swift \
                            Tinycast/Features/SystemActions/Model/SystemAction.swift \
                            Tinycast/Features/WindowManagement/Model/WindowCommand.swift \
                            Tinycast/Features/Snippets/Model/Snippet.swift
+run key-remap-test         Tinycast/Features/KeyRemap/Model/*.swift
 run dictionary-test        Tinycast/Features/Dictionary/Model/DictionaryEntry.swift \
                            Tinycast/Features/Dictionary/Model/DictionaryMarkup.swift
 run hotkey-test            Tinycast/Features/HotKeys/Model/DoubleTapModifier.swift \

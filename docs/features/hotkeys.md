@@ -40,8 +40,8 @@ Carbon's dispatcher enters through an explicit `@MainActor` callback. The press 
   `Service/ModifierTapMonitor.swift`, which is listen-only, installs *only* while a modifier-only
   shortcut is bound, and never prompts for Accessibility.
 - **`KeyShortcut.hyperChord(includesShift:)` is the only spelling of the Hyper chord**, read by both the
-  ✦ collapse and the re-point below. `HyperKeyTap` composes its own flags because it also needs the
-  left-side device bits, which no display path wants.
+  ✦ collapse and the re-point below. `KeyRemapConfiguration` states the same chord as HID modifier
+  bits for the keyboard helper, which no display path wants.
 
 ## Persistence
 
@@ -139,7 +139,7 @@ at `HotKeyBinding`.
 supplied monotonic timestamp), so `Tests/hotkey-test.swift` drives it without an event tap. A **tap**
 is a press that starts from no modifiers held, keeps exactly one of the four held with no `fn`
 alongside, sees no key press or mouse click, and is released within `maxHold` (250 ms — the same
-window `HyperKeyTap` calls a quick press). A **double-tap** is a second tap of the same modifier
+window `KeyRemapEngine` calls a quick press). A **double-tap** is a second tap of the same modifier
 starting within `maxGap` (300 ms) of the first one's release.
 
 Only _momentary_ keys may feed `hasOtherModifiers`. Caps Lock must not: `maskAlphaShift` tracks the
@@ -155,9 +155,8 @@ and "double-tap and hold" is a deliberate non-event.
 while a modifier-only shortcut is bound, so users who never use the feature pay nothing. Two
 details are load-bearing:
 
-- It is `.tailAppendEventTap`, unlike the two head-inserted taps, so it observes events **after**
-  `HyperKeyTap`'s rewrite. A Hyper-remapped right-side modifier therefore arrives as the full ⌃⌥⇧⌘
-  chord and correctly reads as "not a lone modifier" — the left-side twin still double-taps.
+- A Hyper- or Meh-remapped right-side modifier arrives as the left-side chord the keyboard helper
+  sends, so it reads as "not a lone modifier" — and the remapped key itself never arrives at all.
 - Like every keyboard tap it needs the **Accessibility** grant, and it never prompts for it. The
   binding records regardless; the recorder shows an inline warning that opens System Settings, and the
   one-second health timer installs the tap the moment the grant lands.
@@ -167,58 +166,15 @@ where a bare ⇧ combo would shadow typing.
 
 ## The Hyper Key
 
-`HyperKeyTap` turns one physical key — Caps Lock or a right-side modifier — into the ⌃⌥(⇧)⌘ chord
-system-wide. It is a **modifying** `CGEventTap`, a separate layer from `HotKeyCenter` because Carbon
-cannot intercept a lone key at all. The rewritten flags flow onward into Carbon matching, so existing
-combo hotkeys fire from Hyper+key with no extra registration.
+The Hyper key turns one physical key on the built-in keyboard — Caps Lock or a right-side modifier —
+into the ⌃⌥(⇧)⌘ chord, and the Meh key into ⌃⌥⇧. Both are done below every event tap by the root
+keyboard helper, documented in [key-remap.md](key-remap.md). The chord reaches the system as real
+modifier keys, so Carbon matches existing combo hotkeys from Hyper+key with no extra registration, and
+the recorder captures it like any other chord.
 
-Which key is chosen persists as a `HyperKey` string raw value in `AppSettings` — renaming a case is a
-migration, and a removed case decodes to `.none`. **F-keys are deliberately not candidates:** the
-top-row media functions fire *below* the tap, so binding F1 as Hyper still dimmed the display.
-
-### Caps Lock has to stop being Caps Lock
-
-The caps-lock toggle — both the LED and the latch — happens below every `CGEventTap`, so no tap can
-suppress it. The key must therefore stop being Caps Lock **at the source**: while Caps Lock serves as
-Hyper, `CapsLockRemap` installs an IOKit `UserKeyMapping` remapping it to **F18**, the same mechanism
-`hidutil` uses. The tap then intercepts F18 in its place. The remap is cleared on unbind and on quit,
-and never survives a reboot. Remaps apply on a serial queue, so rapid on→off→on toggles land in call
-order instead of racing as independent detached tasks and leaving the wrong final state.
-
-Because the remap is asynchronous, there is a fallback for the window before it takes hold: the key
-still arrives as Caps Lock, so the tap rides the modifier path instead. The LED toggles during that
-window — that is un-remapped HID behaviour, not something Tinycast can stop.
-
-Once remapped, Caps Lock arrives as **keyDown/keyUp** rather than `flagsChanged`. Both ends are
-converted into Left Control `flagsChanged` transitions, so everything downstream sees the Hyper chord
-move with the key rather than a swallowed press. That conversion is also why the **fn bit is scrubbed
-from both ends**: every function key reports `NX_SECONDARYFNMASK`, harmless on a keyDown but read as a
-real fn press once the event is a `flagsChanged`, which fired anything bound to fn on every Hyper
-press. Only the Hyper key's own two events are scrubbed, so Hyper+F-key and Hyper+arrow keep the fn
-bit they are entitled to. A classic `IOHIDSystem` connection reads and drives the Caps Lock LED and
-lock state; it is used only by the explicit Quick Press toggle and the one-time unlatch when the remap
-is installed.
-
-### Press tracking uses toggle semantics
-
-`flagsChanged` does not describe its own direction, so a modifier-style Hyper key is tracked by
-toggling. The obvious alternative — querying `CGEventSource` key state — **races the release**,
-inverting the state machine and breaking Quick Press. A missed release therefore lingers only until
-the watchdog or the next press clears it. Work that posts events or touches IOKit is deferred to the
-next runloop turn rather than run inside the tap callback, where it would risk re-entrancy.
-
-The flags OR'd into every rewritten event are the generic ⌃⌥(⇧)⌘ masks **plus the left-side device
-bits** (`NX_DEVICE…KEYMASK`, from `IOLLEvent.h`). Some consumers distinguish sides, and generic-only
-flags do not always read as fully pressed. The Hyper key's own residue is scrubbed in the same pass:
-Caps Lock's alpha-shift bit, or — for a key modifier outside the Hyper set — its generic mask and both
-device bits. Events the tap posts carry a `"TYCT"` marker in `.eventSourceUserData`, the same FourCC
-`HotKeyCenter` uses, so the tap never reacts to its own synthetics.
-
-A Quick Press key is posted with **`flags` cleared explicitly**, like every other synthetic in the app.
-A keyboard event built from `.combinedSessionState` inherits the source's modifiers, and the release
-that ended the hold is still in flight a runloop turn later — so the Escape went out as ⌃⌥⇧⌘Escape.
-Terminals read the raw `0x1B` and did not care; a focused field editor and any exact-match keymap
-swallowed it, which is why Quick Press worked in Ghostty but never in Zed or the palette itself.
+Which key is chosen persists as a `HyperKeyPhysicalKey` raw value in `AppSettings` — renaming a case is
+a migration, and a removed case decodes to `.none`. The Settings pane keeps the two apart — choosing
+Meh's key for Hyper clears Meh — and when an import gives both the same key, Hyper wins.
 
 ### ✦ is the notation, not a preference
 
@@ -231,9 +187,9 @@ view body registers the `AppSettings` dependency, and every keycap re-renders th
 
 ### Include Shift re-points what is already recorded
 
-A `KeyShortcut` stores absolute Carbon modifiers, captured from the already-rewritten flags, so a chord
+A `KeyShortcut` stores absolute Carbon modifiers, captured from the chord as it arrived, so a chord
 recorded under one Include Shift setting is stale under the other: it would stop collapsing to ✦ *and*
-stop firing, because Carbon is registered for ⌃⌥⌘ while the tap has started emitting ⌃⌥⇧⌘. So flipping
+stop firing, because Carbon is registered for ⌃⌥⌘ while the helper has started sending ⌃⌥⇧⌘. So flipping
 the toggle re-points every stored combo — `HotKeyManager.retargetHyperBindings`, driven by the same
 `AppCore.track` observation the feature switches use, swapping the stale chord for the current one
 through `setBinding` so persistence and re-registration stay on one path. A re-point that would land on
@@ -241,15 +197,6 @@ a chord another action already holds is skipped rather than clobbering it; that 
 keycaps. `retargetingHyper` is idempotent, which is what makes a settings import a no-op rather than a
 corruption. Nothing is re-pointed while the Hyper key is `.none` — and the Settings row is disabled
 there, so the toggle cannot move without a chord to mean.
-
-### Lifecycle
-
-Like every keyboard tap it needs the **Accessibility** grant and never prompts for it. A one-second
-watchdog runs while a key is configured: it retries installation until the grant lands, notices
-revocation, revives a tap the system disabled on timeout or user input, and clears a stuck hold. On
-fast user switching another session owns the keyboard, so half-held state is dropped and rewriting
-stops until this session is active again. The HID remap outlives the process, so
-`applicationWillTerminate` hands the key back to the system before exiting.
 
 ## Recorder
 
