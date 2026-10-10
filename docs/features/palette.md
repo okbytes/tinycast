@@ -430,7 +430,7 @@ it follow a palette drag and vanish with it. Glass renders against the desktop r
 already-blurred, clipped panel, and no menu can be cropped by `RootPaletteView`'s `clipShape` however
 long it grows. The menu temporarily becomes key so its native `TextField` owns the caret and selection, while
 `MenuPanel` hands navigation and action shortcuts back to `RootPaletteView`. It restores key status
-to the palette when it closes, and `closeMenus()` restores search focus unless the screen hides it.
+to the palette when it closes, and `closeMenus()` restores search focus.
 Resigning to the palette closes only the menu; resigning to another
 app closes the palette as well. `MenuPanel.sendEvent` also mirrors `PalettePanel`'s hover arming — rows
 light on real pointer movement, never on a scroll under a still cursor.

@@ -290,7 +290,7 @@ struct LauncherScreen: PaletteScreen {
         case .quit, .forceQuit: return quit(at: selection, force: shortcut == .forceQuit)
         case .restart: return restart(at: selection)
         case .edit: return editQuicklink(at: selection)
-        case .copyPath: return copyQuicklink(at: selection)
+        case .copyLink: return copyQuicklink(at: selection)
         case .favoriteSlot(let index): return launchFavorite(at: index)
         case .copyCalculation: return copyCalculation(at: selection)
         case .openInApp, .showDetails:

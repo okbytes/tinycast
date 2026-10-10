@@ -40,6 +40,8 @@ Findings from the initial survey that still shape the plan:
 - Removed AI, MCP, Quick Actions, the Support window and reminder, the in-app updater, the website.
 - Removed File Search, Raycast extensions and Menu Search.
 - Merged upstream through #1410 (`71279c8`), leaving out Dictation and the update-check toggle.
+- Cherry-picked upstream through #1481 (`da2c4e4`): 14 of 24 taken; the rest were for removed
+  features, plus #1451, whose posture rewrite would loosen latest-only.
 
 ## Calculator — fluidity
 

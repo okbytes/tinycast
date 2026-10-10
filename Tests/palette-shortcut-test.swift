@@ -40,6 +40,7 @@ struct PaletteShortcutTests {
         expect(resolve(nil, delete: true), nil, "a bare backspace stays with the field")
         expect(resolve(nil, control: true, delete: true), nil, "⌃⌫ is no row chord")
 
+        expect(resolve("c", command: true, control: true), .copyLink, "⌃⌘C copies the link")
         expect(resolve("c", command: true), nil, "bare ⌘C stays with the search field")
         expect(
             resolve("c", command: true, shift: true, option: true, control: true), nil,
@@ -90,8 +91,8 @@ struct PaletteShortcutTests {
         expect(resolve("a"), nil, "typing is never a chord")
 
         let expanded: [PaletteShortcut] = [
-            .copyText, .openInApp, .showDetails, .toggleFavorite, .hideFromSearch, .quit, .forceQuit,
-            .restart, .edit, .duplicate, .showInFinder
+            .copyLink, .copyText, .openInApp, .showDetails, .toggleFavorite, .hideFromSearch, .quit,
+            .forceQuit, .restart, .edit, .duplicate, .showInFinder
         ]
         let anywhere: [PaletteShortcut] = [
             .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot(0), .newItem,
@@ -105,7 +106,7 @@ struct PaletteShortcutTests {
         }
 
         let closing: [PaletteShortcut] = [
-            .delete, .deleteAll, .copyText, .copyCalculation, .openInApp, .showDetails,
+            .delete, .deleteAll, .copyLink, .copyText, .copyCalculation, .openInApp, .showDetails,
             .toggleFavorite, .hideFromSearch, .newItem, .settings, .edit, .duplicate, .showInFinder
         ]
         let leaving: [PaletteShortcut] = [
