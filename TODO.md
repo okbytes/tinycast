@@ -14,6 +14,7 @@ Upstream is harvested, never merged. Branch `upstream-reviewed` on `origin` mark
 commit read. Never use GitHub's "Sync fork", which merges all of upstream.
 
 ```sh
+git remote add upstream https://github.com/abue-ammar/tinycast.git   # once per clone
 git fetch --all
 git log --oneline origin/upstream-reviewed..upstream/main   # what is new
 git cherry-pick -x <sha>                                     # take what fits

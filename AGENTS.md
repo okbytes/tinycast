@@ -5,6 +5,10 @@ clipboard history, an inline calculator, a floating note, snippets, quicklinks, 
 and an emoji picker. SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
 dependencies.
 
+This repository is `okbytes/tinycast`, a fork of `abue-ammar/tinycast` that diverges on purpose; see
+[TODO.md](TODO.md). PRs and issues go to the fork, never upstream: run `gh repo set-default
+okbytes/tinycast` in a fresh clone, or pass `--repo okbytes/tinycast`.
+
 ## Posture: latest-only, always
 
 **Tinycast targets one macOS — the current stable release — and nothing else.** macOS 26+, the Xcode 26
