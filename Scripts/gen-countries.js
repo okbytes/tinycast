@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // Generate Tinycast/Features/Calculator/Model/CountryZoneData.generated.swift.
 //
-// Usage: node Scripts/gen-countries.js [zone.tab cldr-territories.json]
+// Usage: bun Scripts/gen-countries.js [zone.tab cldr-territories.json]
 // Downloads the sources when paths aren't given. Run occasionally, commit the output.
 //
 // Two sources, joined on the ISO 3166 code:

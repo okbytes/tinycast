@@ -1,11 +1,11 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // Every Settings search result must have somewhere to land.
 //
 // A `Form` cannot be asked what sections or rows it holds, so `SettingsSearchCatalog` is written by
 // hand and its targets are matched to the panes textually. An entry with nothing to scroll to still
 // compiles, reads fine, and fails only at runtime — as a result that navigates and then sits there.
 //
-// Usage: node Scripts/check-settings-search.js   (run by ./Scripts/lint.sh)
+// Usage: bun Scripts/check-settings-search.js   (run by ./Scripts/lint.sh)
 "use strict";
 
 const fs = require("fs");

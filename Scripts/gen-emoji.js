@@ -1,9 +1,9 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // oxlint-disable no-unused-vars
 // Generate Tinycast/Features/Emoji/Model/EmojiData.generated.swift from Unicode + CLDR data, plus
 // one CLDR keyword pack per KEYWORD_LOCALES entry under Tinycast/Resources/EmojiKeywords/.
 //
-// Usage: node Scripts/gen-emoji.js [cache-dir]
+// Usage: bun Scripts/gen-emoji.js [cache-dir]
 // Downloads every source; a cache dir is read first and keeps what was fetched. Commit the output.
 "use strict";
 

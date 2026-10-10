@@ -1,7 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // Generate Tinycast/Features/Calculator/Model/CurrencyData.generated.swift.
 //
-// Usage: node Scripts/gen-currencies.js [rates.json cldr-currencies.json cldr-currency-data.json]
+// Usage: bun Scripts/gen-currencies.js [rates.json cldr-currencies.json cldr-currency-data.json]
 // Downloads the sources when paths aren't given. Run occasionally, commit the output.
 //
 // Three sources, joined on the ISO code:

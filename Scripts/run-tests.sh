@@ -478,7 +478,7 @@ run settings-history-test  Tinycast/Features/Settings/SettingsTab.swift \
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
-    node -e '
+    bun -e '
 const fs = require("node:fs");
 const [comp, db] = process.argv.slice(1);
 const existing = JSON.parse(fs.readFileSync(comp, "utf8"));
