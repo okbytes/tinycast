@@ -268,7 +268,7 @@ category browsing cannot teach every window command the same search term.
 ### Contextual commands
 
 A **contextual** command is one the query itself supplies the target for, so it exists only while a
-query resolves and never sits in the index. `CommandCatalog.contextual` names them, `all` filters
+query resolves and never sits in the index. `CommandID.isQueryDriven` names them, `all` filters
 them out, and `LauncherScreen` offers the row per keystroke — ahead of the ranked matches, because
 nothing the index holds answers a typed address better. There is one today: typing a web address or
 a bare host puts **Open in Browser** on top, and activating it hands the URL to the system's default

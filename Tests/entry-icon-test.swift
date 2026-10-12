@@ -15,9 +15,6 @@ struct EntryIconTests {
         }
     }
 
-    static let red = SymbolTint(key: "red", color: .systemRed)
-    static let blue = SymbolTint(key: "blue", color: .systemBlue)
-
     // MARK: - Identity
 
     /// Two icons that render differently but print the same would share a bitmap.
@@ -26,10 +23,7 @@ struct EntryIconTests {
             .file(stamp: 0),
             .file(stamp: 1),
             .symbol("star"),
-            .symbol("bolt"),
-            .tintedSymbol(name: "star", tint: red),
-            .tintedSymbol(name: "star", tint: blue),
-            .tintedSymbol(name: "bolt", tint: red)
+            .symbol("bolt")
         ]
         let printed = Set(icons.map { "\($0)" })
         expect(printed.count == icons.count, "each icon prints uniquely: \(printed.count)/\(icons.count)")
@@ -39,13 +33,6 @@ struct EntryIconTests {
     static func hashingSeparatesTheCases() {
         expect(EntryIcon.symbol("star") == EntryIcon.symbol("star"), "the same symbol is equal")
         expect(EntryIcon.symbol("star") != EntryIcon.symbol("bolt"), "two symbols differ")
-        expect(
-            EntryIcon.tintedSymbol(name: "star", tint: red)
-                != EntryIcon.tintedSymbol(name: "star", tint: blue),
-            "two tints of one symbol differ")
-        expect(
-            EntryIcon.symbol("star") != EntryIcon.tintedSymbol(name: "star", tint: red),
-            "a tinted tile differs from the plain one")
         expect(
             EntryIcon.file(stamp: 0) != EntryIcon.file(stamp: 1),
             "one file at two stamps differs")
@@ -61,33 +48,12 @@ struct EntryIconTests {
         let url = URL(fileURLWithPath: "/System/Applications/Calculator.app")
         let cases: [(String, EntryIcon)] = [
             ("file", .file(stamp: 0)),
-            ("symbol", .symbol("star")),
-            ("tintedSymbol", .tintedSymbol(name: "star", tint: red))
+            ("symbol", .symbol("star"))
         ]
         for (label, icon) in cases {
             let image = IconCache.icon(for: icon, fileURL: url)
             expect(image.size.width > 0, "\(label) draws something")
         }
-    }
-
-    /// A tint has to reach the tile. Same glyph, two tints, three different bitmaps.
-    static func tintsAndSymbolsDoNotShareABitmap() {
-        let url = URL(fileURLWithPath: "/System/Applications/Calculator.app")
-        let plain = bitmap(IconCache.icon(for: .symbol("star"), fileURL: url))
-        let redTile = bitmap(IconCache.icon(for: .tintedSymbol(name: "star", tint: red), fileURL: url))
-        let blueTile = bitmap(IconCache.icon(for: .tintedSymbol(name: "star", tint: blue), fileURL: url))
-
-        expect(plain != nil && redTile != nil && blueTile != nil, "all three rasterize")
-        expect(plain != redTile, "a tinted tile differs from the plain one")
-        expect(redTile != blueTile, "two tints do not share a cache entry")
-    }
-
-    /// A second ask must hit the cache, not redraw — that is what keeps a scrolled list cheap.
-    static func askingTwiceIsStable() {
-        let url = URL(fileURLWithPath: "/System/Applications/Calculator.app")
-        let first = bitmap(IconCache.icon(for: .tintedSymbol(name: "gear", tint: red), fileURL: url))
-        let second = bitmap(IconCache.icon(for: .tintedSymbol(name: "gear", tint: red), fileURL: url))
-        expect(first != nil && first == second, "the same icon is stable across two asks")
     }
 
     /// Cache-only lookups must answer for a warm icon and stay silent for a cold one.
@@ -141,8 +107,6 @@ struct EntryIconTests {
         everyCasePrintsDistinctly()
         hashingSeparatesTheCases()
         everyCaseDraws()
-        tintsAndSymbolsDoNotShareABitmap()
-        askingTwiceIsStable()
         cacheOnlyLookupMatchesTheDrawnIcon()
         aChangedIconRetiresTheCachedBitmap()
 

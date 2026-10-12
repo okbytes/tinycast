@@ -45,7 +45,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var dialogSymbol: CGFloat { scaledPoints(Theme.Radius.dialogSymbol, scale) }
         var dialog: CGFloat { scaledPoints(Theme.Radius.dialog, scale) }
         var thumbnail: CGFloat { scaledPoints(Theme.Radius.thumbnail, scale) }
-        var attachmentChip: CGFloat { scaledPoints(Theme.Radius.attachmentChip, scale) }
         var card: CGFloat { scaledPoints(Theme.Radius.card, scale) }
         var keyCap: CGFloat { scaledPoints(Theme.Radius.keyCap, scale) }
         var tooltip: CGFloat { scaledPoints(Theme.Radius.tooltip, scale) }
@@ -90,7 +89,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var clipboardMediaHeight: CGFloat { scaledPoints(Theme.Size.clipboardMediaHeight, scale) }
         var clipboardPreviewPixel: CGFloat { scaledPoints(Theme.Size.clipboardPreviewPixel, scale) }
         var emojiGridInset: CGFloat { scaledPoints(Theme.Size.emojiGridInset, scale) }
-        var emojiCell: CGFloat { scaledPoints(Theme.Size.emojiCell, scale) }
 
         var dialogCompactWidth: CGFloat { scaledPoints(Theme.Size.dialogCompactWidth, scale) }
         var dialogWidth: CGFloat { scaledPoints(Theme.Size.dialogWidth, scale) }
@@ -140,9 +138,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var keyCap: Font { font(Theme.Typography.keyCap, .caption1) }
         var compactKeyCap: Font { font(Theme.Typography.compactKeyCap, .caption2) }
         var heroKeyCap: Font { font(Theme.Typography.heroKeyCap, .body) }
-        var markdownHeading1: Font { font(Theme.Typography.markdownHeading1, .title2, .semibold) }
-        var markdownHeading2: Font { font(Theme.Typography.markdownHeading2, .title3, .semibold) }
-        var markdownHeading3: Font { font(Theme.Typography.markdownHeading3, .headline) }
         var code: Font {
             scale == 1
                 ? Theme.Typography.code

@@ -41,18 +41,11 @@ enum Theme {
         /// The dialog and HUD surface, so a dialog reads as a sibling of the palette.
         static let dialog: CGFloat = 20
         static let thumbnail: CGFloat = 6
-        /// A pill holding a square thumbnail; a full capsule fights the thumbnail's own corners.
-        static let attachmentChip: CGFloat = 8
         static let card: CGFloat = 10
         static let keyCap: CGFloat = 6
         /// Settings shortcut-recorder keycap — smaller than the palette's `keyCap` chip.
         static let recorderKeyCap: CGFloat = 4
         static let tooltip: CGFloat = 8
-    }
-
-    enum Blur {
-        /// Unreadable at full size without smearing the row; the scramble is what hides it.
-        static let redaction: CGFloat = 3
     }
 
     enum Size {
@@ -113,7 +106,6 @@ enum Theme {
         static let clipboardListWidth: CGFloat = 290
         /// Symmetric clearance between the emoji grid and both panel edges.
         static let emojiGridInset: CGFloat = 16
-        static let emojiCell: CGFloat = 56
         static let menuWidth: CGFloat = 276
         static let actionMenuWidth: CGFloat = 320
         /// The clipboard type filter's menu; `menuWidth` is far too wide for six short rows.
@@ -251,9 +243,6 @@ enum Theme {
         /// Pair with the matching `Size` for `KeyCapChip.Scale`.
         static let compactKeyCap = Font.caption2
         static let heroKeyCap = Font.body
-        static let markdownHeading1 = Font.title2.weight(.semibold)
-        static let markdownHeading2 = Font.title3.weight(.semibold)
-        static let markdownHeading3 = Font.headline
         static let code = Font.system(.callout, design: .monospaced)
         static let bar = Font.callout.weight(.medium)
         /// A dropdown control's trailing chevron, deliberately smaller than the label it follows.
@@ -280,16 +269,6 @@ enum Theme {
         /// Modal separation inside Tinycast: the launcher recedes while its dialog is in front.
         static let dialogDimming = adaptive(
             dark: .srgbInk(0, alpha: 0.34), light: .srgbInk(0, alpha: 0.34))
-        /// Find's marks, the Mac's own yellow: every match faint, the current one solid.
-        static let findMatch = adaptive(
-            dark: NSColor.systemYellow.withAlphaComponent(0.32),
-            light: NSColor.systemYellow.withAlphaComponent(0.4))
-        static let findCurrent = adaptive(
-            dark: NSColor.systemYellow.withAlphaComponent(0.9),
-            light: NSColor.systemYellow.withAlphaComponent(0.95))
-        /// Black on the solid mark in both appearances, as a highlighter's ink stays readable.
-        static let findCurrentInk = adaptive(
-            dark: .srgbInk(0, alpha: 1), light: .srgbInk(0, alpha: 1))
         static let tooltipShadow = adaptive(
             dark: .srgbInk(0, alpha: 0.18), light: .srgbInk(0, alpha: 0.18))
 

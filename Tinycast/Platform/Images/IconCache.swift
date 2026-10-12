@@ -56,7 +56,6 @@ enum EntryIcon: Hashable, Sendable {
     /// The stamp is `FileIconStamp`'s: it moves when the file's icon does, retiring the old bitmap.
     case file(stamp: Int)
     case symbol(String)
-    case tintedSymbol(name: String, tint: SymbolTint)
 }
 
 struct IconSize: Hashable, Sendable {
@@ -314,7 +313,6 @@ enum IconCache {
         switch source {
         case .file(let stamp): return icon(forFile: fileURL.path, stamp: stamp)
         case .symbol(let name): return symbolIcon(named: name)
-        case .tintedSymbol(let name, let tint): return symbolIcon(named: name, tint: tint)
         }
     }
 
@@ -322,7 +320,6 @@ enum IconCache {
         switch source {
         case .file(let stamp): return cached(forFile: fileURL.path, stamp: stamp, size: size)
         case .symbol(let name): return cachedSymbol(named: name)
-        case .tintedSymbol(let name, let tint): return cachedSymbol(named: name, tint: tint)
         }
     }
 
@@ -330,7 +327,6 @@ enum IconCache {
         switch source {
         case .file(let stamp): return await loadAsync(forFile: fileURL.path, stamp: stamp, size: size)
         case .symbol(let name): return await loadSymbolAsync(named: name)
-        case .tintedSymbol(let name, let tint): return await loadSymbolAsync(named: name, tint: tint)
         }
     }
 
