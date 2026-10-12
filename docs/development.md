@@ -49,6 +49,19 @@ executable name stays fixed even when release builds override the app's product 
 by a team: both sides of its XPC connection require the same team ID, which `Tinycast Self-Signed`
 does not have. See [key-remap.md](features/key-remap.md#setup).
 
+### A team-signed Dev build
+
+```sh
+./Scripts/install-dev.sh            # pull, build, swap into ~/Applications, relaunch
+./Scripts/install-dev.sh --no-pull  # the checkout as it is
+```
+
+It signs Tinycast Dev with the first **Apple Development** certificate in the keychain — sign in to
+Xcode with an Apple ID to get one — and its team, or `TINYCAST_TEAM`. It pulls only when the branch has
+an upstream and the tree is clean. The install path is fixed on purpose: the Accessibility and Input
+Monitoring grants are keyed to it, so they survive every update, and the running keyboard helper exits
+by itself once its executable is replaced. Updating another Mac is the same one command there.
+
 ### The dev channel
 
 Debug builds are a separate channel: **`Tinycast Dev.app`**, bundle id `com.tinycast.app.dev`. Every
