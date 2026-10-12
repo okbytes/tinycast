@@ -5,9 +5,9 @@ clipboard history, an inline calculator, window management, a calendar
 menu-bar item and an emoji picker. SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
 dependencies.
 
-This repository is `okbytes/tinycast`, a fork of `abue-ammar/tinycast` that diverges on purpose; see
-[TODO.md](TODO.md). PRs and issues go to the fork, never upstream: run `gh repo set-default
-okbytes/tinycast` in a fresh clone, or pass `--repo okbytes/tinycast`.
+This repository is `okbytes/tinycast`. It began as a fork of `abue-ammar/tinycast` and now stands
+alone, with nothing taken from or sent back to that project; see [TODO.md](TODO.md). The code stays
+AGPL-3.0 under the original copyright notice.
 
 ## Posture: latest-only, always
 

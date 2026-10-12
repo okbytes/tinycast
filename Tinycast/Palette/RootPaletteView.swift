@@ -16,7 +16,6 @@ struct RootPaletteView: View {
     @Environment(UninstallSession.self) private var uninstall
     @Environment(AppSettings.self) private var settings
     @Environment(\.metrics) private var metrics
-    @Environment(\.openURL) private var openURL
     @FocusState private var searchFocused: Bool
     /// Which in-window menu is open; at most one, so the state cannot disagree with itself.
     @State private var openMenu: OpenMenu?
@@ -110,14 +109,6 @@ struct RootPaletteView: View {
         return PopoverMenuContent(
             header: title,
             items: [
-                PopoverMenuItem(
-                    title: "Changelog",
-                    systemImage: "clock.arrow.trianglehead.2.counterclockwise.rotate.90"
-                ) {
-                    if let url = URL(string: "https://github.com/abue-ammar/tinycast/releases") {
-                        openURL(url)
-                    }
-                },
                 PopoverMenuItem(title: "Settings", systemImage: "gearshape", shortcut: "⌘,") {
                     core.settingsCoordinator.showSettings()
                 },

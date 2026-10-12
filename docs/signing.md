@@ -10,7 +10,7 @@ staged rather than immediate is [below](#the-developer-id-migration).
 You create this identity **once**. The same identity is used for:
 
 - **local dev builds** — so Accessibility persists while you develop (the Xcode project signs with it), and
-- **CI releases** — exported into two GitHub secrets the release workflow imports.
+- **packaged builds** — `Scripts/build-dmg.sh` refuses to run without it.
 
 ## 1. Create the `Tinycast Self-Signed` identity (once)
 
@@ -44,37 +44,6 @@ security find-identity -p codesigning | grep "Tinycast Self-Signed"
 ```
 
 Now local builds (Xcode, VS Code F5, `xcodebuild`) sign with it, and you grant Accessibility once.
-
-## 2. Generate the CI secrets
-
-The release workflow needs the same identity as two repo secrets. Export it, base64-encode it, and
-pick a password:
-
-```sh
-# Pick a random password for the exported bundle.
-P12_PASSWORD="$(openssl rand -base64 24)"; echo "password: $P12_PASSWORD"
-
-# Export the identity (approve the keychain dialog if asked) and base64-encode it.
-security export -t identities -f pkcs12 \
-  -k ~/Library/Keychains/login.keychain-db \
-  -P "$P12_PASSWORD" -o /tmp/signing.p12
-base64 -i /tmp/signing.p12 | tr -d '\n' > /tmp/signing.p12.base64
-rm -f /tmp/signing.p12
-```
-
-Then set the two secrets on the repo (via `gh`, authed as the repo owner, or paste them in the GitHub
-UI under **Settings → Secrets and variables → Actions**):
-
-```sh
-gh secret set SIGNING_P12_BASE64   --repo abue-ammar/tinycast < /tmp/signing.p12.base64
-gh secret set SIGNING_P12_PASSWORD --repo abue-ammar/tinycast --body "$P12_PASSWORD"
-rm -f /tmp/signing.p12.base64   # holds your private key — delete it
-```
-
-If you ever lose the secrets, just re-run this section — as long as the `Tinycast Self-Signed`
-identity is still in your keychain, the exported identity is the same, so users are unaffected. If you
-lose the identity entirely, recreate it (step 1) and re-do this; existing users will re-grant
-Accessibility once on their next update, then it's stable again.
 
 ## Hardened runtime
 
@@ -114,14 +83,14 @@ missing its entitlement ships a permission that can never be granted.
 
 ## The Developer ID migration
 
-**The Developer ID identity stays a CI-only fact.** When the switch happens it is named on the
-release workflow's `xcodebuild` line and nowhere else: `project.yml` keeps signing with
+**The Developer ID identity stays a release-only fact.** When the switch happens it is named on
+`Scripts/build-dmg.sh`'s `xcodebuild` line and nowhere else: `project.yml` keeps signing with
 `Tinycast Self-Signed`, so a contributor keeps building with the one they created in §1 — same name,
 their own key, never shared. Nothing about local development changes.
 
 ## Quarantine (separate from signing)
 
 macOS quarantines anything downloaded from the internet, and Gatekeeper blocks even a correctly
-self-signed app with an "unverified developer" warning. The Homebrew cask runs
-`xattr -dr com.apple.quarantine` in `postflight`, so **brew users never touch it**. People who
-download the DMG directly clear it once by hand.
+self-signed app with an "unverified developer" warning. A build made on this Mac carries no
+quarantine flag; a DMG copied from elsewhere needs it cleared once by hand:
+`xattr -dr com.apple.quarantine "/Applications/Tinycast.app"`.

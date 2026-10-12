@@ -4,9 +4,6 @@
 RAM.**
 
 <p align="center">
-  <a href="https://github.com/abue-ammar/tinycast/releases/latest">
-    <img alt="Latest release"
-         src="https://img.shields.io/github/v/release/abue-ammar/tinycast?sort=semver&style=flat&label=release&color=1F6FEB"></a>
   <img alt="Swift 6.0"
        src="https://img.shields.io/badge/Swift-6.0-F05138?style=flat&logo=swift&logoColor=white">
   <img alt="macOS 26 or later"
@@ -45,30 +42,16 @@ source, and staying that way.
 
 ## Install
 
-First, add the tap:
+There are no published builds; Tinycast is built from source. With Xcode 26 and a signing identity
+set up ([docs/signing.md](docs/signing.md)), this builds a Dev copy, swaps it into
+`~/Applications` and relaunches it:
 
 ```sh
-brew trust --tap abue-ammar/tinycast   # required for third-party taps
-brew tap abue-ammar/tinycast
+./Scripts/install-dev.sh --no-pull
 ```
 
-Then run the one line that matches your Mac:
-
-| Your Mac                         | Install                                  |
-| -------------------------------- | ---------------------------------------- |
-| Apple silicon, macOS 26 or newer | `brew install --cask tinycast`           |
-| Intel, macOS 26                  | `brew install --cask tinycast-universal` |
-
-Not sure which you have? **Apple menu → About This Mac.** Homebrew checks too, and refuses the
-wrong one.
-
-Want early builds? `brew install --cask tinycast@beta` puts `Tinycast Beta.app` beside the stable
-app, with its own settings and permissions. Apple silicon, macOS 26+.
-
-Homebrew clears the macOS quarantine flag on every install and update, so there is nothing else to
-run. Downloading a DMG from [Releases](https://github.com/abue-ammar/tinycast/releases) instead?
-Tinycast is self-signed, so clear the flag once:
-`xattr -dr com.apple.quarantine "/Applications/Tinycast.app"`.
+[docs/development.md](docs/development.md) covers the rest, including `Scripts/build-dmg.sh` for a
+packaged build.
 
 ## Permissions
 

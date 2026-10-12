@@ -1,26 +1,14 @@
 # TODO
 
-What this fork is for, and what comes next. Ordered by payoff over effort. Items move to a
+What this project is for, and what comes next. Ordered by payoff over effort. Items move to a
 feature doc once they ship; nothing here is a promise about order.
 
 ## Where things stand
 
-A personal fork of abue-ammar/tinycast, stripped to the features its owner uses, as a Raycast
-replacement without AI, monetisation or Raycast compatibility. `main` is the fork and diverges on
-purpose, one commit per checkpoint. Every checkpoint passed the full definition of done in
+A personal launcher that began as a fork of abue-ammar/tinycast and now stands alone, stripped to
+the features its owner uses: a Raycast replacement without AI, monetisation or Raycast
+compatibility. `main` moves one commit per checkpoint. Every checkpoint passed the full definition of done in
 [docs/testing.md](docs/testing.md): harnesses, warning-free Debug build, lint, purity grep, docs.
-
-Upstream is harvested, never merged. Branch `upstream-reviewed` on `origin` marks the last upstream
-commit read. Never use GitHub's "Sync fork", which merges all of upstream. `Scripts/upstream-log.sh`
-hides commits that change only cut features, so a cut adds its paths to that list in the same commit.
-
-```sh
-git remote add upstream https://github.com/abue-ammar/tinycast.git   # once per clone
-git fetch --all
-./Scripts/upstream-log.sh                                   # what is new, bar cut features
-git cherry-pick -x <sha>                                     # take what fits
-git push origin upstream/main:upstream-reviewed             # mark it all read
-```
 
 Known flakes under parallel load: `clipboard-text-test` (timing-based scheduler) and
 `icon-cache-test` (icon rendering). Both pass in isolation.
