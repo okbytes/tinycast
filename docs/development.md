@@ -13,9 +13,10 @@ The local loop: set up, build, run, regenerate. Verifying a change is [testing.m
 
 ## First-time setup
 
-Create the `Tinycast Self-Signed` code-signing identity once — builds sign with it, which is what keeps
-macOS from forgetting the Accessibility grant on every rebuild. Follow **[signing.md](signing.md) §1**,
-a few `openssl`/`security` commands.
+Sign in to Xcode with the team's Apple ID (**Settings → Accounts**) so the Apple Development
+certificate is in the keychain; every build signs with it, which is what keeps Hyper working and
+the Accessibility grant from resetting on each rebuild. [signing.md](signing.md) has the rest,
+including the one-time release setup.
 
 That is the whole required setup. Editor configuration is personal and the repo does not prescribe it;
 the section below is a note for anyone who wants it, not a step.
@@ -46,8 +47,8 @@ executable name stays fixed even when release builds override the app's product 
 
 `TinycastKeyboardHelper` is embedded the same way, and a build step writes its LaunchDaemon plist to
 `Contents/Library/LaunchDaemons/`. Running it needs pqrs's driver package installed and a build signed
-by a team: both sides of its XPC connection require the same team ID, which `Tinycast Self-Signed`
-does not have. See [key-remap.md](features/key-remap.md#setup).
+by the team: both sides of its XPC connection require the same team ID. See
+[key-remap.md](features/key-remap.md#setup).
 
 ### A team-signed Dev build
 
@@ -56,11 +57,11 @@ does not have. See [key-remap.md](features/key-remap.md#setup).
 ./Scripts/install-dev.sh --no-pull  # the checkout as it is
 ```
 
-It signs Tinycast Dev with the first **Apple Development** certificate in the keychain — sign in to
-Xcode with an Apple ID to get one — and its team, or `TINYCAST_TEAM`. It pulls only when the branch has
-an upstream and the tree is clean. The install path is fixed on purpose: the Accessibility and Input
-Monitoring grants are keyed to it, so they survive every update, and the running keyboard helper exits
-by itself once its executable is replaced. Updating another Mac is the same one command there.
+It signs Tinycast Dev with the **Apple Development** certificate `project.yml` names, and pulls only
+when the branch has an upstream and the tree is clean. The install path is fixed on purpose: the
+Accessibility and Input Monitoring grants are keyed to it, so they survive every update, and the
+running keyboard helper exits by itself once its executable is replaced. The everyday app on each
+Mac is the released build instead: `./Scripts/install.sh` ([signing.md](signing.md#releasing)).
 
 ### The dev channel
 
@@ -81,7 +82,7 @@ Consequences worth knowing:
 
 - The dev build asks for Accessibility on its own the first time, and starts with **no** hotkeys bound
   and onboarding unseen. Grant and bind once; it persists across rebuilds, because the fixed build path
-  and the `Tinycast Self-Signed` identity keep the TCC grant alive.
+  and the team identity keep the TCC grant alive.
 - Don't bind the same global hotkey in both — whichever registered first wins.
 - Each channel registers its own keyboard helper, but both seize the same built-in keyboard: give
   the Hyper and Meh keys to one build at a time.

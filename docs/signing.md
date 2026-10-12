@@ -1,57 +1,52 @@
 # Signing
 
-Tinycast is signed with a **stable self-signed identity** called `Tinycast Self-Signed`. Keeping the
-_same_ identity on every build is what makes macOS remember the Accessibility permission across
-rebuilds and updates — ad-hoc signing changes every build and macOS forgets the grant.
+Tinycast is signed with team `P4RDBS9676`, the paid Apple Developer account, and nothing else:
 
-An Apple Developer ID certificate now exists, but nothing is signed with it yet. Why that switch is
-staged rather than immediate is [below](#the-developer-id-migration).
+- **Debug builds** — Xcode's ⌘R and `Scripts/install-dev.sh` — sign with **Apple Development**,
+  which `project.yml` names as the default identity.
+- **Release builds** sign with **Developer ID Application** and are notarized by
+  `Scripts/release.sh`, so they open on any Mac without a Gatekeeper warning.
 
-You create this identity **once**. The same identity is used for:
+A team is not optional. The keyboard helper's XPC check requires both ends to carry the same team
+ID ([key-remap.md](features/key-remap.md)), and macOS keys the Accessibility and Input Monitoring
+grants to the designated requirement, which a team identity keeps stable across rebuilds and
+releases. A build signed some other way loses Hyper and asks for both grants again.
 
-- **local dev builds** — so Accessibility persists while you develop (the Xcode project signs with it), and
-- **packaged builds** — `Scripts/build-dmg.sh` refuses to run without it.
+## Setup (once per Mac)
 
-## 1. Create the `Tinycast Self-Signed` identity (once)
+- **Every Mac that builds:** sign in to Xcode with the Apple ID (**Settings → Accounts**). Xcode
+  makes the Apple Development certificate; `security find-identity -p codesigning -v` lists it.
+- **The Mac that cuts releases**, additionally:
+  1. In Xcode, **Settings → Accounts → Manage Certificates → + → Developer ID Application**.
+  2. Store notarization credentials under the profile name `release.sh` expects, using an
+     app-specific password from appleid.apple.com:
 
-Run these in a terminal. They generate a self-signed code-signing certificate and import it into your
-login keychain:
+     ```sh
+     xcrun notarytool store-credentials tinycast --apple-id <apple-id> --team-id P4RDBS9676
+     ```
 
-```sh
-# Generate a self-signed code-signing cert (10-year, codeSigning use).
-openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-  -keyout /tmp/tc-key.pem -out /tmp/tc-cert.pem \
-  -subj "/CN=Tinycast Self-Signed" \
-  -addext "basicConstraints=critical,CA:false" \
-  -addext "keyUsage=critical,digitalSignature" \
-  -addext "extendedKeyUsage=critical,codeSigning"
+- **Macs that only install** need neither: `Scripts/install.sh` needs only `gh`, logged in.
 
-# Bundle it as a .p12 (the non-empty password keeps `security import` happy).
-openssl pkcs12 -export -inkey /tmp/tc-key.pem -in /tmp/tc-cert.pem \
-  -name "Tinycast Self-Signed" -out /tmp/tc.p12 -passout pass:tinycast
-
-# Import into the login keychain so codesign can use it without prompting.
-security import /tmp/tc.p12 -k ~/Library/Keychains/login.keychain-db \
-  -P tinycast -A -T /usr/bin/codesign
-
-rm -f /tmp/tc-key.pem /tmp/tc-cert.pem /tmp/tc.p12
-```
-
-Verify it's there:
+## Releasing
 
 ```sh
-security find-identity -p codesigning | grep "Tinycast Self-Signed"
+./Scripts/release.sh 0.12.0   # build, verify, notarize, staple, tag v0.12.0, publish
+./Scripts/install.sh          # on any Mac: the latest release into ~/Applications
 ```
 
-Now local builds (Xcode, VS Code F5, `xcodebuild`) sign with it, and you grant Accessibility once.
+`release.sh` refuses a dirty tree or a version already tagged, signs Release with Developer ID,
+runs `verify-signature.sh`, notarizes the zipped app with the `tinycast` profile and staples the
+ticket, so the published zip opens offline. It then pushes the tag and attaches the zip to a GitHub
+release on this private repo, with the commits since the last release as notes. `install.sh` checks
+the download passes Gatekeeper before it replaces the installed copy, so a build that skipped
+notarization never lands.
 
 ## Hardened runtime
 
-**Release only**, on both targets: `ENABLE_HARDENED_RUNTIME: YES`, which notarization requires. Debug
-must stay without it — hardened runtime turns on library validation, and Xcode's
-`Tinycast Dev.debug.dylib` is refused at launch because a self-signed identity carries no Team ID for
-the loader to match. The flag is not part of the designated requirement, so turning it on costs no
-Accessibility grant. Each entitlement in `Tinycast/Tinycast.entitlements` earns its place:
+**Release only**, on every target: `ENABLE_HARDENED_RUNTIME: YES`, which notarization requires.
+Debug builds go without it; nothing local needs it. The flag is not part of the designated
+requirement, so turning it on costs no Accessibility grant. Each entitlement in
+`Tinycast/Tinycast.entitlements` earns its place:
 
 | Entitlement | Without it |
 | --- | --- |
@@ -76,21 +71,12 @@ on, and `node`, `ray` and shell commands are separate processes it never reaches
 hardened-runtime entitlement.
 
 `./Scripts/verify-signature.sh <path-to-.app>` asserts all of this — the runtime flag on the app *and*
-on `Contents/Helpers/ClipboardTextHelper`, an intact nested seal, no `get-task-allow`, and an
-entitlement for every usage string `Info.plist` declares. Both release jobs run it before packaging:
+on every binary in `Contents/Helpers`, an intact nested seal, no `get-task-allow`, and an
+entitlement for every usage string `Info.plist` declares. `release.sh` runs it before notarizing:
 a nested binary missing the runtime flag is the most common notarization rejection, and a usage string
 missing its entitlement ships a permission that can never be granted.
 
-## The Developer ID migration
+## Moving from an older build
 
-**The Developer ID identity stays a release-only fact.** When the switch happens it is named on
-`Scripts/build-dmg.sh`'s `xcodebuild` line and nowhere else: `project.yml` keeps signing with
-`Tinycast Self-Signed`, so a contributor keeps building with the one they created in §1 — same name,
-their own key, never shared. Nothing about local development changes.
-
-## Quarantine (separate from signing)
-
-macOS quarantines anything downloaded from the internet, and Gatekeeper blocks even a correctly
-self-signed app with an "unverified developer" warning. A build made on this Mac carries no
-quarantine flag; a DMG copied from elsewhere needs it cleared once by hand:
-`xattr -dr com.apple.quarantine "/Applications/Tinycast.app"`.
+The first team-signed build replaces one signed without a team, so macOS treats it as a new app for
+TCC: grant Accessibility and Input Monitoring once more. Every release after that keeps them.

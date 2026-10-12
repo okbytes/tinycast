@@ -11,18 +11,19 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: P4RDBS9676
     CODE_SIGN_STYLE: Manual
-    # Stable self-signed identity so macOS keeps the Accessibility grant across rebuilds.
-    # Create it once — see docs/signing.md.
-    CODE_SIGN_IDENTITY: "Tinycast Self-Signed"
+    # A team identity: the keyboard helper's XPC check requires one. See docs/signing.md.
+    CODE_SIGN_IDENTITY: "Apple Development"
     SWIFT_STRICT_CONCURRENCY: complete
     TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app
   configs:
     Debug:
       TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app.dev
     Release:
-      # Release-only: library validation refuses Debug's `.debug.dylib`, whose team never matches.
+      # Release builds are what Scripts/release.sh notarizes, and notarization needs all three.
+      CODE_SIGN_IDENTITY: "Developer ID Application"
+      OTHER_CODE_SIGN_FLAGS: "--timestamp"
       ENABLE_HARDENED_RUNTIME: YES
       # Strip the shipped binary (dSYM is still generated first) and drop unused code.
       DEPLOYMENT_POSTPROCESSING: YES
@@ -94,9 +95,9 @@ targets:
           - "$(inherited)"
           - "@executable_path/../Frameworks"
       configs:
-        # Debug is its own channel, like beta/stable in release.yml: a distinct bundle id means a
-        # locally-run build gets its own prefs, caches, TCC grants and login item instead of
-        # inheriting — and corrupting — the installed app's state.
+        # Debug is its own channel: a distinct bundle id means a locally-run build gets its own
+        # prefs, caches, TCC grants and login item instead of inheriting — and corrupting — the
+        # installed app's state.
         Debug:
           PRODUCT_NAME: Tinycast Dev
 
@@ -108,11 +109,6 @@ targets:
       - Tinycast/Features/Clipboard/Service/ClipboardTextHelper.swift
     settings:
       base:
-        # release.yml passes PRODUCT_NAME on the xcodebuild line, which hits every target: without
-        # these two pinned, a channel build renames the executable `ClipboardTextWorker` looks for
-        # and gives the module a name with a space in it.
-        EXECUTABLE_NAME: ClipboardTextHelper
-        PRODUCT_MODULE_NAME: ClipboardTextHelper
         SKIP_INSTALL: YES
 
   TinycastKeyboardHelper:
@@ -123,10 +119,7 @@ targets:
       - Tinycast/Features/KeyRemap/Helper
     settings:
       base:
-        # Pinned for the same release.yml PRODUCT_NAME reason as ClipboardTextHelper; the signing
-        # identifier is the daemon's label, which is what the app's XPC peer check matches.
-        EXECUTABLE_NAME: TinycastKeyboardHelper
-        PRODUCT_MODULE_NAME: TinycastKeyboardHelper
+        # The signing identifier is the daemon's label, which the app's XPC peer check matches.
         PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER).keyboard-helper"
         # A bare tool signs under its file name; an embedded Info.plist makes the bundle id stick.
         GENERATE_INFOPLIST_FILE: YES

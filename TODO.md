@@ -78,9 +78,6 @@ Branch `keyboard-driver`, not merged: Hyper and Meh through a root helper drivin
 keyboard instead of an event tap ([key-remap.md](docs/features/key-remap.md)). Test builds come from
 `./Scripts/install-dev.sh` ([development.md](docs/development.md#a-team-signed-dev-build)).
 
-- **Blocks the merge:** release signing. The helper's XPC check needs a team ID and releases sign
-  with `Tinycast Self-Signed`, so a shipped build would lose Hyper. Move releases to Developer ID
-  ([signing.md](docs/signing.md)) first.
 - Verified on hardware: Hyper reaching the system as ⌃⌥⇧⌘ (an ✦ binding fired), fn+arrows, the
   Input Monitoring grant picked up in two seconds, updates keeping the grant. Not yet: Meh, the top
   row's actions from the built-in map, a Globe tap, the Caps Lock light while seized, a Caps Lock Quick Press against the delay override, sleep and
