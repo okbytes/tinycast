@@ -1,8 +1,8 @@
 # Tinycast
 
 A native macOS menu-bar launcher: fuzzy app launcher, global and per-app hotkeys, a text/image
-clipboard history, an inline calculator, a floating note, snippets, quicklinks, window management
-and an emoji picker. SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
+clipboard history, an inline calculator, snippets, quicklinks, window management, a calendar
+menu-bar item and an emoji picker. SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
 dependencies.
 
 This repository is `okbytes/tinycast`, a fork of `abue-ammar/tinycast` that diverges on purpose; see
