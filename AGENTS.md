@@ -1,7 +1,7 @@
 # Tinycast
 
 A native macOS menu-bar launcher: fuzzy app launcher, global and per-app hotkeys, a text/image
-clipboard history, an inline calculator, snippets, quicklinks, window management, a calendar
+clipboard history, an inline calculator, snippets, window management, a calendar
 menu-bar item and an emoji picker. SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
 dependencies.
 

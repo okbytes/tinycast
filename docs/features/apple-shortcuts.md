@@ -48,7 +48,7 @@ A read that differs from the last one — and the first read after launch, so a 
 Tinycast wasn't running is caught too — sweeps. `AppleShortcut.staleIDs` collects every
 `apple-shortcut:` key the alias, favorite, visibility and ranking stores hold, plus
 `boundAppleShortcutIDs`, and returns those the library no longer names. Each is unbound and its
-per-entry preferences removed, the way deleting a quicklink unwinds them. A shortcut renamed in
+per-entry preferences removed, the way deleting a custom command unwinds them. A shortcut renamed in
 Shortcuts keeps its UUID, so a rename is never a deletion.
 
 **An empty read never sweeps.** Deleting every shortcut and a tool that answers with an empty list
@@ -64,7 +64,7 @@ lines in Tinycast's own dialog.
 
 ## Launcher and Settings
 
-`AppEntry.Kind.appleShortcut` is its own section, published right after Quicklinks. It is file-backed
+`AppEntry.Kind.appleShortcut` is its own section, published right after Applications. It is file-backed
 rather than a symbol tile: every row's `url` is Shortcuts.app, so each draws that app's icon from one
 cached bitmap. Reveal in Finder is refused, because the file is the app, not the shortcut.
 
@@ -73,8 +73,8 @@ name, alias, shortcut recorder and the checkbox that hides one row from launcher
 shortcut keeps working. Its filter is membership in `AppIndex.matches`, so it answers to aliases.
 
 `HotKeyAction.appleShortcut(id:)` persists under `hotkey.appleShortcut.<uuid>` with a
-`boundAppleShortcutIDs` index. `appleShortcutsEnabled` rides in settings backups like the quicklink
-flags, since running a shortcut the user built grants no permission class. Bindings are not in
+`boundAppleShortcutIDs` index. `appleShortcutsEnabled` rides in settings backups, since running a
+shortcut the user built grants no permission class. Bindings are not in
 `HotkeyBackup`.
 
 ## Standalone harness

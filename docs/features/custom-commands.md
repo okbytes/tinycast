@@ -133,8 +133,8 @@ own cap, and what keeps the fields on screen. `CustomCommandArgument.sanitized` 
 path in, so a stored or imported command carrying more keeps its first three and drops the rest, the
 way Raycast ignores an `argument4`. The editor's **Add** stops at three.
 
-They are filled **inline beside the search field** when the command's row is selected in root search,
-as a quicklink's are (see [palette.md](palette.md#inline-row-arguments)).
+They are filled **inline beside the search field** when the command's row is selected in root search
+(see [palette.md](palette.md#inline-row-arguments)).
 `CustomCommandArgumentsAccessory` builds the strip; Tab walks into it, and ↵ with a required field
 still empty focuses that field instead of running — Raycast's rule. An optional field left empty is
 never marked as owed.
@@ -232,8 +232,8 @@ same way.
 A command may carry its own SF Symbol; without one it draws `CustomCommand.sfSymbol`, the shared
 terminal glyph. `CustomCommand.symbol` is the one place that fallback lives, and every surface reads
 it — the launcher row, the Settings list, the confirmation and failure dialogs, and the output
-window's header. The picker is `DesignSystem/SymbolPicker`, shared with the quicklink editor, which
-supplies its own symbol list: what reads as a quicklink is not what reads as a script.
+window's header. The picker is `DesignSystem/SymbolPicker`, and the editor supplies its own symbol
+list.
 
 ### Needs confirmation
 

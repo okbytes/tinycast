@@ -127,7 +127,7 @@ Per category:
 - **Learning** replaces. Merging two Macs' frecency tables produces a table describing neither.
 
 An `id` never travels with a clip: `items.id` is `UNIQUE`, so a re-import minting fresh identities is
-what keeps a second pass from silently failing its inserts. Same reasoning as `QuicklinkArchive.merge`.
+what keeps a second pass from silently failing its inserts.
 
 The old flat `Tinycast-Settings-*.json` export is gone rather than deprecated, and nothing reads it.
 

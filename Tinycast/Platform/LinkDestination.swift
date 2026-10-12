@@ -1,7 +1,7 @@
 import Foundation
 
-/// What a resolved link points at, detected by shape alone. docs/features/quicklinks.md
-enum QuicklinkDestination: Hashable, Sendable {
+/// What a link points at, detected by shape alone.
+enum LinkDestination: Hashable, Sendable {
     case web(URL)
     /// A mountable share: `smb://`, `afp://`, `nfs://`, `ftp://`, `sftp://`, `ftps://`.
     case network(URL)
@@ -9,23 +9,6 @@ enum QuicklinkDestination: Hashable, Sendable {
     case deeplink(URL)
     /// An absolute local path, tilde already expanded.
     case path(String)
-
-    var defaultSymbol: String {
-        switch self {
-        case .web: return "globe"
-        case .network: return "externaldrive.connected.to.line.below"
-        case .deeplink: return "arrow.up.forward.app"
-        case .path: return "folder"
-        }
-    }
-
-    /// What the row and the editor preview show under the name.
-    var displayText: String {
-        switch self {
-        case .web(let url), .network(let url), .deeplink(let url): return url.absoluteString
-        case .path(let path): return path
-        }
-    }
 
     private static let networkSchemes: Set<String> = ["smb", "afp", "nfs", "ftp", "sftp", "ftps"]
 
@@ -49,18 +32,6 @@ enum QuicklinkDestination: Hashable, Sendable {
             return nil
         }
         return .web(url)
-    }
-
-    /// Whether substituted values need percent-encoding, decided before placeholders resolve.
-    static func usesURLEncoding(_ link: String, homeDirectory: String = NSHomeDirectory()) -> Bool {
-        let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
-        return absolutePath(trimmed, homeDirectory: homeDirectory) == nil
-    }
-
-    /// True while a placeholder remains; validation accepts it and the open path reports.
-    static func containsPlaceholder(_ link: String) -> Bool {
-        guard let opening = link.firstIndex(of: "{") else { return false }
-        return link[link.index(after: opening)...].contains("}")
     }
 
     private static func absolutePath(_ value: String, homeDirectory: String) -> String? {

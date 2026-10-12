@@ -10,7 +10,6 @@ final class HotKeyManager {
     var onRunCustomCommand: ((UUID) -> Void)?
     var onRunSystemAction: ((SystemAction.ID) -> Void)?
     var onRunWindowCommand: ((WindowCommand.ID) -> Void)?
-    var onOpenQuicklink: ((UUID) -> Void)?
     var onRunAppleShortcut: ((UUID) -> Void)?
     var onExpandSnippet: ((StoredSnippet.ID) -> Void)?
     /// Names what only the stores know; the fixed catalogs resolve here. Set in `AppCore.start()`.
@@ -49,14 +48,12 @@ final class HotKeyManager {
     private let encoder = JSONEncoder()
     private let boundKey = "boundAppBundleIDs"
     private let boundCustomCommandKey = "boundCustomCommandIDs"
-    private let boundQuicklinkKey = "boundQuicklinkIDs"
     private let boundAppleShortcutKey = "boundAppleShortcutIDs"
     private let boundSnippetKey = "boundSnippetIDs"
 
-    func start(customCommandIDs: Set<UUID>, quicklinkIDs: Set<UUID>) {
+    func start(customCommandIDs: Set<UUID>) {
         prune(key: boundCustomCommandKey, live: customCommandIDs) { .customCommand(id: $0) }
-        prune(key: boundQuicklinkKey, live: quicklinkIDs) { .quicklink(id: $0) }
-        // After the prunes, so a dropped record can't survive in memory this session.
+        // After the prune, so a dropped record can't survive in memory this session.
         for action in candidateActions { bindings[action] = storedBinding(for: action) }
         revision &+= 1
 
@@ -78,9 +75,6 @@ final class HotKeyManager {
 
     /// Custom-command UUIDs with a binding, indexed separately so startup can re-register them.
     var boundCustomCommandIDs: [UUID] { boundIDs(key: boundCustomCommandKey) }
-
-    /// Quicklink UUIDs with a binding — the same index, its own namespace.
-    var boundQuicklinkIDs: [UUID] { boundIDs(key: boundQuicklinkKey) }
 
     /// Pruned by `AppleShortcutCoordinator` after a successful read, never here at launch.
     var boundAppleShortcutIDs: [UUID] { boundIDs(key: boundAppleShortcutKey) }
@@ -142,8 +136,6 @@ final class HotKeyManager {
             index(bundleID, bound: binding != nil, key: boundKey)
         case .customCommand(let id):
             index(id, bound: binding != nil, key: boundCustomCommandKey)
-        case .quicklink(let id):
-            index(id, bound: binding != nil, key: boundQuicklinkKey)
         case .appleShortcut(let id):
             index(id, bound: binding != nil, key: boundAppleShortcutKey)
         case .snippet(let id):
@@ -186,7 +178,6 @@ final class HotKeyManager {
         var actions = HotKeyAction.builtInActions
         actions += boundBundleIDs.map { .app(bundleID: $0) }
         actions += boundCustomCommandIDs.map { .customCommand(id: $0) }
-        actions += boundQuicklinkIDs.map { .quicklink(id: $0) }
         actions += boundAppleShortcutIDs.map { .appleShortcut(id: $0) }
         actions += boundSnippetIDs.map { .snippet(id: $0) }
         actions += SystemAction.ID.allCases.map { .systemAction(id: $0) }
@@ -209,8 +200,6 @@ final class HotKeyManager {
             return SystemActionCatalog.action(id: id).name
         case .windowCommand(let id):
             return WindowCommandCatalog.command(id: id)?.name ?? "Window Command"
-        case .quicklink:
-            return displayName?(action) ?? "Quicklink"
         case .appleShortcut:
             return displayName?(action) ?? "Apple Shortcut"
         case .snippet:
@@ -246,7 +235,6 @@ final class HotKeyManager {
         case .customCommand(let id): onRunCustomCommand?(id)
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)
-        case .quicklink(let id): onOpenQuicklink?(id)
         case .appleShortcut(let id): onRunAppleShortcut?(id)
         case .snippet(let id): onExpandSnippet?(id)
         }

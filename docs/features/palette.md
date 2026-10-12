@@ -75,9 +75,8 @@ Where a reset leaves the highlight is the screen's to say too. Every reset — a
 new filter — goes through `RootPaletteView.land()`, which reads `landingSelection`, so handlers that
 fire in one update agree whatever order they run in. `onAppear` lands as well: the first show builds
 the view after `prepare` has run, so no change handler ever sees that reset. The landing is row 0 on
-every screen but two: the clipboard lands past its pins
-([clipboard.md](clipboard.md#pinned-entries)), and Search Quicklinks lands on the row a prompt names
-([quicklinks.md](quicklinks.md)).
+every screen but one: the clipboard lands past its pins
+([clipboard.md](clipboard.md#pinned-entries)).
 
 | Mode | Screen | Inner list |
 | --- | --- | --- |
@@ -86,7 +85,6 @@ every screen but two: the clipboard lands past its pins
 | `.calculatorHistory` | `CalculatorHistoryScreen` | `CalculatorHistoryList` |
 | `.emoji` | `EmojiScreen` | `EmojiGridView` |
 | `.uninstall` | `UninstallScreen` | `UninstallList` (see [uninstall.md](uninstall.md)) |
-| `.quicklinks` | `QuicklinkListScreen` | `QuicklinkList` + preview (see [quicklinks.md](quicklinks.md#search-quicklinks)) |
 | `.snippets` | `SnippetsScreen` | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets)) |
 | `.dictionary` | `DictionaryScreen` | `DictionaryEntryView` (see [dictionary.md](dictionary.md)) |
 
@@ -152,24 +150,19 @@ another screen; ringing round forever therefore never grows the stack past two.
 ### Inline row arguments
 
 A selected row can declare arguments, and they are typed **in the header, beside the search field** —
-not on a screen of their own. Two features answer this way, each owning its own strip: a quicklink
-through `QuicklinkArgumentsAccessory`, a custom command through `CustomCommandArgumentsAccessory`.
-Both draw the same fields, `DesignSystem/InlineArgumentFields`. The palette knows neither: `PaletteScreen.headerAccessory(at:focus:)` hands back a `PaletteHeaderAccessory`
-— a width, the field names in Tab order, the first field still owed a value, a menu for a field that is
-chosen rather than typed, and an opaque view. That costs the header its one simple rule, so it holds
-these invariants:
+not on a screen of their own. A custom command answers this way, through
+`CustomCommandArgumentsAccessory`, which draws `DesignSystem/InlineArgumentFields`. The palette does
+not know it: `PaletteScreen.headerAccessory(at:focus:)` hands back a `PaletteHeaderAccessory` — a
+width, the field names in Tab order, the first field still owed a value, and an opaque view. That
+costs the header its one simple rule, so it holds these invariants:
 
 - The search field sits at **one structural position, always**. It is never moved inside an `if`:
   flipping the branch tears down its field editor, which drops first responder mid-navigation. Only
   its *width* changes — it is sized to its own text so the chips sit right after it, as they do in
   Raycast. That width is a ceiling rather than a size, and the spacer after the strip is given room
   last, so a long query is squeezed before the strip can run into the screen's own header controls.
-- **`Placement` is what a strip does to the field beside it.** `.afterQuery` (root search) drops the
-  prompt and squeezes the field to the typed text, so the chips follow what was typed and a glyph
-  anchors them to the row. `.besideSearchField` (a screen of its own, where that row is already
-  listed) keeps the prompt and sizes the field to it, so an empty field reads "Search quicklinks…"
-  with the chip after it and no glyph repeating the row below. One measurement serves both: the
-  field's own text, which is the prompt when nothing is typed and "" under `.afterQuery`.
+- **A strip drops the prompt** and squeezes the field to the typed text, so the chips follow what was
+  typed and a glyph anchors them to the row.
 - Argument focus is its own `@FocusState`, `argumentFocused`, keyed by field id. Every way out
   of its ring — moving the selection, Escape, Tab past the last field, or an arrow at its edge — goes through
   `returnFocusToSearchField()`, because the row that owned those fields is about to stop being
@@ -181,20 +174,16 @@ these invariants:
   from one local value.
 - Returning focus this way leaves the query selected, because AppKit selects the whole string as the
   field editor comes back — here that is the wanted reset rather than the hazard it is under ↵.
-- A field declaring `options=` is **chosen, not typed**: it hands back a `PopoverMenuContent` and the
-  palette opens it as `OpenMenu.argumentOptions`, the same window every other menu uses. There is no
-  second dropdown control to keep in step, which is the whole reason the accessory vends a menu rather
-  than a view of its own.
 
 The typed values live on `PaletteState.commandArguments`, keyed by
-`PaletteState.argumentKey(entryID, field)` — the argument's name, or a custom command's positional
-`$1`–`$3` — and are cleared with the rest of the screen.
-`PaletteState.pendingArgumentEntryID` is how a *shortcut* reaches them: a quicklink opened with values
-still missing shows its own screen and names the row, and the header focuses that row's first empty
-field instead of the search field. On first mount the view handles the pending request after landing;
-later requests wait a turn for the show's navigation to settle. A custom command has no screen of
-its own, so it also sets `argumentEntryID`, which lists that row alone in root search while the query
-is its name. Both are set **after** `showPalette`, since `prepare` clears them.
+`PaletteState.argumentKey(entryID, field)` — a custom command's positional `$1`–`$3` — and are
+cleared with the rest of the screen.
+`PaletteState.pendingArgumentEntryID` is how a *shortcut* reaches them: a custom command run with
+values still missing names its row, and the header focuses that row's first empty field instead of
+the search field. On first mount the view handles the pending request after landing; later requests
+wait a turn for the show's navigation to settle. A custom command has no screen of its own, so it
+also sets `argumentEntryID`, which lists that row alone in root search while the query is its name.
+Both are set **after** `showPalette`, since `prepare` clears them.
 
 The flat `selection` index is the single source of truth for highlight / activation and **must always
 match the visible row order**, including the card at index 0 when present — the calculator's (see
@@ -381,7 +370,7 @@ the arrow outside it, and AppKit's own alternation over the field came straight 
 `RootPaletteView` holds a single `OpenMenu?` rather than a flag per menu, so "at most one is open" is
 structural instead of a pair of `onChange` handlers pushing each other closed. The ⌘K Actions menu
 hangs `.bottomTrailing`, the app menu `.bottomLeading`, and everything drawn as a header control —
-the clipboard type filter, an `options=` argument field's choices and a running command's
+the clipboard type filter and a running command's
 `searchBarAccessory` dropdown — hangs `.belowHeaderTrailing`, under its own
 button. `menuContent` resolves the open case to one `PaletteMenuContent` — a row count, a row action
 and a view built on demand — so ↑/↓, plain ↵, Esc and the click-away catcher serve every menu without

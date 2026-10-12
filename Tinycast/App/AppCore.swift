@@ -9,7 +9,6 @@ final class AppCore {
     let launcherRanking: LauncherRankingStore
     let appIndex: AppIndex
     let customCommands = CustomCommandStore()
-    let quicklinks = QuicklinkStore()
     let clipboardStore = ClipboardStore()
     @ObservationIgnored private var clipboardTextIndexer: ClipboardTextIndexer?
     let clipboardManager: ClipboardManager
@@ -46,8 +45,6 @@ final class AppCore {
     let activationPolicy = ActivationPolicy()
     let uninstall = UninstallSession()
 
-    /// Set when a quicklink editor should open with Settings; the pane consumes it.
-    var pendingQuicklinkEdit: QuicklinkEditRequest?
     /// Set when a snippet editor should open with Settings; the pane consumes it.
     var pendingSnippetEdit: SnippetEditRequest?
 
@@ -57,14 +54,6 @@ final class AppCore {
         windowController: windowController, paletteCoordinator: paletteCoordinator,
         settingsCoordinator: settingsCoordinator,
         showMessage: { [unowned self] in self.showMessage($0, tone: $1) }, core: self)
-    @ObservationIgnored private(set) lazy var quicklinkCoordinator = QuicklinkCoordinator(
-        store: quicklinks, settings: settings,
-        appIndex: appIndex, injector: textInjector, hotKeys: hotKeys, favorites: favorites,
-        visibility: visibility, ranking: launcherRanking, aliases: aliases,
-        windowController: windowController,
-        paletteCoordinator: paletteCoordinator, settingsCoordinator: settingsCoordinator,
-        clipboardHistory: { [unowned self] in self.snippetCoordinator.clipboardHistoryForExpansion() },
-        core: self)
 
     @ObservationIgnored private(set) lazy var paletteCoordinator = PaletteCoordinator(
         palette: palette, settings: settings, appIndex: appIndex,
@@ -100,7 +89,6 @@ final class AppCore {
         settingsCoordinator: settingsCoordinator,
         customCommandCoordinator: customCommandCoordinator,
         systemActionCoordinator: systemActionCoordinator,
-        quicklinkCoordinator: quicklinkCoordinator,
         windowCommandCoordinator: windowCommandCoordinator,
         snippetCoordinator: snippetCoordinator,
         core: self)
@@ -164,12 +152,6 @@ final class AppCore {
             }
             customCommandCoordinator.applyCustomCommandsPresence()
             applyWindowCommandsPresence()
-            quicklinks.onChange = { [weak self] _ in
-                self?.quicklinkCoordinator.applyQuicklinksPresence()
-            }
-            // Before `hotKeys.start` even when off: the prune reads it. docs/features/quicklinks.md
-            quicklinks.load()
-            quicklinkCoordinator.applyQuicklinksPresence()
             appleShortcutCoordinator.applyPresence()
             paletteCoordinator.onLauncherShown = { [weak self] in
                 self?.appleShortcutCoordinator.refresh()
@@ -193,9 +175,6 @@ final class AppCore {
             }
             hotKeys.onRunWindowCommand = { [weak self] id in
                 self?.windowCommandCoordinator.runWindowCommand(id: id)
-            }
-            hotKeys.onOpenQuicklink = { [weak self] id in
-                self?.quicklinkCoordinator.openQuicklink(id: id)
             }
             hotKeys.onRunAppleShortcut = { [weak self] id in
                 self?.appleShortcutCoordinator.run(id: id)
@@ -228,8 +207,7 @@ final class AppCore {
                 self?.systemActionCoordinator.presentSystemActionFailure(id: id, failure: failure)
             }
             hotKeys.start(
-                customCommandIDs: Set(customCommands.commands.map(\.id)),
-                quicklinkIDs: Set(quicklinks.quicklinks.map(\.id)))
+                customCommandIDs: Set(customCommands.commands.map(\.id)))
             keyRemap.start(settings: settings)
 
             snippetsStore.onSnapshot = { [weak self] snapshot in
@@ -271,8 +249,6 @@ final class AppCore {
             return appIndex.apps.first { $0.kind == .application && $0.bundleID == bundleID }?.name
         case .customCommand(let id):
             return customCommands.command(id: id)?.name
-        case .quicklink(let id):
-            return quicklinks.quicklink(id: id)?.name
         case .appleShortcut(let id):
             return appleShortcutCoordinator.name(of: id)
         case .snippet(let id):
@@ -331,11 +307,6 @@ final class AppCore {
                 _ = $0.customCommandsEnabled
                 _ = $0.customCommandsShowInLauncher
             }, reproject: { $0.customCommandCoordinator.applyCustomCommandsPresence() })
-        track(
-            {
-                _ = $0.quicklinksEnabled
-                _ = $0.quicklinksShowInLauncher
-            }, reproject: { $0.quicklinkCoordinator.applyQuicklinksPresence() })
         track(
             { _ = $0.appleShortcutsEnabled },
             reproject: { $0.appleShortcutCoordinator.applyPresence() })

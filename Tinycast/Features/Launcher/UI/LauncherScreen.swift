@@ -10,8 +10,6 @@ struct LauncherScreen: PaletteScreen {
     /// Sampled by `openActions`, so Restart and Quit can't move while the menu is up.
     let running: Bool
     let openActions: () -> Void
-    /// Opens the palette's own menu for an `options=` field, keyed by argument name.
-    let openArgumentOptions: (String) -> Void
     /// Called when an action reorders the list, so the highlight scrolls back into view.
     let scrollToFollow: () -> Void
 
@@ -33,7 +31,7 @@ struct LauncherScreen: PaletteScreen {
     init(
         appIndex: AppIndex, favorites: FavoritesStore, visibility: VisibilityStore,
         currencyRates: CurrencyRateStore, core: AppCore, vm: PaletteState, running: Bool,
-        openActions: @escaping () -> Void, openArgumentOptions: @escaping (String) -> Void,
+        openActions: @escaping () -> Void,
         scrollToFollow: @escaping () -> Void
     ) {
         self.appIndex = appIndex
@@ -43,7 +41,6 @@ struct LauncherScreen: PaletteScreen {
         self.vm = vm
         self.running = running
         self.openActions = openActions
-        self.openArgumentOptions = openArgumentOptions
         self.scrollToFollow = scrollToFollow
 
         // Listed even when hidden from search: the shortcut that opened it still has to be answered.
@@ -127,13 +124,6 @@ struct LauncherScreen: PaletteScreen {
         -> PaletteHeaderAccessory?
     {
         guard let entry = entry(at: selection) else { return nil }
-        // A quicklink asks for its values in root search too, so the fallback never leaves it.
-        if entry.kind == .quicklink {
-            return QuicklinkArgumentsAccessory.make(
-                quicklink: quicklink(for: entry), core: core, vm: vm, focus: focus,
-                placement: .afterQuery, onOpenOptions: openArgumentOptions,
-                onSubmit: { activate(at: selection) })
-        }
         if entry.kind == .customCommand {
             return CustomCommandArgumentsAccessory.make(
                 command: core.customCommands.command(entryID: entry.id), vm: vm,
@@ -145,19 +135,11 @@ struct LauncherScreen: PaletteScreen {
 
     /// The typed values for one row, stripped of blanks — what gets handed to the command.
     private func argumentValues(for entry: AppEntry) -> [String: String] {
-        if entry.kind == .quicklink {
-            guard let quicklink = quicklink(for: entry) else { return [:] }
-            return QuicklinkArgumentsAccessory.values(for: quicklink, core: core, vm: vm)
-        }
         if entry.kind == .customCommand {
             guard let command = core.customCommands.command(entryID: entry.id) else { return [:] }
             return CustomCommandArgumentsAccessory.values(for: command, vm: vm)
         }
         return [:]
-    }
-
-    private func quicklink(for entry: AppEntry) -> Quicklink? {
-        Quicklink.id(fromEntryID: entry.id).flatMap(core.quicklinks.quicklink)
     }
 
     private func entry(at selection: Int) -> AppEntry? {
@@ -243,20 +225,10 @@ struct LauncherScreen: PaletteScreen {
         case .hideFromSearch: return hideFromSearch(at: selection)
         case .quit, .forceQuit: return quit(at: selection, force: shortcut == .forceQuit)
         case .restart: return restart(at: selection)
-        case .edit: return editQuicklink(at: selection)
-        case .copyLink: return copyQuicklink(at: selection)
         case .favoriteSlot(let index): return launchFavorite(at: index)
         case .copyCalculation: return copyCalculation(at: selection)
         default: return false
         }
-    }
-
-    private func copyQuicklink(at selection: Int) -> Bool {
-        guard let app = entry(at: selection), app.kind == .quicklink,
-            let quicklink = quicklink(for: app)
-        else { return false }
-        core.quicklinkCoordinator.copyQuicklink(id: quicklink.id)
-        return true
     }
 
     private func copyCalculation(at selection: Int) -> Bool {
@@ -276,12 +248,6 @@ struct LauncherScreen: PaletteScreen {
     private func restart(at selection: Int) -> Bool {
         guard let app = runningApplication(at: selection) else { return false }
         core.launcherCoordinator.restart(app)
-        return true
-    }
-
-    private func editQuicklink(at selection: Int) -> Bool {
-        guard let quicklink = entry(at: selection).flatMap(quicklink(for:)) else { return false }
-        core.quicklinkCoordinator.editQuicklink(quicklink)
         return true
     }
 
@@ -342,10 +308,8 @@ struct LauncherScreen: PaletteScreen {
         guard let app = entry(at: selection), !CommandCatalog.isQueryDriven(app),
             let index = results.firstIndex(of: app)
         else { return false }
-        // Each editor's Show in root search toggle is the undo, so neither hide is one-way.
-        if let id = Quicklink.id(fromEntryID: app.id) {
-            core.quicklinkCoordinator.setQuicklinkShowsInRootSearch(false, id: id)
-        } else if let id = CustomCommand.id(fromEntryID: app.id) {
+        // The editor's Show in root search toggle is the undo, so this hide is not one-way.
+        if let id = CustomCommand.id(fromEntryID: app.id) {
             core.customCommandCoordinator.setCustomCommandShowsInRootSearch(false, id: id)
         } else if app.canHideFromSearch {
             visibility.setItemVisible(false, for: app)

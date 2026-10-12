@@ -14,7 +14,7 @@ extension ClipboardItem {
         if let path = imagePath ?? filePath { return .file(URL(fileURLWithPath: path)) }
         let copy = text ?? ""
         guard textForm == .link else { return .text(copy) }
-        switch QuicklinkDestination.detect(copy) {
+        switch LinkDestination.detect(copy) {
         case .web(let url), .network(let url), .deeplink(let url): return .link(url, copy)
         case .path, nil: return .text(copy)
         }

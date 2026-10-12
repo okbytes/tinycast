@@ -8,8 +8,6 @@ enum PaletteShortcut: Equatable {
     case delete
     /// ⌃⇧X.
     case deleteAll
-    /// ⌃⌘C.
-    case copyLink
     /// ⇧⌘T.
     case copyText
     /// ⇧⌘↵, matched by the Return handler rather than `resolve`.
@@ -28,10 +26,6 @@ enum PaletteShortcut: Equatable {
     case newItem
     /// ⌘E, the row opened in its editor.
     case edit
-    /// ⌘D.
-    case duplicate
-    /// ⌘F, for a screen whose ⌘↵ already does something else.
-    case showInFinder
     /// ⌥⌘,, the screen's own settings; ⌘, alone stays the app's.
     case settings
     /// ⌘., which AppKit binds to `cancelOperation:`, so it arrives as a token instead of a key.
@@ -45,16 +39,14 @@ enum PaletteShortcut: Equatable {
         matches: (Character) -> Bool
     ) -> Self? {
         if isDeleteKey { return command ? .commandDelete : nil }
-        if command, control, !shift, !option, matches("c") { return .copyLink }
         if command, shift, matches("t") { return .copyText }
         if control, matches("x") { return shift ? .deleteAll : .delete }
-        if command, matches("f") { return shift ? .toggleFavorite : .showInFinder }
+        if command, shift, matches("f") { return .toggleFavorite }
         if command, shift, matches("h") { return .hideFromSearch }
         if control, shift, matches("q") { return option ? .forceQuit : .quit }
         if command, matches("r") { return .restart }
         if command, !shift, matches("n") { return .newItem }
         if command, !shift, matches("e") { return .edit }
-        if command, !shift, matches("d") { return .duplicate }
         if command, option, matches(",") { return .settings }
         return nil
     }
@@ -62,8 +54,8 @@ enum PaletteShortcut: Equatable {
     /// The compact bar shows no selection, so a chord aimed at a highlighted row waits for the list.
     var requiresExpanded: Bool {
         switch self {
-        case .copyLink, .copyText, .toggleFavorite, .hideFromSearch,
-            .quit, .forceQuit, .restart, .edit, .duplicate, .showInFinder:
+        case .copyText, .toggleFavorite, .hideFromSearch,
+            .quit, .forceQuit, .restart, .edit:
             true
         case .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot, .newItem,
             .settings, .copyCalculation:
@@ -73,8 +65,8 @@ enum PaletteShortcut: Equatable {
 
     var closesMenu: Bool {
         switch self {
-        case .delete, .deleteAll, .copyLink, .copyText, .copyCalculation,
-            .toggleFavorite, .hideFromSearch, .newItem, .settings, .edit, .duplicate, .showInFinder:
+        case .delete, .deleteAll, .copyText, .copyCalculation,
+            .toggleFavorite, .hideFromSearch, .newItem, .settings, .edit:
             true
         case .commandDelete, .quit, .forceQuit, .restart, .pin, .favoriteSlot:
             false

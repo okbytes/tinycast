@@ -99,9 +99,7 @@ lines, CR/LF choices, Unicode, and later lines containing `---` are preserved ex
 
 ## Template tokens
 
-The template engine is **shared with [Quicklinks](quicklinks.md#placeholders)**, which expands a bare
-string rather than a snippet record and asks for automatic percent-encoding. It is Foundation-only and
-receives one captured expansion context: clipboard
+The template engine is Foundation-only and receives one captured expansion context: clipboard
 history, selected text, clock, calendar, locale, time zone, and a UUID source. Everything the engine
 needs is injected, so the whole placeholder surface is covered by the standalone harness. If arguments
 require a prompt, the same context is reused afterward, so nothing can drift while the prompt is open.
@@ -135,8 +133,7 @@ Any value-producing token accepts a modifier pipeline, applied left to right:
 `{clipboard | trim | uppercase}`. The modifiers are `uppercase`, `lowercase`, `trim`,
 `percent-encode` (escapes everything outside RFC 3986's unreserved set), `json-stringify` (escapes for
 use _inside_ a JSON string, without adding the quotes), and `raw`, which opts a value out of any
-automatic formatting the _result_ asks for. A snippet asks for none, so `raw` is a no-op there; a
-quicklink expanding into a URL percent-encodes every value, and `raw` is how a template opts one out.
+automatic formatting the _result_ asks for. A snippet asks for none, so `raw` is a no-op there.
 `{cursor}` and snippet references are structural, so they take no modifiers.
 
 A token Tinycast cannot parse — an unknown name, an unknown modifier, a duplicated or unsupported
@@ -204,7 +201,7 @@ gates on consent and the generation alone: there is nothing to grant, activate o
 ## Search Snippets
 
 `PaletteMode.snippets` is a dedicated browser, reached by the `Search Snippets` command or by the
-global shortcut recorded in **Settings → Snippets**. Like Search Quicklinks it stays out of the Tab
+global shortcut recorded in **Settings → Snippets**. It stays out of the Tab
 cycle and exits with Escape or a bare backspace, and like the clipboard it splits into a list and a
 preview.
 

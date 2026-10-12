@@ -43,7 +43,7 @@ struct SnippetsTests {
             StoredSnippet.id(fromEntryID: first.entryID) == first.id)
         check(
             "another kind's entry id resolves to no snippet",
-            StoredSnippet.id(fromEntryID: "quicklink:" + first.id) == nil)
+            StoredSnippet.id(fromEntryID: "window-command:" + first.id) == nil)
         check(
             "source revision is deterministic",
             SnippetSourceRevision(content: "same") == SnippetSourceRevision(content: "same"))
@@ -1409,7 +1409,7 @@ struct SnippetsTests {
             ).text == "[]")
     }
 
-    /// Shared with Quicklinks: bare strings, encoding, and Raycast's `{selectedText}`.
+    /// Bare strings, encoding, and Raycast's `{selectedText}`.
     private static func testTemplateEncodingAndSelectionAlias() {
         var calendar = Calendar(identifier: .gregorian)
         let timeZone = TimeZone(secondsFromGMT: 0)!
@@ -1489,7 +1489,7 @@ struct SnippetsTests {
         let aliasSnippet = record(
             "/tmp/alias.md", Snippet(name: "Alias", text: "[{selectedText}]"))
         check(
-            "a snippet may use the alias too — it is not quicklink-only",
+            "a snippet may use the alias too",
             SnippetTemplateEngine.expand(aliasSnippet, snippets: [], context: context).text
                 == "[a b&c]")
 

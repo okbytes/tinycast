@@ -159,7 +159,7 @@ Two gotchas worth knowing before they cost an afternoon:
 
 ### Observation
 
-37 types use `@Observable`; nothing uses `ObservableObject` or `@Published`. Migrating anything new into
+36 types use `@Observable`; nothing uses `ObservableObject` or `@Published`. Migrating anything new into
 this model:
 
 - `@ObservationIgnored` on memo caches and lazily-built collaborators. Without it, reading a memo

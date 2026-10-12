@@ -30,7 +30,6 @@ extension View {
             .environment(core.runningApps)
             .environment(core.hotKeys)
             .environment(core.uninstall)
-            .environment(core.quicklinks)
             .environment(core.snippetsStore)
     }
 }

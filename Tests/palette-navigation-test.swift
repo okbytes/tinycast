@@ -73,20 +73,20 @@ struct PaletteNavigationTests {
         expect(tokens.followToken != follow, "it scrolls the restored row into view instead")
 
         let nested = searchingLauncher()
-        nested.push(mode: .quicklinks)
+        nested.push(mode: .calculatorHistory)
         nested.query = "github"
         nested.push(mode: .dictionary)
         expect(
-            nested.pop() && nested.mode == .quicklinks && nested.query == "github",
-            "a pushed screen returns to the quicklink search it was opened over")
+            nested.pop() && nested.mode == .calculatorHistory && nested.query == "github",
+            "a pushed screen returns to the calculator history search it was opened over")
         expect(
             nested.pop() && nested.mode == .launcher && nested.query == "clipboard",
-            "and quicklinks return to the search that found them")
+            "and calculator history returns to the search that found it")
 
         // `replace` is for a screen swapping its own contents, which is not a step of its own.
         let replaced = searchingLauncher()
-        replaced.push(mode: .quicklinks)
-        replaced.replace(mode: .quicklinks)
+        replaced.push(mode: .calculatorHistory)
+        replaced.replace(mode: .calculatorHistory)
         expect(replaced.canGoBack, "swapping a screen's contents keeps what it was opened over")
         expect(
             replaced.pop() && replaced.mode == .launcher,
@@ -114,11 +114,11 @@ struct PaletteNavigationTests {
             "and the screen it crossed from is the step back")
 
         let chatted = searchingLauncher()
-        chatted.push(mode: .quicklinks)
+        chatted.push(mode: .calculatorHistory)
         chatted.query = "github"
         chatted.push(mode: .clipboard)
         expect(
-            chatted.pop() && chatted.mode == .quicklinks && chatted.query == "github",
+            chatted.pop() && chatted.mode == .calculatorHistory && chatted.query == "github",
             "leaving a screen keeps its query to come back to")
         expect(
             chatted.pop() && chatted.mode == .launcher,

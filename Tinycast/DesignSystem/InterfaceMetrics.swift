@@ -71,7 +71,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var menuButton: CGFloat { scaledPoints(Theme.Size.menuButton, scale) }
         var checkbox: CGFloat { scaledPoints(Theme.Size.checkbox, scale) }
 
-        var menuWidth: CGFloat { scaledPoints(Theme.Size.menuWidth, scale) }
         var actionMenuWidth: CGFloat { scaledPoints(Theme.Size.actionMenuWidth, scale) }
         var clipboardFilterMenuWidth: CGFloat { scaledPoints(Theme.Size.clipboardFilterMenuWidth, scale) }
         var emojiCategoryMenuWidth: CGFloat { scaledPoints(Theme.Size.emojiCategoryMenuWidth, scale) }

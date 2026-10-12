@@ -8,7 +8,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case snippet
         case systemAction
         case windowCommand
-        case quicklink
         case appleShortcut
 
         var descriptor: KindDescriptor {
@@ -43,11 +42,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                     label: "Window Command", sectionTitle: "Window Management",
                     openVerb: "Move Window", canHideFromSearch: true,
                     canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
-            case .quicklink:
-                return KindDescriptor(
-                    label: "Quicklink", sectionTitle: "Quicklinks",
-                    openVerb: "Open Quicklink", canHideFromSearch: false,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 2)
             case .appleShortcut:
                 // File-backed so every row draws the Shortcuts app's own icon.
                 return KindDescriptor(
@@ -136,8 +130,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return SystemActionCatalog.action(forEntryID: id).map { .systemAction(id: $0.id) }
         case .windowCommand:
             return WindowCommandCatalog.command(forEntryID: id).map { .windowCommand(id: $0.id) }
-        case .quicklink:
-            return Quicklink.id(fromEntryID: id).map { .quicklink(id: $0) }
         case .appleShortcut:
             return AppleShortcut.id(fromEntryID: id).map { .appleShortcut(id: $0) }
         case .snippet:
@@ -163,7 +155,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
 
     private var kindSymbol: String {
         switch kind {
-        case .quicklink: return Quicklink.sfSymbol
         case .snippet: return "text.quote"
         case .customCommand: return CustomCommand.sfSymbol
         case .command: return CommandCatalog.command(for: self)?.sfSymbol ?? "questionmark"
@@ -198,16 +189,6 @@ extension AppEntry {
             id: command.entryID, name: command.name,
             url: URL(string: "tinycast://custom-command/" + command.id.uuidString)!,
             bundleID: nil, kind: .customCommand, symbolName: command.iconSymbol)
-    }
-
-    /// The one row a quicklink draws, wherever it is offered from.
-    init(_ quicklink: Quicklink) {
-        self.init(
-            id: quicklink.entryID, name: quicklink.name,
-            url: URL(string: "tinycast://quicklink/" + quicklink.id.uuidString)!,
-            bundleID: nil, kind: .quicklink,
-            symbolName: quicklink.iconSymbol
-                ?? QuicklinkDestination.detect(quicklink.link)?.defaultSymbol)
     }
 
     /// No bundle id: that would key every shortcut's alias and ranking to the Shortcuts app.
@@ -297,7 +278,6 @@ final class AppIndex {
     private var discoveredEntries: [AppEntry] = []
     private var customCommandEntries: [AppEntry] = []
     private var windowCommandEntries: [AppEntry] = []
-    private var quicklinkEntries: [AppEntry] = []
     private var appleShortcutEntries: [AppEntry] = []
     /// The catalog's commands a disabled feature hides; the Commands slice is recomputed from it.
     private var hiddenCommands: Set<CommandID> = []
@@ -357,18 +337,6 @@ final class AppIndex {
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         guard entries != customCommandEntries else { return }
         customCommandEntries = entries
-        publishEntries()
-    }
-
-    /// Replaces the quicklink slice; a toggle can't split its entries from their section.
-    func setQuicklinks(_ quicklinks: [Quicklink]) {
-        let entries =
-            quicklinks
-            .filter { $0.isEnabled && $0.showsInRootSearch }
-            .sorted(by: Quicklink.precedes)
-            .map(AppEntry.init)
-        guard entries != quicklinkEntries else { return }
-        quicklinkEntries = entries
         publishEntries()
     }
 
@@ -512,7 +480,7 @@ final class AppIndex {
         let updated =
             discoveredEntries
             + Self.named(
-                quicklinkEntries + appleShortcutEntries + snippetEntries
+                appleShortcutEntries + snippetEntries
                     + Self.systemActionEntries
                     + windowCommandEntries
                     + customCommandEntries

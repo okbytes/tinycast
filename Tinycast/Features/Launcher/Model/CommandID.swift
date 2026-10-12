@@ -9,10 +9,6 @@ enum CommandID: String, CaseIterable, Sendable {
     case openCamera = "command:open-camera"
     case openInBrowser = "command:open-in-browser"
     case define = "command:define"
-    case createQuicklink = "command:create-quicklink"
-    case searchQuicklinks = "command:search-quicklinks"
-    case importQuicklinks = "command:import-quicklinks"
-    case exportQuicklinks = "command:export-quicklinks"
     case searchSnippets = "command:search-snippets"
     case createSnippet = "command:create-snippet"
     case exportSettings = "command:export-settings"
@@ -29,10 +25,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .openCamera: return "Open Camera"
         case .openInBrowser: return "Open in Browser"
         case .define: return "Define Word"
-        case .createQuicklink: return "Create Quicklink"
-        case .searchQuicklinks: return "Search Quicklinks"
-        case .importQuicklinks: return "Import Quicklinks"
-        case .exportQuicklinks: return "Export Quicklinks"
         case .searchSnippets: return "Search Snippets"
         case .createSnippet: return "Create Snippet"
         case .exportSettings: return "Export Backup"
@@ -51,10 +43,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .openCamera: return "camera"
         case .openInBrowser: return "globe"
         case .define: return "book.closed"
-        case .createQuicklink: return "link.badge.plus"
-        case .searchQuicklinks: return Quicklink.sfSymbol
-        case .importQuicklinks: return "square.and.arrow.down"
-        case .exportQuicklinks: return "square.and.arrow.up"
         case .searchSnippets: return "curlybraces"
         case .createSnippet: return "plus.rectangle.on.rectangle"
         case .exportSettings: return "square.and.arrow.up"
@@ -69,7 +57,7 @@ enum CommandID: String, CaseIterable, Sendable {
         switch self {
         case .clipboardHistory: 80
         case .searchEmoji: 50
-        case .createQuicklink, .createSnippet: 30
+        case .createSnippet: 30
         default: nil
         }
     }

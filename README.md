@@ -32,8 +32,6 @@ source, and staying that way.
 - **Dictionary** — look a word up with the Define Word command, read from the Mac's own dictionaries.
 - **Clipboard history** — text and images, searchable, pasted back into the app you were using.
 - **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
-- **Quicklinks** — turn a URL, search, file or deeplink into a command, with placeholders for typed
-  input, the clipboard or the date.
 - **Apple Shortcuts** — search and run the shortcuts you built in the Shortcuts app, with aliases and
   global hotkeys.
 - **Snippets** — reusable Markdown templates with dynamic placeholders, arguments, nested references

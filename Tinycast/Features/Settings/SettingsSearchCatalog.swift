@@ -108,7 +108,7 @@ enum SettingsSearchCatalog {
     // Pane order, then section order within a pane, so this reads as a table of contents.
 
     static let entries: [SettingsSearchEntry] =
-        general + applications + systemActions + commands + quicklinks
+        general + applications + systemActions + commands
         + appleShortcuts + clipboard + snippets + windowManagement
         + calendar + emoji + permissions + backup
 
@@ -211,34 +211,6 @@ enum SettingsSearchCatalog {
         .init(
             .commandsCustomCommands, "Add Custom Command",
             keywords: ["new", "script", "shell", "shortcut"])
-    ]
-
-    private static let quicklinks: [SettingsSearchEntry] = [
-        .init(pane: .quicklinks, keywords: ["url", "bookmark", "link"]),
-        .init(
-            .quicklinksQuicklinks, "Enable quicklinks",
-            keywords: ["url", "bookmark"]),
-        .init(
-            .quicklinksQuicklinks, "Add Quicklink",
-            keywords: ["new", "url", "bookmark", "alias"]),
-        .init(
-            group: .quicklinksCommands, "Quicklink commands",
-            keywords: ["shortcut", "launcher", "search", "import", "export"]),
-        .init(
-            .quicklinksBehaviour, "Open in a new window",
-            keywords: ["browser", "tab"]),
-        .init(
-            .quicklinksBehaviour, "When there's no selected text",
-            keywords: ["selection", "fallback", "placeholder"]),
-        .init(
-            .quicklinksBehaviour, "Confirm before deleting",
-            keywords: ["ask", "delete", "prompt"]),
-        .init(
-            .quicklinksImportExport, "Import quicklinks",
-            keywords: ["json", "restore"]),
-        .init(
-            .quicklinksImportExport, "Export quicklinks",
-            keywords: ["json", "backup"])
     ]
 
     private static let appleShortcuts: [SettingsSearchEntry] = [

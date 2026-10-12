@@ -55,7 +55,7 @@ struct AppleShortcutTest {
         let unbound = UUID(uuidString: "5A6B7C8D-9E0F-4A1B-8C2D-3E4F5A6B7C8D")!
         let stored = [
             AppleShortcut.entryID(for: volume), AppleShortcut.entryID(for: gone),
-            "quicklink:\(gone.uuidString.lowercased())", "com.apple.Safari", "apple-shortcut:nope"
+            "window-command:\(gone.uuidString.lowercased())", "com.apple.Safari", "apple-shortcut:nope"
         ]
         let stale = AppleShortcut.staleIDs(referencedBy: stored, bound: [pdf, unbound], live: listed)
         check("a preference or binding for a deleted shortcut is stale", stale == [gone, unbound])
@@ -68,7 +68,9 @@ struct AppleShortcutTest {
 
         let shortcut = AppleShortcut(id: recipes, name: "Leftover Recipes")
         check("an entry id round-trips", AppleShortcut.id(fromEntryID: shortcut.entryID) == recipes)
-        check("another kind's id is refused", AppleShortcut.id(fromEntryID: "quicklink:\(recipes)") == nil)
+        check(
+            "another kind's id is refused",
+            AppleShortcut.id(fromEntryID: "window-command:\(recipes)") == nil)
         check("a malformed id is refused", AppleShortcut.id(fromEntryID: "apple-shortcut:nope") == nil)
 
         print(failures == 0 ? "\nALL PASSED" : "\n\(failures) failed")

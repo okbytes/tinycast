@@ -27,7 +27,7 @@ struct PaletteTabTests {
             "the clipboard closes the ring")
 
         // A sub-screen is reached by a command or a hotkey, so Tab leaves rather than ringing on.
-        for mode in [PaletteMode.emoji, .calculatorHistory, .quicklinks, .snippets] {
+        for mode in [PaletteMode.emoji, .calculatorHistory, .snippets] {
             expect(
                 PaletteTabAction.resolve(mode: mode, clipboardEnabled: true),
                 .carryQuery(.launcher),

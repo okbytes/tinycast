@@ -106,9 +106,7 @@ enum Theme {
         static let clipboardListWidth: CGFloat = 290
         /// Symmetric clearance between the emoji grid and both panel edges.
         static let emojiGridInset: CGFloat = 16
-        static let menuWidth: CGFloat = 276
         static let actionMenuWidth: CGFloat = 320
-        /// The clipboard type filter's menu; `menuWidth` is far too wide for six short rows.
         static let clipboardFilterMenuWidth: CGFloat = 200
         /// Fits "Shapes & Punctuation", the longest category title.
         static let emojiCategoryMenuWidth: CGFloat = 220

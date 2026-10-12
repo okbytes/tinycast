@@ -12,7 +12,7 @@ enum BackupActions {
     // MARK: - Tinycast native (own file panels; dialogs come from `AppCore`)
 
     /// The shared save panel; an accessory app must activate first or it opens behind.
-    static func chooseSaveLocation(named base: String, type: UTType = .json) -> URL? {
+    static func chooseSaveLocation(named base: String, type: UTType) -> URL? {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [type]
         let ext = type.preferredFilenameExtension ?? "json"
@@ -22,8 +22,6 @@ enum BackupActions {
         guard panel.runModal() == .OK else { return nil }
         return panel.url
     }
-
-    static func chooseJSONFile() -> URL? { chooseFile(ofType: .json) }
 
     static func chooseBackupFile() -> URL? { chooseFile(ofType: .tinycastBackup) }
 
@@ -170,7 +168,6 @@ enum BackupActions {
         if s.aliases > 0 { parts.append("\(s.aliases) aliases") }
         if s.pinnedEmoji > 0 { parts.append("\(s.pinnedEmoji) pinned emoji and symbols") }
         if s.customCommands > 0 { parts.append("\(s.customCommands) custom commands") }
-        if s.quicklinks > 0 { parts.append("\(s.quicklinks) quicklinks") }
         guard !parts.isEmpty else { return nil }
         return "Applied " + parts.joined(separator: ", ") + "."
     }

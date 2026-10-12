@@ -23,7 +23,7 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
   it.
 - **Applying the file never writes it.** Only a change made in the app rewrites the file, so hand
   formatting stays until then.
-- **Content and machine state never enter it.** Snippets, custom commands and quicklinks stay where
+- **Content and machine state never enter it.** Snippets and custom commands stay where
   they are — the file can say which folder snippets live in, never what is in them —
   as do the palette's position and the shortcuts and aliases of content and Apple Shortcuts.
 

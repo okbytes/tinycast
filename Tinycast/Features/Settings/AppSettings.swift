@@ -351,43 +351,9 @@ final class AppSettings {
         didSet { defaults.set(windowCycle.rawValue, forKey: Key.windowCycle.rawValue) }
     }
 
-    /// Off means fully off, down to a still-registered shortcut opening nothing.
-    var quicklinksEnabled: Bool {
-        didSet { defaults.set(quicklinksEnabled, forKey: Key.quicklinksEnabled.rawValue) }
-    }
-
-    var quicklinksShowInLauncher: Bool {
-        didSet {
-            defaults.set(quicklinksShowInLauncher, forKey: Key.quicklinksShowInLauncher.rawValue)
-        }
-    }
-
     /// Off means the Shortcuts tool is never run, down to a bound shortcut running nothing.
     var appleShortcutsEnabled: Bool {
         didSet { defaults.set(appleShortcutsEnabled, forKey: Key.appleShortcutsEnabled.rawValue) }
-    }
-
-    /// Ask for a new window rather than a tab; off is the macOS default.
-    var quicklinkOpensNewWindow: Bool {
-        didSet {
-            defaults.set(quicklinkOpensNewWindow, forKey: Key.quicklinkOpensNewWindow.rawValue)
-        }
-    }
-
-    /// What `{selection}` does when there is no readable selection to pass.
-    var quicklinkSelectionFallback: QuicklinkSelectionFallback {
-        didSet {
-            defaults.set(
-                quicklinkSelectionFallback.rawValue,
-                forKey: Key.quicklinkSelectionFallback.rawValue)
-        }
-    }
-
-    var quicklinkConfirmsBeforeDelete: Bool {
-        didSet {
-            defaults.set(
-                quicklinkConfirmsBeforeDelete, forKey: Key.quicklinkConfirmsBeforeDelete.rawValue)
-        }
     }
 
     /// Whether settings.json mirrors these settings; `AppCore` starts and stops the mirror.
@@ -512,18 +478,7 @@ final class AppSettings {
         windowGap = defaults.integer(forKey: Key.windowGap.rawValue)
         windowCycle =
             defaults.string(forKey: Key.windowCycle.rawValue).flatMap(WindowCycle.init) ?? .off
-        quicklinksEnabled = defaults.bool(forKey: Key.quicklinksEnabled.rawValue)
-        quicklinksShowInLauncher =
-            defaults.object(forKey: Key.quicklinksShowInLauncher.rawValue) == nil
-            || defaults.bool(forKey: Key.quicklinksShowInLauncher.rawValue)
         appleShortcutsEnabled = defaults.bool(forKey: Key.appleShortcutsEnabled.rawValue)
-        quicklinkOpensNewWindow = defaults.bool(forKey: Key.quicklinkOpensNewWindow.rawValue)
-        quicklinkSelectionFallback =
-            defaults.string(forKey: Key.quicklinkSelectionFallback.rawValue)
-            .flatMap(QuicklinkSelectionFallback.init) ?? .ask
-        quicklinkConfirmsBeforeDelete =
-            defaults.object(forKey: Key.quicklinkConfirmsBeforeDelete.rawValue) == nil
-            || defaults.bool(forKey: Key.quicklinkConfirmsBeforeDelete.rawValue)
         settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)
     }
 }

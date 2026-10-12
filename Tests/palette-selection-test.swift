@@ -223,7 +223,7 @@ struct PaletteRowIndexTests {
         expect(launcherHidden.count == 31, "a hidden category contributes no rows")
         expect(
             launcherHidden.row(at: 15), .element(section: 3, offset: 0),
-            "Quicklinks follows Applications directly once System Settings is hidden")
+            "Snippets follows Applications directly once Apple Shortcuts is hidden")
         expectRoundTrip(launcherHidden, "launcher with hidden categories")
 
         // A typed query collapses nine sections into one list, led by the card.

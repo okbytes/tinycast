@@ -105,8 +105,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `window-command-test` | `WindowManagement/WindowCommand.swift`, `WindowPlacementEngine.swift`, `WindowActionMemory.swift` |
 | `custom-command-test` | `CustomCommands/Model/CustomCommand.swift`, `Service/ShellCommandRunner.swift` |
 | `uninstall-test` | all five pure files in `Uninstall/Model/` |
-| `quicklink-test` | all of `Quicklinks/Model/` |
-| `quicklink-coordinator-test` | Quicklink opening and requested argument field — missing selection, manual input, clipboard fallback and default-app overrides; no platform effects or on-screen focus checks |
 | `apple-shortcut-test` | all of `AppleShortcuts/Model/` — the `shortcuts list` parser and entry ids |
 | `snippets-test` | all of `Snippets/Model/` and `Snippets/Service/`, plus `Platform/HealthTicker.swift` |
 | `icon-cache-test` | `Platform/Images/IconCache.swift` — row sizing at 1×/2×, warm reuse, stamp and style invalidation, bitmap release, fitted geometry across all 256 alpha values, and that a row icon draws identically to the 96px one |
@@ -138,7 +136,7 @@ when touching a pure file:
 - `HotKeys/Model/DoubleTap*` still take the clock as a parameter
 - `WindowManagement/Model/` still touches no `NSScreen` and makes no AX call
 - `Features/PaletteRowIndex.swift` still imports Foundation alone, despite living under `Features/`
-- `Quicklinks/Model/` is still handed the home directory rather than reading it
+- `Platform/LinkDestination.swift` is still handed the home directory rather than reading it
 
 ## Build and size checks
 
@@ -264,7 +262,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 - Palette hotkey opens the launcher; pressing it again closes it; Escape clears a non-empty query,
   then hides on a second press; clicking away closes it
-- Search a mode command (Clipboard History, Search Emoji, Search Quicklinks)
+- Search a mode command (Clipboard History, Search Emoji)
   and run it: Escape returns to the launcher **with the query still typed and the row still
   selected**, and the next press clears it. The same screen from its own global hotkey hides the
   palette instead, and shows its own header icon rather than a back chevron
@@ -289,7 +287,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - With macOS set to a decimal-comma region (Italian), `2,3 + 1,5` answers `3,8`, `max(2,5; 3)`
   answers `3`, and ↵ pastes `3,8`; General ▸ Calculator ▸ Number format `English` restores `2.3 + 1.5`
   and re-renders past Calculator History in the chosen format
-- Section headers appear in order: Favorites, Applications, Quicklinks, Snippets, System Actions,
+- Section headers appear in order: Favorites, Applications, Snippets, System Actions,
   Window Management, Custom Commands, Commands
 - With a non-ASCII input source active, ⌘K opens Actions; ↑/↓ move it, ↵ activates, Escape closes it
 - In either ⌘K Actions panel, typing filters immediately in the bottom search band without changing
@@ -368,7 +366,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - A double-tap binding fires; Hyper Key remaps and its status dot is green
 - Every binding survives quit and relaunch
 - `Enable Commands` off leaves every pane-owned command listed, searchable and firing —
-  Clipboard, Emoji, Snippets and Quicklinks
+  Clipboard, Emoji and Snippets
 
 ### Uninstall
 
@@ -378,20 +376,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Confirming moves items to the Trash and they are **recoverable from it**
 - Escaping mid-scan cancels promptly with no spinner left behind
 - Hiding and immediately restoring the screen never strands an in-flight file icon as a placeholder
-
-### Quicklinks
-
-- A quicklink opens its destination; `{argument}` prompts in order and Backspace steps back
-- `{selection}` falls back per the Settings choice
-- With "Ask for it" and no selection, a quicklink's hotkey focuses "Selected Text": typing fills that
-  field and Return opens the link. Check the first palette opening after launch, reopening, and an
-  already-open palette; repeat with a required `{argument}` and confirm the first missing field wins
-- Opening Search Quicklinks normally focuses search; a readable selection and clipboard fallback open
-  directly. Custom-command argument prompts still focus their first missing field
-- In the launcher and Search Quicklinks, open Actions with ⌘K and close with ⌘K or Escape. Immediately
-  type a query, use the arrows and press Return; the palette must accept keyboard input again
-- Pin, duplicate, delete and Open with Default all behave; import and export round-trip
-- Display order is pinned first by pin time, then by name
 
 ### Apple Shortcuts
 
@@ -496,7 +480,7 @@ tccutil reset Accessibility com.tinycast.app.dev 2>/dev/null || true
 ```
 
 - Launches with every store directory absent — no crash, no hang; onboarding runs
-- Palette opens and lists apps; clipboard, quicklinks, snippets and calculator history are all empty
+- Palette opens and lists apps; clipboard, snippets and calculator history are all empty
   and all accept a first entry
 - **Every setting shows its intended default.** Walk the panes: this is what catches a broken
   absence-versus-`false` read

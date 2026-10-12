@@ -14,7 +14,6 @@ struct RootPaletteView: View {
     @Environment(FrequentEmojiStore.self) private var frequentEmoji
     @Environment(DictionarySession.self) private var dictionary
     @Environment(UninstallSession.self) private var uninstall
-    @Environment(QuicklinkStore.self) private var quicklinks
     @Environment(SnippetsStore.self) private var snippets
     @Environment(AppSettings.self) private var settings
     @Environment(\.metrics) private var metrics
@@ -28,8 +27,6 @@ struct RootPaletteView: View {
     @State private var selectionIsRunning = false
     /// Highlighted row of whichever menu is open; each open path sets where it starts.
     @State private var menuSelection = 0
-    /// The argument field whose choices are up, so `menuContent` can rebuild the same menu.
-    @State private var argumentOptionsField: String?
     @State private var menuPanel = MenuPanelController()
     /// The palette's own window, reported by `WindowReader`; the menu hangs off its frame.
     @State private var hostWindow: NSWindow?
@@ -46,15 +43,11 @@ struct RootPaletteView: View {
             return LauncherScreen(
                 appIndex: appIndex, favorites: favorites, visibility: visibility,
                 currencyRates: currencyRates, core: core, vm: vm, running: selectionIsRunning,
-                openActions: openActions, openArgumentOptions: openArgumentOptions,
+                openActions: openActions,
                 scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
         case .uninstall:
             return UninstallScreen(
                 session: uninstall, core: core, vm: vm, openActions: openActions)
-        case .quicklinks:
-            return QuicklinkListScreen(
-                store: quicklinks, core: core, vm: vm, openActions: openActions,
-                openArgumentOptions: openArgumentOptions)
         case .snippets:
             return SnippetsScreen(
                 store: snippets, core: core, vm: vm, openActions: openActions)
@@ -165,11 +158,6 @@ struct RootPaletteView: View {
                 clipboardFilterContent, width: metrics.size.clipboardFilterMenuWidth)
         case .emojiCategory:
             return headerMenu(emojiCategoryContent, width: metrics.size.emojiCategoryMenuWidth)
-        case .argumentOptions:
-            guard let field = argumentOptionsField,
-                let popover = headerAccessory?.optionsMenu(field)
-            else { return nil }
-            return headerMenu(popover, width: metrics.size.menuWidth)
         case nil: return nil
         }
     }
@@ -584,8 +572,8 @@ struct RootPaletteView: View {
     }
 
     private var searchPrompt: String {
-        // Squeezed to the caret, the field has no room for a prompt; beside one it keeps it.
-        if headerAccessory?.placement == .afterQuery { return "" }
+        // Squeezed to the caret, the field has no room for a prompt.
+        if headerAccessory != nil { return "" }
         return vm.mode.placeholder
     }
 
@@ -754,7 +742,6 @@ struct RootPaletteView: View {
         menuPanel.hide()
         if menuOpen { searchFocused = true }
         openMenu = nil
-        argumentOptionsField = nil
         vm.menuQuery = ""
         // Stated here rather than mirrored later: the window delegate reads it during this turn.
         vm.menuOpen = false
@@ -885,7 +872,6 @@ struct RootPaletteView: View {
         switch openMenu {
         case .app: .bottomLeading
         case .actions: .bottomTrailing
-        case .argumentOptions: .belowHeaderTrailing
         case .clipboardFilter, .emojiCategory: .belowHeaderTrailing
         case nil: nil
         }
@@ -1034,15 +1020,6 @@ struct RootPaletteView: View {
         vm.pendingArgumentEntryID = nil
     }
 
-    /// An `options=` field is chosen from the palette's own menu, never typed into.
-    private func openArgumentOptions(_ field: String) {
-        guard let accessory = headerAccessory, accessory.optionsMenu(field) != nil else { return }
-        argumentFocused = field
-        searchFocused = false
-        argumentOptionsField = field
-        open(.argumentOptions, highlighting: 0)
-    }
-
     /// Never promises a step the click does not take: a root screen closes rather than backs.
     private var backHelp: String {
         let escape = vm.canGoBack ? "Esc to go back" : "Esc to close"
@@ -1071,8 +1048,6 @@ struct RootPaletteView: View {
 /// The palette's in-window menus. One optional of these is the whole "only one is open" invariant.
 private enum OpenMenu {
     case actions
-    /// An `options=` argument field's choices, hung under the header where the chip sits.
-    case argumentOptions
     case app
     case clipboardFilter
     case emojiCategory

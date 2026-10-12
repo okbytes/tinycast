@@ -22,7 +22,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ WindowCommand · WindowPlacementEngine · WindowActionMemory ·               │
 │ PaletteRowIndex ·                                                          │
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
-│ Quicklink{,Destination,Store,Archive} · AppleShortcut ·                    │
+│ LinkDestination · AppleShortcut ·                                          │
 │ Snippets/Model/* ·                                                         │
 │ ShellCommandRunner · DoubleTap{Modifier,Detector} · ClipboardStore ·       │
 │ AppSettingsKey · SettingsBackupCoverage · KeyRemapEngine · TopRowMap ·     │
@@ -35,7 +35,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ All platform I/O, one folder per feature.                                  │
 │ AppIndex · AXWindowAccess · AXScreens ·                                    │
 │ IconCache · WindowMover · UninstallScanner · UninstallRunner ·             │
-│ SystemActionRunner · QuicklinkLauncher · TextInjector ·                    │
+│ SystemActionRunner · TextInjector ·                                        │
 │ SnippetKeywordListener · CurrencyRateStore · Paster ·                      │
 │ HotKeyCenter · KeyRemapManager · ModifierTapMonitor · RunningAppsMonitor · │
 │ CalendarStore · MeetingClock · CameraSession ·                             │
@@ -44,7 +44,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 37 @MainActor @Observable stores, sessions, indices and State types        │
+│ 36 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -58,8 +58,8 @@ in whichever of the two owns it.
 - **`Model/` — pure.** Foundation only, plus SQLite3 or CoreGraphics where the data demands it.
   Everything from the environment is **injected**: `CalcEngine` takes `now` / `calendar` / `rates`,
   `LauncherRankingStore` takes `now` and its file URL, `WindowActionMemory` takes `now` as a parameter,
-  `UninstallRules` is handed directory *names* rather than URLs, and `QuicklinkStore` is handed the home
-  directory. This is the layer that **decides** things.
+  and `UninstallRules` is handed directory *names* rather than URLs. This is the layer that **decides**
+  things.
 - **`Service/` — effects.** Stores, monitors, runners, scanners and AppKit glue. Every `AXUIElement`
   call, `CGEventTap`, `NSWorkspace.open`, `URLSession` request, `FileManager` walk and CoreAudio read
   lives here. This is the layer that **does** things.
@@ -81,13 +81,13 @@ the shared primitives and system shims every feature draws on. Neither may depen
 ## Single-owner core
 
 `AppCore.shared` (`App/AppCore.swift`) is a `@MainActor` singleton owning every long-lived thing in the
-app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`, `CustomCommandStore`,
+app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `CustomCommandStore`,
 `FavoritesStore`, `VisibilityStore`, `AliasStore`, `LauncherRankingStore`, `CalculatorHistoryStore`,
 `CurrencyRateStore`, `FrequentEmojiStore`, `CalendarStore`), the managers, monitors and clocks
 (`ClipboardManager`, the opt-in `ClipboardTextIndexer`, the opt-in `SettingsFileRepository`,
 `HotKeyManager`, `KeyRemapManager`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
 (`AppSettings`, `PaletteState`, `UninstallSession`,
-`MeetingClock`), the fifteen feature coordinators, and the
+`MeetingClock`), the fourteen feature coordinators, and the
 window controllers.
 
 `AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
@@ -96,8 +96,8 @@ one wiring point, and `start()` reads as the app's whole boot sequence in one sc
 **Feature actions live on that feature's coordinator, and a view must never reach past a coordinator
 into a store to mutate it.** That is the rule; `AppCore` holds only the closure wiring that connects a
 hotkey to a coordinator. Views inject `AppCore` through `@Environment` and use it as the *locator* for
-those coordinators — `core.quicklinkCoordinator.deleteQuicklink(…)` is the shape, and the alternative
-is injecting fifteen coordinators separately for no gain. Reading a store off `AppCore` to render it is
+those coordinators — `core.uninstallCoordinator.beginUninstall(…)` is the shape, and the alternative
+is injecting fourteen coordinators separately for no gain. Reading a store off `AppCore` to render it is
 fine too; deciding something with one is what the rule forbids. `showNotice`, `confirm`,
 `reportFailure`, `showMessage` and `pickVolume` are forwarders on `AppCore` itself, so
 `DialogController` and `MessageHUDController` stay single-owned.
@@ -153,7 +153,7 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-37 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+36 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:
@@ -210,7 +210,7 @@ Tinycast/
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
     Launcher/ Calculator/ Calendar/ Emoji/
-    Quicklinks/ Snippets/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/
+    Snippets/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/
     WindowManagement/ Onboarding/ Settings/
     Clipboard/
         Model/      pure — the harness inputs

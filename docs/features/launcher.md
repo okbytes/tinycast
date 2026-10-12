@@ -153,8 +153,8 @@ name. Rule 4 applies at any length: rule 2 only protects an exact title past thr
 ### Kind priority
 
 - **Apps win the ties.** `KindDescriptor.rankPriority` puts applications (4) above command-like kinds
-  (3) and quicklinks (2), so a first-party app is never shadowed by the Tinycast command named after
-  it: Calculator over Calculator History.
+  (3), so a first-party app is never shadowed by the Tinycast command named after it: Calculator over
+  Calculator History.
 - **Two entries with the same alias** fall through to the next rule.
 
 `settings` is the case these were measured against. Apple declares `Settings` in System Settings'
@@ -274,8 +274,8 @@ nothing the index holds answers a typed address better. There is one today: typi
 a bare host puts **Open in Browser** on top, and activating it hands the URL to the system's default
 handler through `AppLauncher.open`.
 
-The shape a query has to have is `QuicklinkDestination.detect` returning `.web`, reused rather than
-re-written so `github.com` and `https://…` mean the same thing here as they do in a quicklink. The
+The shape a query has to have is `LinkDestination.detect` returning `.web`, reused rather than
+re-written so `github.com` and `https://…` mean the same thing here as in a dragged clipboard link. The
 entry is an ordinary `.command`, so `VisibilityStore` still gates it — Commands off hides the row —
 and its `url` carries the destination instead of the catalog's `tinycast://` placeholder. Nothing
 learns from it and nothing pins it: `LauncherCoordinator.launch` records no visit for a contextual
@@ -289,7 +289,7 @@ can't say what it acts on.
 ### User aliases
 
 `AliasStore` (`Launcher/Service/`) keeps one user-chosen alias per entry, keyed by `preferenceKey`
-like favorites and learned ranking, so every entry kind — apps, commands, quicklinks, snippets —
+like favorites and learned ranking, so every entry kind — apps, commands, snippets —
 can carry one. An alias is deliberate in a way no vendor field is, so an exact hit is rule 1 and a
 prefix hit rule 5. Only a hit **from its start** earns those rules; anywhere else the alias ranks as
 an alternate title by score, so `dark` finds an alias `toggle light / dark`, while `term` inside
@@ -307,13 +307,12 @@ on `LauncherItemsSection` puts an `AliasField` on each row, dressed like the `Sh
 beside it; edits store as typed and trim when the field loses focus, and a blank means none. That
 list filters by **membership only**, keeping the index's name order — re-ranking it per keystroke
 would move the row being edited out from under its own field editor. A pane with a hand-written row
-hands `AliasField` the key itself: Settings ▸ Quicklinks passes `Quicklink.entryID`, Settings ▸
-Commands passes `CustomCommand.entryID`, Settings ▸ Window Management passes each command's
-`AppEntry`, and each dims the field when the entry is hidden from launcher
-search, whose entry the ranker never sees.
+hands `AliasField` the key itself: Settings ▸ Commands passes `CustomCommand.entryID`, Settings ▸
+Window Management passes each command's `AppEntry`, and each dims the field when the entry is hidden
+from launcher search, whose entry the ranker never sees.
 
 Aliases ride along in a settings backup (`launcherAliases`), and deleting what an alias points at —
-uninstalling an app, deleting a quicklink or custom command — removes it
+uninstalling an app, deleting a custom command — removes it
 with the entry's other per-entry preferences.
 
 ### Alternate names
@@ -388,9 +387,8 @@ Tinycast itself:
 2. entries with a score above 1 and no bound shortcut, in empty-list order — a shortcut is already the
    faster way in;
 3. while fewer than five, built-in commands with no alias or shortcut, by
-   `CommandID.suggestionPriority`: Clipboard History, Search Emoji & Symbols, then Create Quicklink
-   and Create Snippet. A command whose feature is off is absent from the
-   index, so it is never offered.
+   `CommandID.suggestionPriority`: Clipboard History, Search Emoji & Symbols, then Create Snippet. A
+   command whose feature is off is absent from the index, so it is never offered.
 
 A suggested entry leaves its kind section below, so no row appears twice. `AppIndex.Results` carries
 `favoriteCount`, `suggestionCount` and, for a typed query, `matchCount`, which
@@ -409,7 +407,7 @@ permission-aware failures. With the palette closed it targets the frontmost app,
 Quit All act on the same window a palette launch would have.
 
 System actions occupy their own launcher section and their own Settings pane. The empty-query publication
-order is applications, quicklinks, snippets, system actions, window commands, custom commands, then
+order is applications, snippets, system actions, window commands, custom commands, then
 built-in commands; the sectioned view filters in that same order so the visible rows remain
 identical to the flat selection index.
 Search, favorites, visibility and learned ranking work through the normal `AppEntry` path, and every
@@ -485,19 +483,10 @@ Settings › Window Management rather than a launcher-category pane of their own
 made for snippets. The feature ships off. See
 [window-management.md](window-management.md).
 
-## Quicklinks
-
-`QuicklinkStore` supplies its slice the same way custom commands do, sorted pinned-first then
-alphabetically by `Quicklink.precedes`. Only the name is indexed — a URL is a subsequence of nearly
-any query — and a per-item "show in root search" flag filters the slice before it is published. The
-four Quicklinks commands are dropped from the built-in slice in the same publish while the feature is
-off, so a toggle can't leave the section and its commands out of step. See
-[quicklinks.md](quicklinks.md).
-
 ## Apple Shortcuts
 
 `AppleShortcutCoordinator` reads the Shortcuts app's library through `/usr/bin/shortcuts` and supplies
-it as its own slice right after Quicklinks, re-reading on every launcher open. Only the name is indexed,
+it as its own slice right after Applications, re-reading on every launcher open. Only the name is indexed,
 and the entry id is keyed on the shortcut's UUID, so an alias or binding survives a rename in
 Shortcuts. See [apple-shortcuts.md](apple-shortcuts.md).
 
@@ -521,10 +510,9 @@ and three places read it: `FeatureCommandsSection` draws the pane's rows from it
 category gate for it in both `isVisible` and `allowsHotKey`. Stamping the entry rather than sniffing its
 id is what keeps "which pane owns this" out of the entry-ID namespace.
 
-Five panes own commands today — Snippets, Window Management, Clipboard, Emoji and
-Quicklinks. What is left in Settings › Commands is the set no feature
-switch governs: Calculator History, Open Camera, the three backup commands, Tinycast Settings and
-Quit.
+Four panes own commands today — Snippets, Window Management, Clipboard and Emoji. What is left in
+Settings › Commands is the set no feature switch governs: Calculator History, Open Camera, the three
+backup commands, Tinycast Settings and Quit.
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw
@@ -622,7 +610,7 @@ rule — per kind, and a new `Kind` case has to answer it to compile. Applicatio
 System Actions and Window Commands each
 draw a per-row checkbox in their pane, so they carry it. Snippets do not: their pane lists a record
 with its own switches, not a launcher checkbox — a hide nothing in Settings can visibly undo is a
-trap, not a shortcut. Quicklinks and custom commands differ: each editor has its own **Show in root
+trap, not a shortcut. Custom commands differ: their editor has its own **Show in root
 search** switch, so the row offers **Hide from Root Search** and `hideFromSearch(at:)` clears that
 `showsInRootSearch` flag instead of writing `VisibilityStore`.
 `AppActionsMenu` adds the query-driven guard the favorites row already uses: a typed URL lives only

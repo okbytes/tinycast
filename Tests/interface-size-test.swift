@@ -91,7 +91,6 @@ struct InterfaceSizeTests {
         expect(m.size.heroKeyCap, Theme.Size.heroKeyCap, "size.heroKeyCap")
         expect(m.size.menuButton, Theme.Size.menuButton, "size.menuButton")
         expect(m.size.checkbox, Theme.Size.checkbox, "size.checkbox")
-        expect(m.size.menuWidth, Theme.Size.menuWidth, "size.menuWidth")
         expect(
             m.size.clipboardFilterMenuWidth, Theme.Size.clipboardFilterMenuWidth,
             "size.clipboardFilterMenuWidth")
@@ -250,7 +249,7 @@ struct InterfaceSizeTests {
             ("size.resultRowIcon", m.size.resultRowIcon),
             ("size.keyCap", m.size.keyCap), ("size.compactKeyCap", m.size.compactKeyCap),
             ("size.heroKeyCap", m.size.heroKeyCap), ("size.menuButton", m.size.menuButton),
-            ("size.checkbox", m.size.checkbox), ("size.menuWidth", m.size.menuWidth),
+            ("size.checkbox", m.size.checkbox),
             ("size.clipboardFilterMenuWidth", m.size.clipboardFilterMenuWidth),
             ("size.emojiCategoryMenuWidth", m.size.emojiCategoryMenuWidth),
             ("size.menuIcon", m.size.menuIcon), ("size.menuBrandIcon", m.size.menuBrandIcon),

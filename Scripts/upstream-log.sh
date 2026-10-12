@@ -50,6 +50,7 @@ cut=(
     'Tinycast/Features/Launcher/*/Fallback*' Tests/fallback-test.swift
     Tinycast/Features/Launcher/Service/SettingsPaneScanner.swift
     Tinycast/Features/Launcher/Settings/SystemSettingsSettingsView.swift
+    'Tinycast/Features/Quicklinks/*' 'Tests/quicklink-*' docs/features/quicklinks.md
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

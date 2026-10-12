@@ -66,7 +66,7 @@ by itself once its executable is replaced. Updating another Mac is the same one 
 
 Debug builds are a separate channel: **`Tinycast Dev.app`**, bundle id `com.tinycast.app.dev`. Every
 persisted thing is keyed by bundle id — `~/Library/Preferences/<id>.plist` (settings and hotkey
-bindings), `~/Library/Application Support/<id>/` (the onboarding marker, snippets, quicklinks,
+bindings), `~/Library/Application Support/<id>/` (the onboarding marker, snippets,
 clipboard history, calculator history, launch ranking and frequent emoji; snippets unless a folder
 is chosen),
 `~/Library/Caches/<id>/` (exchange rates, backup staging), the opt-in

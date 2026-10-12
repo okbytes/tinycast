@@ -51,7 +51,7 @@ enum AppActionsMenu {
                 })
         }
         // These carry their own Show in root search switch rather than a pane checkbox.
-        let hidesFromRoot = app.kind == .quicklink || app.kind == .customCommand
+        let hidesFromRoot = app.kind == .customCommand
         if isPersistent, app.canHideFromSearch || hidesFromRoot {
             let title = hidesFromRoot ? "Hide from Root Search" : "Hide from Search"
             items.append(
@@ -86,21 +86,6 @@ enum AppActionsMenu {
                     isDestructive: true
                 ) {
                     core.uninstallCoordinator.beginUninstall(app)
-                })
-        }
-        if app.kind == .quicklink, let quicklink = core.quicklinks.quicklink(entryID: app.id) {
-            items.append(
-                PopoverMenuItem(
-                    title: "Copy Link", systemImage: "doc.on.clipboard", startsSection: true,
-                    shortcut: "⌃⌘C"
-                ) {
-                    core.quicklinkCoordinator.copyQuicklink(id: quicklink.id)
-                })
-            items.append(
-                PopoverMenuItem(
-                    title: "Edit Quicklink", systemImage: "pencil", shortcut: "⌘E"
-                ) {
-                    core.quicklinkCoordinator.editQuicklink(quicklink)
                 })
         }
         return PopoverMenuContent(header: app.name, items: items)

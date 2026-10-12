@@ -415,7 +415,6 @@ extension View {
             .environment(core.aliases)
             .environment(core.customCommands)
             .environment(core.snippetsStore)
-            .environment(core.quicklinks)
             .environment(core.calendarStore)
             .scrollContentBackground(.hidden)
     }

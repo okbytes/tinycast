@@ -25,9 +25,9 @@
 - **`Model/ClipboardStore.swift` keeps to Foundation plus SQLite3 and no other app source**, so
   `clipboard-test` can compile it standalone. It uses `isolated deinit` for its SQLite teardown.
 - A database that cannot be opened is deleted and recreated. That is sound because a history is
-  captured rather than authored, and there is no UI for an unavailable clipboard — `QuicklinkStore`
-  deliberately does the opposite. It is **not** a licence to treat the file as disposable: it lives in
-  Application Support precisely because nothing else can put it back.
+  captured rather than authored, and there is no UI for an unavailable clipboard. It is **not** a
+  licence to treat the file as disposable: it lives in Application Support precisely because nothing
+  else can put it back.
 - **A link or an address is derived from the text, never persisted.** `ClipboardItem.Kind` holds
   only what capture can tell apart on the pasteboard — `text`, `image`, `file` — so improving the
   *classifier* stays a code change rather than a database migration plus a backfill, while a new
@@ -305,8 +305,8 @@ entry's ⌘K stays the actions it always was, since converting a colour is not s
 for while browsing what you copied. **There is no submenu** either, the palette's menu being one
 level deep, so each row states its value through `PopoverMenuItem.detail`, never `shortcut`, which
 renders one keycap per character. The rows carry `PopoverMenuIcon.blank`, a run of rows under one
-repeated eyedropper saying nothing, and the menu keeps the standard `menuWidth`: every notation
-fits it, and a menu that widened for its content would jump as rows changed.
+repeated eyedropper saying nothing, and the menu keeps the standard `actionMenuWidth`: every
+notation fits it, and a menu that widened for its content would jump as rows changed.
 
 `ColorSwatch` is the one place a colour is drawn — row thumbnail, preview and card alike — over a
 checkerboard built only when there is alpha to show, so an opaque colour never pays for a `Canvas`
@@ -429,7 +429,7 @@ what a clip hands over. `ClipboardItem.dragPayload` says in what flavour: the fi
 for an image or a referenced file, a URL and its text for a link, plain text for the rest. It is
 derived and never persisted, like `textForm` beside it, and `textForm` stays the one answer to
 whether an entry is a link, so the drag and the type filter cannot disagree.
-`QuicklinkDestination.detect` builds the URL rather than a second parser.
+`LinkDestination.detect` builds the URL rather than a second parser.
 
 **Copy, always. That is why the drag is AppKit and not `onDrag`.** `imagesDir` lives in Application
 Support, on the boot volume, which is the same volume as almost every drop target. A file-URL drag

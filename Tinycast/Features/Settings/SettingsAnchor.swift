@@ -23,11 +23,6 @@ extension SettingsAnchor {
     static let commandsCommands = Self(tab: .commands, title: "Commands")
     static let commandsCustomCommands = Self(tab: .commands, title: "Custom Commands")
 
-    static let quicklinksQuicklinks = Self(tab: .quicklinks, title: "Quicklinks")
-    static let quicklinksCommands = Self(tab: .quicklinks, title: "Commands")
-    static let quicklinksBehaviour = Self(tab: .quicklinks, title: "Behaviour")
-    static let quicklinksImportExport = Self(tab: .quicklinks, title: "Import & Export")
-
     static let appleShortcutsAppleShortcuts = Self(tab: .appleShortcuts, title: "Apple Shortcuts")
     static let appleShortcutsShortcuts = Self(tab: .appleShortcuts, title: "Shortcuts")
 
