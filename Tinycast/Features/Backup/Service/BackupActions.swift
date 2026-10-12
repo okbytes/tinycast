@@ -71,18 +71,8 @@ enum BackupActions {
 
     static func applyBackup(
         _ categories: Set<BackupCategory>, from staging: BackupStaging, to core: AppCore
-    ) async -> BackupApplier.Summary? {
-        let bundle = staging.bundle
-        if categories.contains(.configuration),
-            let data = try? Data(contentsOf: bundle.settingsURL),
-            let backup = try? SettingsBackup(json: data)
-        {
-            let commands = backup.customCommands?.count ?? 0
-            let shortcuts = backup.hotkeys?.customCommands?.count ?? 0
-            guard await confirmExecutableImport(core: core, commands: commands, shortcuts: shortcuts)
-            else { return nil }
-        }
-        return await BackupApplier.apply(categories, from: bundle, to: core)
+    ) async -> BackupApplier.Summary {
+        await BackupApplier.apply(categories, from: staging.bundle, to: core)
     }
 
     /// The launcher has no picker, so its commands take everything; the pane is where you choose.
@@ -105,9 +95,7 @@ enum BackupActions {
         do {
             let (staging, manifest) = try await openBackup(at: file)
             defer { staging.discard() }
-            guard
-                let summary = await applyBackup(manifest.categories, from: staging, to: core)
-            else { return }
+            let summary = await applyBackup(manifest.categories, from: staging, to: core)
             await present(
                 core: core, title: "Backup Imported", message: summaryText(summary),
                 symbol: importSymbol, tone: .success)
@@ -167,7 +155,6 @@ enum BackupActions {
         if s.hiddenItems > 0 { parts.append("\(s.hiddenItems) hidden items") }
         if s.aliases > 0 { parts.append("\(s.aliases) aliases") }
         if s.pinnedEmoji > 0 { parts.append("\(s.pinnedEmoji) pinned emoji and symbols") }
-        if s.customCommands > 0 { parts.append("\(s.customCommands) custom commands") }
         guard !parts.isEmpty else { return nil }
         return "Applied " + parts.joined(separator: ", ") + "."
     }
@@ -206,24 +193,6 @@ enum BackupActions {
 
     static func revealSettingsFile() {
         AppLauncher.showInFinder(AppPaths.settingsFile())
-    }
-
-    private static func confirmExecutableImport(
-        core: AppCore, commands: Int, shortcuts: Int
-    ) async
-        -> Bool
-    {
-        guard commands > 0 || shortcuts > 0 else { return true }
-        let commandText = commands == 1 ? "1 custom command" : "\(commands) custom commands"
-        let shortcutText =
-            shortcuts == 1 ? "1 global shortcut" : "\(shortcuts) global shortcuts"
-        // Red glyph for a real warning, plain button: importing destroys nothing.
-        return await core.confirm(
-            title: "Import executable commands?",
-            message:
-                "This backup contains \(commandText) and \(shortcutText). Custom commands can run "
-                + "arbitrary shell code. Only import files you trust.",
-            symbol: importSymbol, confirmTitle: "Import", confirmRole: .standard)
     }
 
     private static func dateStamp() -> String {

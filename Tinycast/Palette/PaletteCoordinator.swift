@@ -69,35 +69,20 @@ final class PaletteCoordinator {
     }
 
     /// Shows the palette, honoring Pop to Root Search. See docs/features/palette.md#state-flow.
-    func showPalette(
-        mode: PaletteMode, restoreAnyMode: Bool = false, seeding query: String? = nil
-    ) {
+    func showPalette(mode: PaletteMode, restoreAnyMode: Bool = false) {
         let preserved = windowController.consumePreservedState()
         let restoring = preserved && (restoreAnyMode || palette.mode == mode)
         // Resetting a screen the pop to root already reset would only re-render the whole palette.
         let alreadyFresh = windowController.isPoppedToRoot && palette.mode == mode
-        // A carried query always opens the screen fresh: restoring the previous one would drop it.
-        if query != nil || !(restoring || alreadyFresh) {
+        if !(restoring || alreadyFresh) {
             navigate(to: mode)
         }
-        if let query { palette.query = query }
         windowController.show()
         // Re-scan on open so an app uninstalled since the last scan drops out of the launcher.
         if palette.mode == .launcher {
             Task { await appIndex.refresh() }
             onLauncherShown?()
         }
-    }
-
-    /// Root search onto `entry` alone, as Raycast opens a command whose shortcut lacks values.
-    func showArguments(of entry: AppEntry, values: [String: String]) {
-        showPalette(mode: .launcher, seeding: entry.name)
-        // After the show: `prepare` runs inside it and would clear everything set beforehand.
-        palette.argumentEntryID = entry.id
-        for (field, value) in values {
-            palette.commandArguments[PaletteState.argumentKey(entry.id, field)] = value
-        }
-        palette.pendingArgumentEntryID = entry.id
     }
 
     func hidePalette(restoreFocus: Bool = true) {

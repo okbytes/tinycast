@@ -5,7 +5,6 @@ struct SettingsBackup: Codable {
 
     var settings: SettingsData?
     var hotkeys: HotkeyBackup?
-    var customCommands: [CustomCommand]?
     var favoriteApps: [String]?
     var hiddenLauncherItems: [String]?
     var hiddenLauncherKinds: [String]?
@@ -42,8 +41,6 @@ struct SettingsBackup: Codable {
         // Safe to carry: it grants no permission class, just repositions the window.
         var paletteDraggable: Bool?
         // `snippetsEnabled` is absent: an import must not enable keystroke listening.
-        var customCommandsEnabled: Bool?
-        var customCommandsShowInLauncher: Bool?
         var snippetsShowInLauncher: Bool?
         var windowManagementEnabled: Bool?
         var windowManagementShowInLauncher: Bool?
@@ -66,7 +63,6 @@ struct SettingsBackup: Codable {
         var togglePalette: HotKeyBinding?
         var commands: [String: HotKeyBinding]?
         var apps: [String: HotKeyBinding]?
-        var customCommands: [String: HotKeyBinding]?
         var systemActions: [String: HotKeyBinding]?
         var windowCommands: [String: HotKeyBinding]?
     }
@@ -79,7 +75,6 @@ struct SettingsBackup: Codable {
         var hiddenItems = 0
         var aliases = 0
         var pinnedEmoji = 0
-        var customCommands = 0
     }
 }
 
@@ -115,8 +110,6 @@ extension SettingsBackup {
             rootSearchSensitivity: s.rootSearchSensitivity.rawValue,
             openOnCursorScreen: s.openOnCursorScreen,
             paletteDraggable: s.paletteDraggable,
-            customCommandsEnabled: s.customCommandsEnabled,
-            customCommandsShowInLauncher: s.customCommandsShowInLauncher,
             snippetsShowInLauncher: s.snippetsShowInLauncher,
             windowManagementEnabled: s.windowManagementEnabled,
             windowManagementShowInLauncher: s.windowManagementShowInLauncher,
@@ -141,10 +134,6 @@ extension SettingsBackup {
             uniqueKeysWithValues: hk.boundBundleIDs.compactMap { id in
                 hk.binding(for: .app(bundleID: id)).map { (id, $0) }
             })
-        hotkeys.customCommands = Dictionary(
-            uniqueKeysWithValues: hk.boundCustomCommandIDs.compactMap { id in
-                hk.binding(for: .customCommand(id: id)).map { (id.uuidString.lowercased(), $0) }
-            })
         hotkeys.systemActions = Dictionary(
             uniqueKeysWithValues: SystemAction.ID.allCases.compactMap { id in
                 hk.binding(for: .systemAction(id: id)).map { (id.rawValue, $0) }
@@ -155,7 +144,6 @@ extension SettingsBackup {
             })
         backup.hotkeys = hotkeys
 
-        backup.customCommands = core.customCommands.commands
         backup.favoriteApps = core.favorites.keys
         backup.hiddenLauncherItems = Array(core.visibility.hiddenItemKeys)
         backup.hiddenLauncherKinds = Array(core.visibility.disabledKinds)
@@ -168,9 +156,6 @@ extension SettingsBackup {
     func apply(to core: AppCore) -> ApplySummary {
         var summary = ApplySummary()
         if let s = settings { summary.settingsFields = applySettings(s, to: core) }
-        if let customCommands {
-            summary.customCommands = core.customCommandCoordinator.replaceCustomCommands(customCommands)
-        }
         if let hotkeys { summary.hotkeys = applyHotkeys(hotkeys, to: core) }
         if let favoriteApps {
             core.favorites.replace(keys: favoriteApps)
@@ -294,14 +279,6 @@ extension SettingsBackup {
             count += 1
         }
         // Writing through AppSettings is enough; AppCore's sinks re-project the rest.
-        if let flag = s.customCommandsEnabled {
-            settings.customCommandsEnabled = flag
-            count += 1
-        }
-        if let flag = s.customCommandsShowInLauncher {
-            settings.customCommandsShowInLauncher = flag
-            count += 1
-        }
         if let flag = s.snippetsShowInLauncher {
             settings.snippetsShowInLauncher = flag
             count += 1
@@ -370,12 +347,6 @@ extension SettingsBackup {
             apply(b, action)
         }
         for (id, b) in hotkeys.apps ?? [:] { apply(b, .app(bundleID: id)) }
-        for (rawID, b) in hotkeys.customCommands ?? [:] {
-            guard let id = UUID(uuidString: rawID), core.customCommands.command(id: id) != nil else {
-                continue
-            }
-            apply(b, .customCommand(id: id))
-        }
         for (rawID, b) in hotkeys.systemActions ?? [:] {
             guard let id = SystemAction.ID(rawValue: rawID) else { continue }
             apply(b, .systemAction(id: id))

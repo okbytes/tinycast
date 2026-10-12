@@ -7,7 +7,6 @@ enum HotKeyAction: Hashable, Sendable {
     /// Parameterised over the catalog, so a new built-in command is bindable with no case here.
     case command(CommandID)
     case app(bundleID: String)
-    case customCommand(id: UUID)
     case systemAction(id: SystemAction.ID)
     case windowCommand(id: WindowCommand.ID)
     case appleShortcut(id: UUID)
@@ -19,7 +18,6 @@ enum HotKeyAction: Hashable, Sendable {
         case .togglePalette: "hotkey.togglePalette"
         case .command(let id): "hotkey." + id.rawValue
         case .app(let bundleID): "hotkey.app." + bundleID
-        case .customCommand(let id): "hotkey.customCommand." + id.uuidString.lowercased()
         case .systemAction(let id): "hotkey.systemAction." + id.rawValue
         case .windowCommand(let id): "hotkey.windowCommand." + id.rawValue
         case .appleShortcut(let id): "hotkey.appleShortcut." + id.uuidString.lowercased()

@@ -409,7 +409,7 @@ final class OnboardingModel {
             let summary = await BackupActions.applyBackup(selection, from: staging, to: core)
             // The stores adopt staged files during apply, so the tree goes either way.
             discardStaging()
-            if let summary { status = .success(BackupActions.summaryText(summary)) }
+            status = .success(BackupActions.summaryText(summary))
         }
     }
 

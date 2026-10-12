@@ -4,7 +4,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     enum Kind: String, CaseIterable, Sendable {
         case application
         case command
-        case customCommand
         case snippet
         case systemAction
         case windowCommand
@@ -21,11 +20,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                 return KindDescriptor(
                     label: "Command", sectionTitle: "Commands",
                     openVerb: "Run Command", canHideFromSearch: true,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
-            case .customCommand:
-                return KindDescriptor(
-                    label: "Custom Command", sectionTitle: "Custom Commands",
-                    openVerb: "Run Custom Command", canHideFromSearch: false,
                     canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
             case .snippet:
                 return KindDescriptor(
@@ -78,8 +72,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     var subtitle: String?
     /// Ranked like the name: a translation, a rename, `CFBundleAlternateNames`.
     var alternateTitles: [String] = []
-    /// Per-item symbol, for the one kind whose glyph is the user's choice. Nil elsewhere.
-    var symbolName: String?
     /// Found by, never ranked by: a declared name.
     var keywords: [String] = []
     /// Moves when the bundle's icon changes on disk, retiring the cached bitmap. Applications only.
@@ -124,8 +116,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return CommandCatalog.command(for: self)?.hotKeyAction
         case .application:
             return bundleID.map { .app(bundleID: $0) }
-        case .customCommand:
-            return CustomCommand.id(fromEntryID: id).map { .customCommand(id: $0) }
         case .systemAction:
             return SystemActionCatalog.action(forEntryID: id).map { .systemAction(id: $0.id) }
         case .windowCommand:
@@ -150,13 +140,12 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     /// Derived from the kind alone: synthetic entries get a symbol tile, everything else its file.
     private var defaultIcon: EntryIcon {
         guard kind.descriptor.isSymbolIcon else { return .file(stamp: iconStamp) }
-        return .symbol(symbolName ?? kindSymbol)
+        return .symbol(kindSymbol)
     }
 
     private var kindSymbol: String {
         switch kind {
         case .snippet: return "text.quote"
-        case .customCommand: return CustomCommand.sfSymbol
         case .command: return CommandCatalog.command(for: self)?.sfSymbol ?? "questionmark"
         case .systemAction: return SystemActionCatalog.action(forEntryID: id)?.sfSymbol ?? "questionmark"
         case .windowCommand:
@@ -181,14 +170,6 @@ extension AppEntry {
             id: command.entryID, name: command.name,
             url: URL(string: "tinycast://window-command/" + command.id.rawValue)!,
             bundleID: nil, kind: .windowCommand)
-    }
-
-    /// The one row a custom command draws, wherever it is offered from.
-    init(_ command: CustomCommand) {
-        self.init(
-            id: command.entryID, name: command.name,
-            url: URL(string: "tinycast://custom-command/" + command.id.uuidString)!,
-            bundleID: nil, kind: .customCommand, symbolName: command.iconSymbol)
     }
 
     /// No bundle id: that would key every shortcut's alias and ranking to the Shortcuts app.
@@ -276,7 +257,6 @@ final class AppIndex {
         .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
     private var discoveredEntries: [AppEntry] = []
-    private var customCommandEntries: [AppEntry] = []
     private var windowCommandEntries: [AppEntry] = []
     private var appleShortcutEntries: [AppEntry] = []
     /// The catalog's commands a disabled feature hides; the Commands slice is recomputed from it.
@@ -328,15 +308,6 @@ final class AppIndex {
             listed ? unlistedCommands.subtracting(commands) : unlistedCommands.union(commands)
         guard updated != unlistedCommands else { return }
         unlistedCommands = updated
-        publishEntries()
-    }
-
-    /// Replaces the command slice without rescanning, so Settings edits land at once.
-    func setCustomCommands(_ commands: [CustomCommand]) {
-        let entries = commands.filter { $0.isEnabled && $0.showsInRootSearch }.map(AppEntry.init)
-            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        guard entries != customCommandEntries else { return }
-        customCommandEntries = entries
         publishEntries()
     }
 
@@ -483,7 +454,6 @@ final class AppIndex {
                 appleShortcutEntries + snippetEntries
                     + Self.systemActionEntries
                     + windowCommandEntries
-                    + customCommandEntries
                     + commandEntries)
         guard updated != apps else { return }
         apps = updated

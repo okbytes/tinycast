@@ -43,28 +43,20 @@ struct LauncherScreen: PaletteScreen {
         self.openActions = openActions
         self.scrollToFollow = scrollToFollow
 
-        // Listed even when hidden from search: the shortcut that opened it still has to be answered.
-        let pinned = vm.argumentEntryID.flatMap(core.customCommands.command(entryID:))
-            .map(AppEntry.init).flatMap { $0.name == vm.query ? $0 : nil }
-        let ordered =
-            pinned.map { AppIndex.Results(entries: [$0], matchCount: 1) }
-            ?? appIndex.orderedResults(
-                query: vm.query, visibility: visibility, favorites: favorites, hotKeys: core.hotKeys)
+        let ordered = appIndex.orderedResults(
+            query: vm.query, visibility: visibility, favorites: favorites, hotKeys: core.hotKeys)
         var results = ordered.entries
         var matchCount = ordered.matchCount
         // A typed web address leads: nothing the index holds answers it better.
-        if pinned == nil, let browser = CommandCatalog.openInBrowser(for: vm.query),
+        if let browser = CommandCatalog.openInBrowser(for: vm.query),
             visibility.isVisible(browser)
         {
             results.insert(browser, at: 0)
             matchCount += 1
         }
-        // No card over a pinned row: its fields hang off the selection, which must start on it.
-        let calc =
-            pinned == nil
-            ? CalcMemo.evaluate(vm.query, rates: currencyRates.rates, format: core.calcNumberFormat) : nil
+        let calc = CalcMemo.evaluate(vm.query, rates: currencyRates.rates, format: core.calcNumberFormat)
         // After the calculator: `#FF5733` is never arithmetic, so the two can't both answer.
-        let color = calc == nil && pinned == nil ? ColorValue.parse(vm.query) : nil
+        let color = calc == nil ? ColorValue.parse(vm.query) : nil
         let entries = results.map(Row.entry)
         let pinsFavorites = vm.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         self.results = results
@@ -115,31 +107,6 @@ struct LauncherScreen: PaletteScreen {
 
     private func row(at selection: Int) -> Row? {
         rows.indices.contains(selection) ? rows[selection] : nil
-    }
-
-    /// What the controls are is the owning feature's business; this only forwards.
-    func headerAccessory(
-        at selection: Int, focus: FocusState<String?>.Binding
-    )
-        -> PaletteHeaderAccessory?
-    {
-        guard let entry = entry(at: selection) else { return nil }
-        if entry.kind == .customCommand {
-            return CustomCommandArgumentsAccessory.make(
-                command: core.customCommands.command(entryID: entry.id), vm: vm,
-                metrics: core.settings.interfaceSize.metrics, focus: focus,
-                onSubmit: { activate(at: selection) })
-        }
-        return nil
-    }
-
-    /// The typed values for one row, stripped of blanks — what gets handed to the command.
-    private func argumentValues(for entry: AppEntry) -> [String: String] {
-        if entry.kind == .customCommand {
-            guard let command = core.customCommands.command(entryID: entry.id) else { return [:] }
-            return CustomCommandArgumentsAccessory.values(for: command, vm: vm)
-        }
-        return [:]
     }
 
     private func entry(at selection: Int) -> AppEntry? {
@@ -195,8 +162,7 @@ struct LauncherScreen: PaletteScreen {
         case .color(let color):
             core.clipboardCoordinator.copyColor(color, as: ColorFormat.primary(for: color))
         case .entry(let app):
-            core.launcherCoordinator.launch(
-                app, searchQuery: vm.query, arguments: argumentValues(for: app))
+            core.launcherCoordinator.launch(app, searchQuery: vm.query)
         case nil: break
         }
     }
@@ -308,10 +274,7 @@ struct LauncherScreen: PaletteScreen {
         guard let app = entry(at: selection), !CommandCatalog.isQueryDriven(app),
             let index = results.firstIndex(of: app)
         else { return false }
-        // The editor's Show in root search toggle is the undo, so this hide is not one-way.
-        if let id = CustomCommand.id(fromEntryID: app.id) {
-            core.customCommandCoordinator.setCustomCommandShowsInRootSearch(false, id: id)
-        } else if app.canHideFromSearch {
+        if app.canHideFromSearch {
             visibility.setItemVisible(false, for: app)
         } else {
             return false
@@ -379,10 +342,7 @@ struct LauncherScreen: PaletteScreen {
                 vm.selection = 0
                 openActions()
             },
-            onActivate: {
-                core.launcherCoordinator.launch(
-                    $0, searchQuery: vm.query, arguments: argumentValues(for: $0))
-            },
+            onActivate: { core.launcherCoordinator.launch($0, searchQuery: vm.query) },
             onActions: { app in
                 if let index = rows.firstIndex(of: .entry(app)) { vm.selection = index }
                 openActions()

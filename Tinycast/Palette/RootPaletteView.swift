@@ -19,8 +19,6 @@ struct RootPaletteView: View {
     @Environment(\.metrics) private var metrics
     @Environment(\.openURL) private var openURL
     @FocusState private var searchFocused: Bool
-    /// Kept apart from the search field's own focus. See docs/features/palette.md.
-    @FocusState private var argumentFocused: String?
     /// Which in-window menu is open; at most one, so the state cannot disagree with itself.
     @State private var openMenu: OpenMenu?
     /// Sampled once by `openActions`, so the running-only rows can't appear while the menu is up.
@@ -190,12 +188,7 @@ struct RootPaletteView: View {
                 // The panel has no title bar, so this thin top margin is the only place left to grab it.
                 .overlay(alignment: .top) { topDragStrip }
                 // The menu lives in its own window; this only reports the one to hang it from.
-                .background(
-                    WindowReader {
-                        hostWindow = $0
-                        installHeaderArrowHandler(in: $0)
-                    }
-                )
+                .background(WindowReader { hostWindow = $0 })
                 // The window's frame is the size source, so the glass and clip stay matched.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(Theme.Colors.panelScrim)
@@ -297,15 +290,11 @@ struct RootPaletteView: View {
             // The hosted tree is its own hierarchy, so the highlight has to be pushed into it.
             .onChange(of: menuSelection) { syncMenuPanel(presenting: false) }
             .onChange(of: vm.menuQuery) { menuQueryChanged() }
-            .onDisappear {
-                menuPanel.hide()
-                (hostWindow as? PalettePanel)?.onHeaderFieldBoundaryArrow = nil
-            }
+            .onDisappear { menuPanel.hide() }
             // The first show builds this view after `prepare`, so no handler saw that reset.
             .onAppear {
                 searchFocused = true
                 land()
-                focusPendingArgument()
             }
             // Several paths flip `paletteIsCollapsed`, so resize the window to match.
             .onChange(of: core.paletteCoordinator.paletteIsCollapsed) {
@@ -379,15 +368,12 @@ struct RootPaletteView: View {
             .onKeyPress(.escape) {
                 if menuPanel.isClosing { return .handled }
                 switch PaletteEscapeAction.resolve(
-                    menuOpen: menuOpen, menuQuery: vm.menuQuery,
-                    argumentFocused: argumentFocused != nil, query: vm.query,
+                    menuOpen: menuOpen, menuQuery: vm.menuQuery, query: vm.query,
                     canGoBack: vm.canGoBack,
                     behavior: settings.escapeKeyBehavior)
                 {
                 case .clearMenuQuery, .closeMenu:
                     escapeMenu()
-                case .leaveArgumentField:
-                    returnFocusToSearchField()
                 case .clearQuery:
                     vm.query = ""
                 case .goBack:
@@ -401,8 +387,8 @@ struct RootPaletteView: View {
                 }
                 return .handled
             }
-            .onKeyPress(keys: [.tab], phases: .down) { press in
-                if !menuOpen { advanceTabFocus(backwards: press.modifiers.contains(.shift)) }
+            .onKeyPress(keys: [.tab], phases: .down) { _ in
+                if !menuOpen { cycleMode() }
                 return .handled
             }
             // ⌘K toggles the actions panel for the current selection.
@@ -484,12 +470,7 @@ struct RootPaletteView: View {
             // slot + xl equals a row's icon + lg, so the query starts where the row titles do.
             headerGutter(width: metrics.spacing.xl)
             // One structural position: a field inside a branch loses first responder when it flips.
-            headerField
-            if let accessory = headerAccessory {
-                accessory.view
-                // Given room last: at the default priority it would split it with the field.
-                Spacer(minLength: 0).layoutPriority(-1)
-            }
+            searchField
             // Keyed off the mode, which says which screen is up; the field just flexes narrower.
             if !isCollapsed, vm.mode == .clipboard {
                 headerGutter(width: metrics.spacing.md)
@@ -527,54 +508,10 @@ struct RootPaletteView: View {
         .frame(height: metrics.size.headerHeight)
         .padding(.top, metrics.size.headerPadding)
         .frame(maxWidth: .infinity)
-        // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
-        .onChange(of: vm.pendingArgumentEntryID) {
-            Task { @MainActor in focusPendingArgument() }
-        }
-        .onChange(of: argumentFocused) { _, field in vm.noteEditingField(field != nil) }
-    }
-
-    /// Whichever screen offers one; the compact bar has no room for it.
-    private var headerAccessory: PaletteHeaderAccessory? {
-        guard !isCollapsed else { return nil }
-        let screen = screen
-        return screen.headerAccessory(at: selection(in: screen), focus: $argumentFocused)
-    }
-
-    /// The field, kept mounted rather than swapped: a branch would tear its editor down.
-    private var headerField: some View {
-        searchField
-            // A ceiling, not a size, so the row squeezes a long query before the strip overruns.
-            .frame(minWidth: searchFieldFloor, maxWidth: searchFieldWidth)
-    }
-
-    /// Fixed only where something shares the row: the accessory strip.
-    private var searchFieldWidth: CGFloat? {
-        headerAccessory.map(searchFieldWidth)
-    }
-
-    private var searchFieldFloor: CGFloat? {
-        searchFieldWidth.map { min($0, metrics.size.searchFieldMinWidth) }
-    }
-
-    /// The field's own text, floored for the caret and capped so the strip stays on screen.
-    /// Empty, that is the prompt where one is drawn — which is what seats the strip right after it.
-    private func searchFieldWidth(for accessory: PaletteHeaderAccessory) -> CGFloat {
-        let font = metrics.typography.searchFieldNSFont
-        let text = vm.query.isEmpty ? searchPrompt : vm.query
-        let typed = (text as NSString).size(withAttributes: [.font: font]).width
-        let chrome = metrics.size.headerIconSlot + metrics.spacing.md * 3 + metrics.spacing.xl
-        let room = metrics.size.panelWidth - accessory.width - chrome
-        // +3pt so the caret sits after the last glyph rather than on top of it.
-        return min(
-            max(typed + metrics.scaled(3), metrics.scaled(18)),
-            max(room, metrics.size.searchFieldMinWidth))
     }
 
     private var searchPrompt: String {
-        // Squeezed to the caret, the field has no room for a prompt.
-        if headerAccessory != nil { return "" }
-        return vm.mode.placeholder
+        vm.mode.placeholder
     }
 
     /// The one search field — empty it's a drag handle, and any text hands every press to editing.
@@ -896,8 +833,6 @@ struct RootPaletteView: View {
     /// ↑/↓: the screen's own move where it has one, else a linear step through the rows.
     private func moveVertically(_ delta: Int) -> KeyPress.Result {
         let screen = screen
-        // Moving off a command takes its argument fields with it, so hand focus back first.
-        if argumentFocused != nil { returnFocusToSearchField() }
         guard let next = screen.move(delta, axis: .vertical, from: selection(in: screen)) else {
             move(delta, in: screen)
             return .handled
@@ -954,7 +889,7 @@ struct RootPaletteView: View {
         // Before the action: one opening a window must find the palette key again, or nothing hides it.
         closeMenus()
         // A mouse click on a row takes the caret with it; menus close back into the field.
-        if argumentFocused == nil { searchFocused = true }
+        searchFocused = true
         content.activate(index)
     }
 
@@ -974,52 +909,6 @@ struct RootPaletteView: View {
         }
     }
 
-    /// Tab walks the inline arguments first, then rings the modes.
-    private func advanceTabFocus(backwards: Bool) {
-        guard let accessory = headerAccessory, !accessory.fieldNames.isEmpty else {
-            return cycleMode()
-        }
-        // Read from the local value: a `@FocusState` set in this tick still reads back stale.
-        let next = accessory.field(after: argumentFocused, backwards: backwards)
-        argumentFocused = next
-        searchFocused = next == nil
-    }
-
-    /// Right at an inline field's end and Left at its start continue the same ring as Tab.
-    private func installHeaderArrowHandler(in window: NSWindow?) {
-        guard let panel = window as? PalettePanel else { return }
-        panel.onHeaderFieldBoundaryArrow = { boundary in
-            guard !menuOpen, !isCollapsed,
-                let accessory = headerAccessory, !accessory.fieldNames.isEmpty
-            else { return false }
-            switch boundary {
-            case .leading:
-                // Query's left edge keeps its normal caret behavior; an argument moves back.
-                guard argumentFocused != nil else { return false }
-                advanceTabFocus(backwards: true)
-            case .trailing:
-                advanceTabFocus(backwards: false)
-            }
-            return true
-        }
-    }
-
-    /// AppKit selects the whole query as the field editor comes back, which is the wanted reset.
-    private func returnFocusToSearchField() {
-        argumentFocused = nil
-        searchFocused = true
-    }
-
-    /// The palette was opened to fill one row's fields, so the caret starts in the first empty one.
-    private func focusPendingArgument() {
-        guard vm.pendingArgumentEntryID != nil,
-            let field = headerAccessory?.firstIncompleteField
-        else { return }
-        argumentFocused = field
-        searchFocused = false
-        vm.pendingArgumentEntryID = nil
-    }
-
     /// Never promises a step the click does not take: a root screen closes rather than backs.
     private var backHelp: String {
         let escape = vm.canGoBack ? "Esc to go back" : "Esc to close"
@@ -1033,12 +922,6 @@ struct RootPaletteView: View {
     private func activateSelection() {
         // Nothing is visibly selected when collapsed, so launch via ⌘1–⌘5 or typing.
         guard !isCollapsed else { return }
-        // An unfilled field blocks the launch; focus it instead of acting on a half-typed row.
-        if let incomplete = headerAccessory?.firstIncompleteField {
-            argumentFocused = incomplete
-            searchFocused = false
-            return
-        }
         let screen = screen
         screen.activate(at: selection(in: screen))
     }

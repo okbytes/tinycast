@@ -159,7 +159,7 @@ struct BackupSettingsView: View {
             // Staged files are adopted by the stores during apply, so the tree goes either way.
             discardStagedBackup()
             backupFile = nil
-            if let summary { backupStatus = .success(BackupActions.summaryText(summary)) }
+            backupStatus = .success(BackupActions.summaryText(summary))
         }
     }
 

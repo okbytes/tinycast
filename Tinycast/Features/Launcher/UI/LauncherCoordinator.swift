@@ -7,7 +7,6 @@ final class LauncherCoordinator {
     private let windowController: PaletteWindowController
     private let paletteCoordinator: PaletteCoordinator
     private let settingsCoordinator: SettingsCoordinator
-    private let customCommandCoordinator: CustomCommandCoordinator
     private let systemActionCoordinator: SystemActionCoordinator
     private let windowCommandCoordinator: WindowCommandCoordinator
     private let snippetCoordinator: SnippetCoordinator
@@ -19,7 +18,6 @@ final class LauncherCoordinator {
         windowController: PaletteWindowController,
         paletteCoordinator: PaletteCoordinator,
         settingsCoordinator: SettingsCoordinator,
-        customCommandCoordinator: CustomCommandCoordinator,
         systemActionCoordinator: SystemActionCoordinator,
         windowCommandCoordinator: WindowCommandCoordinator,
         snippetCoordinator: SnippetCoordinator,
@@ -29,7 +27,6 @@ final class LauncherCoordinator {
         self.windowController = windowController
         self.paletteCoordinator = paletteCoordinator
         self.settingsCoordinator = settingsCoordinator
-        self.customCommandCoordinator = customCommandCoordinator
         self.systemActionCoordinator = systemActionCoordinator
         self.windowCommandCoordinator = windowCommandCoordinator
         self.snippetCoordinator = snippetCoordinator
@@ -38,9 +35,7 @@ final class LauncherCoordinator {
 
     // MARK: - Activation
 
-    func launch(
-        _ app: AppEntry, searchQuery: String? = nil, arguments: [String: String] = [:]
-    ) {
+    func launch(_ app: AppEntry, searchQuery: String? = nil) {
         // A category word is no search for the row: learning it would rank the row under "s".
         if !CommandCatalog.isQueryDriven(app) {
             let term = searchQuery.flatMap {
@@ -58,11 +53,6 @@ final class LauncherCoordinator {
                 return
             }
             runCommand(id)
-            return
-        }
-        if app.kind == .customCommand {
-            guard let id = CustomCommand.id(fromEntryID: app.id) else { return }
-            customCommandCoordinator.runCustomCommand(id: id, values: arguments)
             return
         }
         if app.kind == .systemAction {
@@ -88,7 +78,7 @@ final class LauncherCoordinator {
         case .snippet:
             guard let snippetID = StoredSnippet.id(fromEntryID: app.id) else { return }
             snippetCoordinator.expandSnippet(id: snippetID, target: previous)
-        case .command, .customCommand, .systemAction, .windowCommand,
+        case .command, .systemAction, .windowCommand,
             .appleShortcut:
             break  // handled above
         }

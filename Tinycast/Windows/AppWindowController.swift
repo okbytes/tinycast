@@ -1,14 +1,6 @@
 import AppKit
 import SwiftUI
 
-private final class AppWindow: NSWindow {
-    var closesOnEscape = false
-
-    override func cancelOperation(_ sender: Any?) {
-        if closesOnEscape { close() } else { super.cancelOperation(sender) }
-    }
-}
-
 /// Built on first show, torn down on close so its SwiftUI tree deallocates. Never quits the app.
 @MainActor
 final class AppWindowController: NSObject, NSWindowDelegate {
@@ -18,7 +10,6 @@ final class AppWindowController: NSObject, NSWindowDelegate {
     private let isResizable: Bool
     private let autosaveName: String?
     private let activation: ActivationPolicy
-    private let closesOnEscape: Bool
     private var window: NSWindow?
     /// Rebuilt with the window, so a chrome's state never outlives the window it decorated.
     private var chrome: WindowChrome?
@@ -26,7 +17,7 @@ final class AppWindowController: NSObject, NSWindowDelegate {
     /// The opening size is also the resize floor unless a smaller `minimumSize` is named.
     init(
         title: String, contentSize: CGSize, minimumSize: CGSize? = nil, resizable: Bool = false,
-        autosaveName: String? = nil, activation: ActivationPolicy, closesOnEscape: Bool = false
+        autosaveName: String? = nil, activation: ActivationPolicy
     ) {
         self.title = title
         self.contentSize = contentSize
@@ -34,7 +25,6 @@ final class AppWindowController: NSObject, NSWindowDelegate {
         self.isResizable = resizable
         self.autosaveName = autosaveName
         self.activation = activation
-        self.closesOnEscape = closesOnEscape
     }
 
     /// Returns `true` when a window was built, `false` when an already-open one was re-raised.
@@ -106,14 +96,13 @@ final class AppWindowController: NSObject, NSWindowDelegate {
     private func makeWindow(content: NSViewController, chrome: WindowChrome?) -> NSWindow {
         var style: NSWindow.StyleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
         if isResizable { style.insert(.resizable) }
-        let window = AppWindow(
+        let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
             styleMask: style,
             backing: .buffered,
             defer: false
         )
         window.title = title
-        window.closesOnEscape = closesOnEscape
         // Edge-to-edge under a transparent titlebar, so it reads as one surface.
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden

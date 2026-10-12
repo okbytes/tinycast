@@ -24,7 +24,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
 │ LinkDestination · AppleShortcut ·                                          │
 │ Snippets/Model/* ·                                                         │
-│ ShellCommandRunner · DoubleTap{Modifier,Detector} · ClipboardStore ·       │
+│ DoubleTap{Modifier,Detector} · ClipboardStore ·                            │
 │ AppSettingsKey · SettingsBackupCoverage · KeyRemapEngine · TopRowMap ·     │
 │ SettingsFile{JSON,Key,Value,Format,Binding,Issue} ·                        │
 │ HotKeySpelling · WindowManagementFileFormat ·                              │
@@ -44,7 +44,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 36 @MainActor @Observable stores, sessions, indices and State types        │
+│ 34 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -71,8 +71,8 @@ the signal that a decision leaked into the effect layer, or an effect into the d
 
 The boundary keeps effects out of decisions: `CalcEngine.evaluate` is handed a finished
 `CurrencyRates?` rather than reaching for one, which is what keeps it Foundation-only and testable.
-Confirmation gates live in the coordinator, never in the runner — which is why `ShellCommandRunner`
-and `SystemActionRunner` stay harness-compilable while the "are you sure?" step still cannot be bypassed.
+Confirmation gates live in the coordinator, never in the runner — which is why `SystemActionRunner`
+stays harness-compilable while the "are you sure?" step still cannot be bypassed.
 
 Two things sit deliberately outside a feature folder: `Features/PaletteRowIndex.swift`, because the
 palette rather than any one feature owns the flat selection index, and `DesignSystem/` + `Platform/`,
@@ -81,13 +81,13 @@ the shared primitives and system shims every feature draws on. Neither may depen
 ## Single-owner core
 
 `AppCore.shared` (`App/AppCore.swift`) is a `@MainActor` singleton owning every long-lived thing in the
-app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `CustomCommandStore`,
+app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`,
 `FavoritesStore`, `VisibilityStore`, `AliasStore`, `LauncherRankingStore`, `CalculatorHistoryStore`,
 `CurrencyRateStore`, `FrequentEmojiStore`, `CalendarStore`), the managers, monitors and clocks
 (`ClipboardManager`, the opt-in `ClipboardTextIndexer`, the opt-in `SettingsFileRepository`,
 `HotKeyManager`, `KeyRemapManager`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
 (`AppSettings`, `PaletteState`, `UninstallSession`,
-`MeetingClock`), the fourteen feature coordinators, and the
+`MeetingClock`), the thirteen feature coordinators, and the
 window controllers.
 
 `AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
@@ -97,7 +97,7 @@ one wiring point, and `start()` reads as the app's whole boot sequence in one sc
 into a store to mutate it.** That is the rule; `AppCore` holds only the closure wiring that connects a
 hotkey to a coordinator. Views inject `AppCore` through `@Environment` and use it as the *locator* for
 those coordinators — `core.uninstallCoordinator.beginUninstall(…)` is the shape, and the alternative
-is injecting fourteen coordinators separately for no gain. Reading a store off `AppCore` to render it is
+is injecting thirteen coordinators separately for no gain. Reading a store off `AppCore` to render it is
 fine too; deciding something with one is what the rule forbids. `showNotice`, `confirm`,
 `reportFailure`, `showMessage` and `pickVolume` are forwarders on `AppCore` itself, so
 `DialogController` and `MessageHUDController` stay single-owned.
@@ -153,7 +153,7 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-36 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+34 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:

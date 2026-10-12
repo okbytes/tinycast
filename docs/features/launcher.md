@@ -307,12 +307,11 @@ on `LauncherItemsSection` puts an `AliasField` on each row, dressed like the `Sh
 beside it; edits store as typed and trim when the field loses focus, and a blank means none. That
 list filters by **membership only**, keeping the index's name order — re-ranking it per keystroke
 would move the row being edited out from under its own field editor. A pane with a hand-written row
-hands `AliasField` the key itself: Settings ▸ Commands passes `CustomCommand.entryID`, Settings ▸
-Window Management passes each command's `AppEntry`, and each dims the field when the entry is hidden
-from launcher search, whose entry the ranker never sees.
+hands `AliasField` the key itself: Settings ▸ Window Management passes each command's `AppEntry`, and
+dims the field when the entry is hidden from launcher search, whose entry the ranker never sees.
 
 Aliases ride along in a settings backup (`launcherAliases`), and deleting what an alias points at —
-uninstalling an app, deleting a custom command — removes it
+uninstalling an app, deleting an Apple Shortcut — removes it
 with the entry's other per-entry preferences.
 
 ### Alternate names
@@ -407,7 +406,7 @@ permission-aware failures. With the palette closed it targets the frontmost app,
 Quit All act on the same window a palette launch would have.
 
 System actions occupy their own launcher section and their own Settings pane. The empty-query publication
-order is applications, snippets, system actions, window commands, custom commands, then
+order is applications, snippets, system actions, window commands, then
 built-in commands; the sectioned view filters in that same order so the visible rows remain
 identical to the flat selection index.
 Search, favorites, visibility and learned ranking work through the normal `AppEntry` path, and every
@@ -440,7 +439,7 @@ its own for real media keys. Volume Up/Down walk a 5% grid (`VolumeLevel.stepped
 up lands on 40% and down on 35%, and repeated presses stay on round numbers.
 
 An action whose effect is invisible reports back through a pill (`MessageHUDController`, the same one
-Custom Commands and Snippets confirm through) rather than finishing silently:
+Snippets confirm through) rather than finishing silently:
 `SystemActionRunner.run` returns a `SystemActionFeedback` naming the state it landed in
 (`Trash Emptied`, `Hidden Files Shown`, `Dark Appearance`, `Bluetooth Off`, `3 Disks Ejected`), and
 `AppCore` shows it with a `DialogTone` derived from the feedback's `isNoOp` flag: `.success` when
@@ -489,17 +488,6 @@ made for snippets. The feature ships off. See
 it as its own slice right after Applications, re-reading on every launcher open. Only the name is indexed,
 and the entry id is keyed on the shortcut's UUID, so an alias or binding survives a rename in
 Shortcuts. See [apple-shortcuts.md](apple-shortcuts.md).
-
-## Custom commands
-
-`CustomCommandStore` supplies user-authored entries to `AppIndex` without joining the off-main
-application scan. Custom commands are their own alphabetized section ahead of the built-in Commands
-section, and reuse fuzzy ranking, favorites, visibility, keycap rendering and the launcher's flat
-selection.
-
-Only the display name is indexed. Activation resolves the stable UUID through the store and dispatches
-to `ShellCommandRunner`; see [custom-commands.md](custom-commands.md) for persistence, hotkeys and
-execution semantics.
 
 ## Pane-owned commands
 
@@ -610,9 +598,7 @@ rule — per kind, and a new `Kind` case has to answer it to compile. Applicatio
 System Actions and Window Commands each
 draw a per-row checkbox in their pane, so they carry it. Snippets do not: their pane lists a record
 with its own switches, not a launcher checkbox — a hide nothing in Settings can visibly undo is a
-trap, not a shortcut. Custom commands differ: their editor has its own **Show in root
-search** switch, so the row offers **Hide from Root Search** and `hideFromSearch(at:)` clears that
-`showsInRootSearch` flag instead of writing `VisibilityStore`.
+trap, not a shortcut.
 `AppActionsMenu` adds the query-driven guard the favorites row already uses: a typed URL lives only
 for its query and has no preference to write.
 

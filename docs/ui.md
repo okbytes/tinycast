@@ -45,7 +45,7 @@ These are the things that quietly break the look if changed. Preserve them unles
 - **Don't use the native scroll edge effect.** Inside a transparent panel it renders a hard-bounded rectangle. Use `edgeDissolve()`, or a gradient `mask` where a surface owns its own fade — `scrollEdgeEffectStyle` draws a *material* where a scroll view meets a safe area, so over a panel that already has `panelScrim` + `GlassEffectView` it composites to nothing. Tried and rejected, with and without `safeAreaBar`. This is a rule about the borderless panels; the Settings window is a titled `NSWindow` whose system titlebar draws the band itself (see "Settings").
 - **Test over a light desktop.** Transparency and corner masking bugs only show over bright wallpaper. Dark wallpaper hides them.
 - **No `NSAlert` or system popovers.** Every confirmation, failure report, value prompt and transient readout is Tinycast's own SwiftUI surface (see "Dialogs & HUD"). An Aqua alert on an alpha-over-vibrancy app reads as a different product, and its `runModal` run loop keeps Carbon hotkeys firing underneath.
-- **A dialog has three independent axes; never let one infer another.** The **icon** (`DialogRequest.symbol`, required) is always the *subject's* own glyph — a command being confirmed uses its `SystemAction.sfSymbol`, so the Restart dialog shows the same icon as the Restart row. Tone never picks an icon. The **tone** (`DialogTone`: `.neutral` / `.success` / `.danger`) tints only that glyph. The **button** takes its color from `DialogAction.Role` (`.standard` white / `.destructive` red / `.cancel` secondary), so a red-glyph security warning can still carry a plain white button — as "Import executable commands?" does.
+- **A dialog has three independent axes; never let one infer another.** The **icon** (`DialogRequest.symbol`, required) is always the *subject's* own glyph — a command being confirmed uses its `SystemAction.sfSymbol`, so the Restart dialog shows the same icon as the Restart row. Tone never picks an icon. The **tone** (`DialogTone`: `.neutral` / `.success` / `.danger`) tints only that glyph. The **button** takes its color from `DialogAction.Role` (`.standard` white / `.destructive` red / `.cancel` secondary), so a red-glyph security warning can still carry a plain white button.
 - **Resolve every glyph through `SymbolImage`, not `Image(systemName:)`.** Some catalog symbols are bundled assets in `Assets.xcassets` (`toggleBluetooth`), and `Image(systemName:)` silently renders nothing for those.
 - **↵ runs the primary action, Escape cancels, and Cancel always renders leading** (the left button), matching macOS convention. A button never prints its key cap; a deliberate hover reveals its outlined `KeyCapChip` in a `Tooltip`.
 - **In the palette, a hover label is Tinycast's `tooltip`, never `.help()`**: an AppKit tooltip never appears while the app sits inactive behind the non-activating panel. A Settings window activates the app, so `.help()` shows there and stays the label to use. The tooltip hangs above its control by default; a control in the palette header passes `edge: .bottom`, since above it is off the window, and a label may run to several lines.
@@ -318,7 +318,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
 - **Icon.** `DialogRequest.symbol` is required and is always the subject's own glyph: a system
   command passes its `SystemAction.sfSymbol`, so the Restart dialog shows `arrow.clockwise` and
   Empty Trash shows `trash.slash` — the same glyph as the launcher row the user just activated.
-  Custom commands use `terminal`, the backup flows `square.and.arrow.up` / `.down`. Symbols render
+  The backup flows use `square.and.arrow.up` / `.down`. Symbols render
   through `SymbolImage` (`DesignSystem/SymbolImage.swift`), never raw `Image(systemName:)`, because some
   catalog symbols are bundled template assets rather than SF Symbols — `toggleBluetooth` ships its
   own artwork since the logo is a SIG trademark, and a raw `Image(systemName:)` draws nothing for it.
@@ -337,8 +337,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
 - **Button role.** `DialogAction.Role` colors the label: a default `.standard` action uses
   `primaryAction`, another `.standard` uses `Color.primary`, `.destructive` uses
   `Theme.Colors.destructive`, and `.cancel` uses `textSecondary`. Because role is independent of tone, a
-  red-glyph security warning can carry a plain white button — "Import executable commands?" does,
-  since importing a file destroys nothing — and running a shell command the user wrote themselves is
+  red-glyph security warning can carry a plain white button, and turning on Snippets or Calendar is
   `.neutral` + `.standard` rather than a red alarm.
 - **Surface.** A dialog applies one system `.glassEffect(.regular)` to a
   `RoundedRectangle(panel 26)`. Confirmations and notices use `dialogCompactWidth 290`, including the
@@ -406,7 +405,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   `HUDPresenter.extend()`, so the bar slides to its new value in place instead of replaying the
   entrance.
 - **`MessageHUDController`'s pill** is every _other_ transient
-  confirmation: Custom Commands and Snippets confirming a run, and every system action whose effect
+  confirmation: Snippets confirming a run, and every system action whose effect
   is invisible (`Trash Emptied`, `Hidden Files Shown`, `Bluetooth Off`). One capsule shape, sized to
   its message (`hudMaxWidth 420` ceiling), clipped to a `Capsule()`, with a plain glyph leading the
   message: `checkmark` green for `.success`, `exclamationmark` red for `.danger`,
@@ -543,7 +542,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   edge effect are drawn by AppKit as a pane's `Form` scrolls under it. `.fullSizeContentView` and
   `titlebarSeparatorStyle = .none` stay — the content still runs under the bar, and a hairline would
   split the surface the band unifies. It also clears `isMovableByWindowBackground`: stock Settings
-  isn't dragged by its content. Onboarding and Command Output keep the transparent titlebar they were
+  isn't dragged by its content. Onboarding keeps the transparent titlebar it was
   tuned for. Never hand-draw a header band; a main surface takes the system's
   material, not `glassEffect`.
 - `SettingsComponents.swift` holds only what more than one pane or editor needs: **`SettingsRow`**,
@@ -563,8 +562,8 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   up to its parent. The
   presenting binding remains the dismissal source of truth, while launcher handoffs are consumed into
   pane-local state so opening an editor does not repaint the split view. A list that can keep growing
-  scrolls at a stated row count instead — Custom Commands caps its arguments at `visibleArgumentRows` —
-  so a panel's height stays a property of the editor, not of what has been typed into it.
+  scrolls at a stated row count instead, so a panel's height stays a property of the editor, not of
+  what has been typed into it.
 - **The sidebar searches every pane *and* its rows.** `.searchable(placement: .sidebar)` sits above the list and
   swaps it for a flat, ranked result list; each result carries the pane's `systemImage`, the row's
   title and a `Pane › Section` breadcrumb, and arrowing through them moves the pane, as System

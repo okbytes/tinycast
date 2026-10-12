@@ -48,8 +48,8 @@ A read that differs from the last one — and the first read after launch, so a 
 Tinycast wasn't running is caught too — sweeps. `AppleShortcut.staleIDs` collects every
 `apple-shortcut:` key the alias, favorite, visibility and ranking stores hold, plus
 `boundAppleShortcutIDs`, and returns those the library no longer names. Each is unbound and its
-per-entry preferences removed, the way deleting a custom command unwinds them. A shortcut renamed in
-Shortcuts keeps its UUID, so a rename is never a deletion.
+per-entry preferences removed. A shortcut renamed in Shortcuts keeps its UUID, so a rename is never a
+deletion.
 
 **An empty read never sweeps.** Deleting every shortcut and a tool that answers with an empty list
 look identical, and guessing wrong would free every binding at once. The cost is that the last

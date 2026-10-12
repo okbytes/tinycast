@@ -7,7 +7,6 @@ final class HotKeyManager {
     var onTogglePalette: (() -> Void)?
     /// The launcher's own command funnel, so a shortcut and a palette row run the same thing.
     var onRunCommand: ((CommandID) -> Void)?
-    var onRunCustomCommand: ((UUID) -> Void)?
     var onRunSystemAction: ((SystemAction.ID) -> Void)?
     var onRunWindowCommand: ((WindowCommand.ID) -> Void)?
     var onRunAppleShortcut: ((UUID) -> Void)?
@@ -47,13 +46,10 @@ final class HotKeyManager {
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
     private let boundKey = "boundAppBundleIDs"
-    private let boundCustomCommandKey = "boundCustomCommandIDs"
     private let boundAppleShortcutKey = "boundAppleShortcutIDs"
     private let boundSnippetKey = "boundSnippetIDs"
 
-    func start(customCommandIDs: Set<UUID>) {
-        prune(key: boundCustomCommandKey, live: customCommandIDs) { .customCommand(id: $0) }
-        // After the prune, so a dropped record can't survive in memory this session.
+    func start() {
         for action in candidateActions { bindings[action] = storedBinding(for: action) }
         revision &+= 1
 
@@ -72,9 +68,6 @@ final class HotKeyManager {
     var boundBundleIDs: [String] {
         UserDefaults.standard.stringArray(forKey: boundKey) ?? []
     }
-
-    /// Custom-command UUIDs with a binding, indexed separately so startup can re-register them.
-    var boundCustomCommandIDs: [UUID] { boundIDs(key: boundCustomCommandKey) }
 
     /// Pruned by `AppleShortcutCoordinator` after a successful read, never here at launch.
     var boundAppleShortcutIDs: [UUID] { boundIDs(key: boundAppleShortcutKey) }
@@ -134,8 +127,6 @@ final class HotKeyManager {
         switch action {
         case .app(let bundleID):
             index(bundleID, bound: binding != nil, key: boundKey)
-        case .customCommand(let id):
-            index(id, bound: binding != nil, key: boundCustomCommandKey)
         case .appleShortcut(let id):
             index(id, bound: binding != nil, key: boundAppleShortcutKey)
         case .snippet(let id):
@@ -177,7 +168,6 @@ final class HotKeyManager {
         if let candidateActionsCache { return candidateActionsCache }
         var actions = HotKeyAction.builtInActions
         actions += boundBundleIDs.map { .app(bundleID: $0) }
-        actions += boundCustomCommandIDs.map { .customCommand(id: $0) }
         actions += boundAppleShortcutIDs.map { .appleShortcut(id: $0) }
         actions += boundSnippetIDs.map { .snippet(id: $0) }
         actions += SystemAction.ID.allCases.map { .systemAction(id: $0) }
@@ -194,8 +184,6 @@ final class HotKeyManager {
             return id.name
         case .app(let bundleID):
             return displayName?(action) ?? bundleID
-        case .customCommand:
-            return displayName?(action) ?? "Custom Command"
         case .systemAction(let id):
             return SystemActionCatalog.action(id: id).name
         case .windowCommand(let id):
@@ -232,7 +220,6 @@ final class HotKeyManager {
         case .togglePalette: onTogglePalette?()
         case .command(let id): onRunCommand?(id)
         case .app(let bundleID): AppLauncher.toggle(bundleID: bundleID)
-        case .customCommand(let id): onRunCustomCommand?(id)
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)
         case .appleShortcut(let id): onRunAppleShortcut?(id)
@@ -256,15 +243,6 @@ final class HotKeyManager {
         var set = Set(UserDefaults.standard.stringArray(forKey: key) ?? [])
         if bound { set.insert(id) } else { set.remove(id) }
         UserDefaults.standard.set(Array(set), forKey: key)
-    }
-
-    /// Drops bindings whose item is gone, deleted while Tinycast wasn't running.
-    private func prune(key: String, live: Set<UUID>, action: (UUID) -> HotKeyAction) {
-        let stored = Set(boundIDs(key: key))
-        for id in stored.subtracting(live) {
-            UserDefaults.standard.removeObject(forKey: action(id).defaultsKey)
-        }
-        persist(stored.intersection(live), key: key)
     }
 
     private func persist(_ ids: Set<UUID>, key: String) {

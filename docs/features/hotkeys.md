@@ -58,11 +58,10 @@ Shortcuts are also spelled as typeable chords (`ctrl+option+left`) in the opt-in
 `HotKeySpelling` is that grammar; `HotKeySettingsFile` applies through `setBinding`, so `UserDefaults`
 stays the one store either way.
 
-Custom commands use their stable UUIDs in `boundCustomCommandIDs`. That is the per-item case —
+Apple Shortcuts use their stable UUIDs in `boundAppleShortcutIDs`. That is the per-item case —
 unlike a fixed catalog, there is no `allCases` to walk — so it needs an index for `start()` to
-re-register from and to prune bindings whose record was deleted while Tinycast wasn't running.
-Apple Shortcuts keep the same kind of index in `boundAppleShortcutIDs`, pruned not at launch but after
-the first successful read of the library, since a failed read looks exactly like deletion
+re-register from. It is pruned not at launch but after the first successful read of the library,
+since a failed read looks exactly like deletion
 (see [apple-shortcuts.md](apple-shortcuts.md#sweeping-deleted-shortcuts)).
 
 Snippets index `StoredSnippet.ID`, the file's path, in `boundSnippetIDs`. The store runs only while

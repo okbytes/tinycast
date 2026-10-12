@@ -29,7 +29,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var sectionHeaderBottom: CGFloat { scaledPoints(Theme.Spacing.sectionHeaderBottom, scale) }
         var sectionSpacing: CGFloat { scaledPoints(Theme.Spacing.sectionSpacing, scale) }
         var emojiSectionSpacing: CGFloat { scaledPoints(Theme.Spacing.emojiSectionSpacing, scale) }
-        var chatFollowTailSlack: CGFloat { scaledPoints(Theme.Spacing.chatFollowTailSlack, scale) }
     }
 
     struct Radius: Equatable, Sendable {
@@ -57,7 +56,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var panelHeight: CGFloat { scaledPoints(Theme.Size.panelHeight, scale) }
         var headerHeight: CGFloat { scaledPoints(Theme.Size.headerHeight, scale) }
         var headerIconSlot: CGFloat { scaledPoints(Theme.Size.headerIconSlot, scale) }
-        var searchFieldMinWidth: CGFloat { scaledPoints(Theme.Size.searchFieldMinWidth, scale) }
         var headerPadding: CGFloat { scaledPoints(Theme.Size.headerPadding, scale) }
         /// Derived, not scaled: the compact bar must stay exactly the header in symmetric slack.
         var compactHeight: CGFloat { headerHeight + headerPadding * 2 }
@@ -117,12 +115,6 @@ struct InterfaceMetrics: Equatable, Sendable {
                 ? Theme.Typography.searchField
                 : .system(size: searchFieldSize, weight: .regular)
         }
-        /// Isolated because `Theme`'s twin is, not because resolving a font needs main.
-        @MainActor var searchFieldNSFont: NSFont {
-            scale == 1
-                ? Theme.Typography.searchFieldNSFont
-                : NSFont.systemFont(ofSize: searchFieldSize, weight: .regular)
-        }
         var headerIcon: Font {
             scale == 1
                 ? Theme.Typography.headerIcon
@@ -137,11 +129,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var keyCap: Font { font(Theme.Typography.keyCap, .caption1) }
         var compactKeyCap: Font { font(Theme.Typography.compactKeyCap, .caption2) }
         var heroKeyCap: Font { font(Theme.Typography.heroKeyCap, .body) }
-        var code: Font {
-            scale == 1
-                ? Theme.Typography.code
-                : .system(size: nsFont(.callout).pointSize, design: .monospaced)
-        }
         var bar: Font { font(Theme.Typography.bar, .callout, .medium) }
         var disclosure: Font { font(Theme.Typography.disclosure, .caption1, .semibold) }
         var menuRow: Font { font(Theme.Typography.menuRow, .body) }

@@ -413,7 +413,6 @@ extension View {
             .environment(core.hotKeys)
             .environment(core.visibility)
             .environment(core.aliases)
-            .environment(core.customCommands)
             .environment(core.snippetsStore)
             .environment(core.calendarStore)
             .scrollContentBackground(.hidden)

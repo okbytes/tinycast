@@ -56,7 +56,6 @@ only the closure wiring; the behaviour is `PaletteCoordinator`'s.
 `PaletteState` (mode / query / selection / `focusToken`) is the bridge between the panel and the app.
 Preparing a screen resets state and bumps `focusToken` (a UUID). `PaletteWindowController.show()`
 also bumps it before presenting the panel, so a preserved screen re-focuses its search field too.
-Window activation does not request another search refocus after a shortcut's argument handoff.
 Closing a palette menu explicitly restores search focus after its panel returns key status.
 `prepare` is one of four motions over the screen — see [Navigation](#navigation).
 
@@ -88,11 +87,15 @@ every screen but one: the clipboard lands past its pins
 | `.snippets` | `SnippetsScreen` | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets)) |
 | `.dictionary` | `DictionaryScreen` | `DictionaryEntryView` (see [dictionary.md](dictionary.md)) |
 
-**Tab rings the two surfaces a reader opens directly — launcher ↔ clipboard** — unless the
-selected row declares arguments, in which case it walks those fields first (see below); every other
+**Tab rings the two surfaces a reader opens directly — launcher ↔ clipboard**; every other
 mode stays off the ring, and is reached by a command or a global hotkey, with Uninstall only from a
 launcher app's Actions menu, scoped to that app. Clipboard is skipped when `clipboardEnabled` is off,
 which leaves Tab on the launcher with nowhere to go.
+
+The flat `selection` index is the single source of truth for highlight / activation and **must always
+match the visible row order**, including the card at index 0 when present — the calculator's (see
+[calculator.md](calculator.md)) or the colour card (see [clipboard.md](clipboard.md#colours)), never
+both.
 
 ### Navigation
 
@@ -120,12 +123,10 @@ that returning looks like never having left — and offers four motions over it:
 which would throw away the very selection being restored.
 
 **Escape clears a non-empty query before it leaves the screen**, so one press clears and the next
-leaves: a pushed screen pops, and a root hides the palette. A focused inline argument field is a rung above the
-query, so Escape hands focus back to the search field first — the query that found the command is
-still there to be cleared by the next press. A bare backspace in an empty field takes the same step
-**but never closes**: on a root screen summoned by its own hotkey it falls to the root search, which
-is the step Escape would have taken had that screen been reached by typing its name. ⌘⎋ skips the
-whole stack for that same root search from any depth.
+leaves: a pushed screen pops, and a root hides the palette. A bare backspace in an empty field takes
+the same step **but never closes**: on a root screen summoned by its own hotkey it falls to the root
+search, which is the step Escape would have taken had that screen been reached by typing its name.
+⌘⎋ skips the whole stack for that same root search from any depth.
 
 `EscapeKeyBehavior` (General settings) can trade the walk back for the old behavior: under
 `closeAndPopToRoot` an empty field closes the window and resets it immediately, whatever Pop to Root
@@ -146,49 +147,6 @@ to the launcher.
 one press to unwind, and the back chevron's tooltip stops promising a step it cannot take. The
 launcher is the ring's root, so the hop that closes the ring resets the stack instead of stacking
 another screen; ringing round forever therefore never grows the stack past two.
-
-### Inline row arguments
-
-A selected row can declare arguments, and they are typed **in the header, beside the search field** —
-not on a screen of their own. A custom command answers this way, through
-`CustomCommandArgumentsAccessory`, which draws `DesignSystem/InlineArgumentFields`. The palette does
-not know it: `PaletteScreen.headerAccessory(at:focus:)` hands back a `PaletteHeaderAccessory` — a
-width, the field names in Tab order, the first field still owed a value, and an opaque view. That
-costs the header its one simple rule, so it holds these invariants:
-
-- The search field sits at **one structural position, always**. It is never moved inside an `if`:
-  flipping the branch tears down its field editor, which drops first responder mid-navigation. Only
-  its *width* changes — it is sized to its own text so the chips sit right after it, as they do in
-  Raycast. That width is a ceiling rather than a size, and the spacer after the strip is given room
-  last, so a long query is squeezed before the strip can run into the screen's own header controls.
-- **A strip drops the prompt** and squeezes the field to the typed text, so the chips follow what was
-  typed and a glyph anchors them to the row.
-- Argument focus is its own `@FocusState`, `argumentFocused`, keyed by field id. Every way out
-  of its ring — moving the selection, Escape, Tab past the last field, or an arrow at its edge — goes through
-  `returnFocusToSearchField()`, because the row that owned those fields is about to stop being
-  selected and a field that unmounts while focused leaves the panel with no first responder at all.
-  ↵ on a blank required argument focuses it instead of launching.
-- **Never read a `@FocusState` back in the tick that writes it.** It still reports the old field, so
-  `searchFocused = argumentFocused == nil` resolved to `false` and Tab out of the last argument
-  focused nothing; AppKit's key-view loop then answered the next presses instead. Both writes come
-  from one local value.
-- Returning focus this way leaves the query selected, because AppKit selects the whole string as the
-  field editor comes back — here that is the wanted reset rather than the hazard it is under ↵.
-
-The typed values live on `PaletteState.commandArguments`, keyed by
-`PaletteState.argumentKey(entryID, field)` — a custom command's positional `$1`–`$3` — and are
-cleared with the rest of the screen.
-`PaletteState.pendingArgumentEntryID` is how a *shortcut* reaches them: a custom command run with
-values still missing names its row, and the header focuses that row's first empty field instead of
-the search field. On first mount the view handles the pending request after landing; later requests
-wait a turn for the show's navigation to settle. A custom command has no screen of its own, so it
-also sets `argumentEntryID`, which lists that row alone in root search while the query is its name.
-Both are set **after** `showPalette`, since `prepare` clears them.
-
-The flat `selection` index is the single source of truth for highlight / activation and **must always
-match the visible row order**, including the card at index 0 when present — the calculator's (see
-[calculator.md](calculator.md)) or the colour card (see [clipboard.md](clipboard.md#colours)), never
-both.
 
 ## Window placement
 
@@ -462,8 +420,8 @@ Plain ↵ is claimed by `RootPaletteView`'s own `onKeyPress` whenever the search
 `activateSelection` runs from there — the field carries no `onSubmit`. Letting the field submit ends
 editing, and AppKit tears the field editor down and selects the whole string when focus returns, so a
 screen opened with a carried query came up with that query selected. An
-IME's composition and any other focused field — the inline argument fields — are
-left alone: the handler returns `.ignored` for them, and their own `onSubmit` still commits.
+IME's composition is left alone, as is a press while the search field does not hold focus: the
+handler returns `.ignored` for both.
 
 ## The query is one line
 

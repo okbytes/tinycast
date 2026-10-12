@@ -50,8 +50,7 @@ Full detail in [architecture.md](architecture.md); the rules a new feature has t
 
 Feature work reaches the app through a **coordinator**, called by `AppCore` and by views via
 `@Environment`. Confirmation gates live in the coordinator, never in the runner — which is what lets
-`ShellCommandRunner` and `SystemActionRunner` stay harness-compilable while the "are you sure?" step
-remains unbypassable.
+`SystemActionRunner` stay harness-compilable while the "are you sure?" step remains unbypassable.
 
 ## Naming
 
@@ -159,7 +158,7 @@ Two gotchas worth knowing before they cost an afternoon:
 
 ### Observation
 
-36 types use `@Observable`; nothing uses `ObservableObject` or `@Published`. Migrating anything new into
+34 types use `@Observable`; nothing uses `ObservableObject` or `@Published`. Migrating anything new into
 this model:
 
 - `@ObservationIgnored` on memo caches and lazily-built collaborators. Without it, reading a memo

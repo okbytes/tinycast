@@ -50,13 +50,11 @@ enum AppActionsMenu {
                     onResetRanking()
                 })
         }
-        // These carry their own Show in root search switch rather than a pane checkbox.
-        let hidesFromRoot = app.kind == .customCommand
-        if isPersistent, app.canHideFromSearch || hidesFromRoot {
-            let title = hidesFromRoot ? "Hide from Root Search" : "Hide from Search"
+        if isPersistent, app.canHideFromSearch {
             items.append(
                 PopoverMenuItem(
-                    title: title, systemImage: "eye.slash", shortcut: "⇧⌘H", action: onHideFromSearch))
+                    title: "Hide from Search", systemImage: "eye.slash", shortcut: "⇧⌘H",
+                    action: onHideFromSearch))
         }
         if running, app.kind == .application {
             items.append(

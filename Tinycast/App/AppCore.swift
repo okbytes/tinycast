@@ -8,7 +8,6 @@ final class AppCore {
 
     let launcherRanking: LauncherRankingStore
     let appIndex: AppIndex
-    let customCommands = CustomCommandStore()
     let clipboardStore = ClipboardStore()
     @ObservationIgnored private var clipboardTextIndexer: ClipboardTextIndexer?
     let clipboardManager: ClipboardManager
@@ -73,11 +72,6 @@ final class AppCore {
         spaceSwitcher: spaceSwitcher)
     @ObservationIgnored private(set) lazy var windowShortcutPresetCoordinator =
         WindowShortcutPresetCoordinator(hotKeys: hotKeys, core: self)
-    @ObservationIgnored private(set) lazy var customCommandCoordinator = CustomCommandCoordinator(
-        store: customCommands, settings: settings, appIndex: appIndex,
-        paletteCoordinator: paletteCoordinator, settingsCoordinator: settingsCoordinator,
-        hotKeys: hotKeys, favorites: favorites, visibility: visibility,
-        ranking: launcherRanking, aliases: aliases, activationPolicy: activationPolicy, core: self)
     @ObservationIgnored private(set) lazy var appleShortcutCoordinator = AppleShortcutCoordinator(
         settings: settings, appIndex: appIndex, hotKeys: hotKeys, favorites: favorites,
         visibility: visibility, ranking: launcherRanking, aliases: aliases,
@@ -87,7 +81,6 @@ final class AppCore {
         ranking: launcherRanking, windowController: windowController,
         paletteCoordinator: paletteCoordinator,
         settingsCoordinator: settingsCoordinator,
-        customCommandCoordinator: customCommandCoordinator,
         systemActionCoordinator: systemActionCoordinator,
         windowCommandCoordinator: windowCommandCoordinator,
         snippetCoordinator: snippetCoordinator,
@@ -147,10 +140,6 @@ final class AppCore {
 
             appIndex.start(settings: settings)
             clipboardCoordinator.applyEnabled()
-            customCommands.onChange = { [weak self] _ in
-                self?.customCommandCoordinator.applyCustomCommandsPresence()
-            }
-            customCommandCoordinator.applyCustomCommandsPresence()
             applyWindowCommandsPresence()
             appleShortcutCoordinator.applyPresence()
             paletteCoordinator.onLauncherShown = { [weak self] in
@@ -167,9 +156,6 @@ final class AppCore {
 
             hotKeys.onTogglePalette = { [weak self] in self?.paletteCoordinator.togglePalette() }
             hotKeys.onRunCommand = { [weak self] id in self?.launcherCoordinator.runCommand(id) }
-            hotKeys.onRunCustomCommand = { [weak self] id in
-                self?.customCommandCoordinator.runCustomCommand(id: id)
-            }
             hotKeys.onRunSystemAction = { [weak self] id in
                 self?.systemActionCoordinator.runSystemAction(id: id)
             }
@@ -206,8 +192,7 @@ final class AppCore {
             SystemActionRunner.onAsyncFailure = { [weak self] id, failure in
                 self?.systemActionCoordinator.presentSystemActionFailure(id: id, failure: failure)
             }
-            hotKeys.start(
-                customCommandIDs: Set(customCommands.commands.map(\.id)))
+            hotKeys.start()
             keyRemap.start(settings: settings)
 
             snippetsStore.onSnapshot = { [weak self] snapshot in
@@ -238,7 +223,6 @@ final class AppCore {
     func handleReopen() {
         if settingsCoordinator.focusExisting() { return }
         if onboardingCoordinator.focusExisting() { return }
-        if customCommandCoordinator.focusOutputWindow() { return }
         paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
     }
 
@@ -247,8 +231,6 @@ final class AppCore {
         switch action {
         case .app(let bundleID):
             return appIndex.apps.first { $0.kind == .application && $0.bundleID == bundleID }?.name
-        case .customCommand(let id):
-            return customCommands.command(id: id)?.name
         case .appleShortcut(let id):
             return appleShortcutCoordinator.name(of: id)
         case .snippet(let id):
@@ -302,11 +284,6 @@ final class AppCore {
                 _ = $0.windowManagementEnabled
                 _ = $0.windowManagementShowInLauncher
             }, reproject: { $0.applyWindowCommandsPresence() })
-        track(
-            {
-                _ = $0.customCommandsEnabled
-                _ = $0.customCommandsShowInLauncher
-            }, reproject: { $0.customCommandCoordinator.applyCustomCommandsPresence() })
         track(
             { _ = $0.appleShortcutsEnabled },
             reproject: { $0.appleShortcutCoordinator.applyPresence() })

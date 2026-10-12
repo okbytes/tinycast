@@ -36,7 +36,6 @@ source, and staying that way.
   global hotkeys.
 - **Snippets** — reusable Markdown templates with dynamic placeholders, arguments, nested references
   and optional keyword expansion.
-- **Custom commands** — run named shell commands through fuzzy search or their own global hotkeys.
 - **Window management** — 34 Rectangle-style actions: halves, quarters, thirds, sizing, nudging,
   display moves, fullscreen and Spaces.
 - **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, mute, hidden
@@ -85,7 +84,7 @@ disabled, and keystrokes are matched locally, never stored and never sent anywhe
 1. Open **Settings → General** and record a global shortcut to summon Tinycast.
 2. Press it anywhere → the palette floats in. Type to filter, **↵** to launch.
 3. **Tab** switches between Apps and Clipboard; **↑/↓** move, **Esc** dismisses.
-4. **Settings → Shortcuts** — search an app or custom command and record a global shortcut.
+4. **Settings → Shortcuts** — search an app or command and record a global shortcut.
 5. **Settings → Snippets** — enable the feature, then create templates with expansion keywords.
 
 ## Building from source

@@ -23,7 +23,7 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
   it.
 - **Applying the file never writes it.** Only a change made in the app rewrites the file, so hand
   formatting stays until then.
-- **Content and machine state never enter it.** Snippets and custom commands stay where
+- **Content and machine state never enter it.** Snippets stay where
   they are — the file can say which folder snippets live in, never what is in them —
   as do the palette's position and the shortcuts and aliases of content and Apple Shortcuts.
 
@@ -147,7 +147,7 @@ in `commands.builtIn` — by their ID after `command:`. App Launcher is `general
 - Partial edits to a waiting record keep its other fields. An applied record stays in the mirror
   after its last shortcut is cleared, even outside the search scopes.
 - `applications.enabled`, `systemActions.enabled` and `commands.builtInEnabled` are each pane's
-  category switch; `commands.enabled` stays custom commands'.
+  category switch.
 
 ## Window management
 

@@ -51,6 +51,12 @@ cut=(
     Tinycast/Features/Launcher/Service/SettingsPaneScanner.swift
     Tinycast/Features/Launcher/Settings/SystemSettingsSettingsView.swift
     'Tinycast/Features/Quicklinks/*' 'Tests/quicklink-*' docs/features/quicklinks.md
+    'Tinycast/Features/CustomCommands/Model/*' 'Tinycast/Features/CustomCommands/Service/*'
+    'Tinycast/Features/CustomCommands/UI/*'
+    Tinycast/Features/CustomCommands/Settings/CustomCommandEditorPanel.swift
+    Tinycast/Platform/PseudoTerminal.swift Tinycast/DesignSystem/InlineArgumentFields.swift
+    Tinycast/DesignSystem/SymbolPicker.swift Tests/custom-command-test.swift
+    docs/features/custom-commands.md
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

@@ -28,13 +28,12 @@ struct PaletteEscapeTests {
 
     /// The shipped default, so a case only spells out what it is actually about.
     static func resolve(
-        menuOpen: Bool = false, menuQuery: String = "", argumentFocused: Bool = false,
-        query: String = "", canGoBack: Bool = false,
+        menuOpen: Bool = false, menuQuery: String = "", query: String = "", canGoBack: Bool = false,
         behavior: EscapeKeyBehavior = .navigateBackOrClose
     ) -> PaletteEscapeAction {
         PaletteEscapeAction.resolve(
-            menuOpen: menuOpen, menuQuery: menuQuery, argumentFocused: argumentFocused,
-            query: query, canGoBack: canGoBack, behavior: behavior)
+            menuOpen: menuOpen, menuQuery: menuQuery, query: query, canGoBack: canGoBack,
+            behavior: behavior)
     }
 
     static func main() {
@@ -94,19 +93,6 @@ struct PaletteEscapeTests {
             resolve(menuOpen: true),
             .closeMenu,
             "a menu outranks the screen it is drawn over")
-        // An inline argument field is deeper than the query that found the command.
-        expect(
-            resolve(argumentFocused: true, query: "search"),
-            .leaveArgumentField,
-            "an argument field hands focus back before the query that found it clears")
-        expect(
-            resolve(argumentFocused: true, canGoBack: true),
-            .leaveArgumentField,
-            "an empty query does not let the argument field skip its own step")
-        expect(
-            resolve(menuOpen: true, argumentFocused: true, query: "search"),
-            .closeMenu,
-            "a menu still outranks the argument field beneath it")
 
         // ⌘⎋ never reaches the responder chain, so what counts as the chord is decided in the tap.
         expectChord(

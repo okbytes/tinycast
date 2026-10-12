@@ -199,18 +199,10 @@ enum SettingsSearchCatalog {
     ]
 
     private static let commands: [SettingsSearchEntry] = [
-        .init(
-            pane: .commands,
-            keywords: ["custom", "script", "shell", "terminal"]),
+        .init(pane: .commands),
         .init(
             .commandsCommands, "Enable Commands",
-            keywords: ["hide", "visibility"]),
-        .init(
-            .commandsCustomCommands, "Enable custom commands",
-            keywords: ["script", "shell"]),
-        .init(
-            .commandsCustomCommands, "Add Custom Command",
-            keywords: ["new", "script", "shell", "shortcut"])
+            keywords: ["hide", "visibility"])
     ]
 
     private static let appleShortcuts: [SettingsSearchEntry] = [

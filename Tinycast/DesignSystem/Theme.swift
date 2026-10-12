@@ -17,8 +17,6 @@ enum Theme {
         static let xxxl: CGFloat = 28
         /// Gap under a category header, shared by every palette list's `SectionHeader`.
         static let sectionHeaderBottom: CGFloat = 4
-        /// A stream grows the log as the reader descends, so an exact-bottom test runs away.
-        static let chatFollowTailSlack: CGFloat = 44
         /// Space above every header but the first, reading as the previous section's close.
         static let sectionSpacing: CGFloat = 12
         /// Emoji tiles need a little more separation so adjacent category grids stay distinct.
@@ -56,8 +54,6 @@ enum Theme {
         static let headerHeight: CGFloat = 44
         /// Fixed slot for the header glyph, so the field starts at one x in every mode.
         static let headerIconSlot: CGFloat = 22
-        /// The narrowest a strip squeezes the search field to: the caret and a few characters.
-        static let searchFieldMinWidth: CGFloat = 60
         /// Room above the search row, constant so typing never shifts the bar.
         static let headerPadding: CGFloat = 10
         /// Collapsed compact bar: the search row centered in symmetric `headerPadding` slack.
@@ -146,7 +142,7 @@ enum Theme {
         static let emojiSkinToneGlyph: CGFloat = 13
         /// One density preview; five fit across the Emoji settings detail pane.
         static let emojiSettingsGridPreview: CGFloat = 72
-        /// Settings editor modals (Custom Commands, Snippets): fixed width, intrinsic height.
+        /// Settings editor modals (Snippets): fixed width, intrinsic height.
         static let editorSheetWidth: CGFloat = 480
         /// The multi-line box inside those modals; it scrolls rather than grows the panel.
         static let editorTextHeight: CGFloat = 120
@@ -192,7 +188,6 @@ enum Theme {
         static let hover: TimeInterval = 0.12
         /// A pop-up chevron turning between its closed and open directions.
         static let menuChevron: TimeInterval = 0.34
-        static let copyFeedback: TimeInterval = 1.2
         /// A Settings search result scrolling its section into view, then the pulse that marks it.
         static let settingsReveal: TimeInterval = 0.28
         static let settingsFlash: TimeInterval = 2.0
@@ -223,12 +218,8 @@ enum Theme {
 
     /// System text styles (not hardcoded sizes) so the UI honors Dynamic Type.
     enum Typography {
-        /// One size, two frameworks: `TextTrailingDragHandle` measures what the field renders.
         static let searchFieldSize: CGFloat = 20
         static let searchField = Font.system(size: searchFieldSize, weight: .regular)
-        /// `NSFont` is not `Sendable`, hence the isolation; every reader is a view anyway.
-        @MainActor static let searchFieldNSFont = NSFont.systemFont(
-            ofSize: searchFieldSize, weight: .regular)
         static let headerIcon = Font.system(size: 18, weight: .medium)
         static let rowTitle = Font.body
         static let rowTrailing = Font.callout
@@ -241,7 +232,6 @@ enum Theme {
         /// Pair with the matching `Size` for `KeyCapChip.Scale`.
         static let compactKeyCap = Font.caption2
         static let heroKeyCap = Font.body
-        static let code = Font.system(.callout, design: .monospaced)
         static let bar = Font.callout.weight(.medium)
         /// A dropdown control's trailing chevron, deliberately smaller than the label it follows.
         static let disclosure = Font.caption.weight(.semibold)
@@ -317,9 +307,6 @@ enum Theme {
         static let success = Color.green
         /// Progress tint: the message pill's spinner while the work behind it is still running.
         static let progress = Color.blue
-        /// The command output window's page: a flat surface the log sits directly on.
-        static let terminalSurface = adaptive(
-            dark: .srgbInk(0.07, alpha: 1), light: .srgbInk(0.99, alpha: 1))
     }
 }
 

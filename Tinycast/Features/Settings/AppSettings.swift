@@ -260,19 +260,6 @@ final class AppSettings {
         palettePositions[display] = [offset.x, offset.y]
     }
 
-    // Feature switches, off out of the box, and off means fully off.
-    var customCommandsEnabled: Bool {
-        didSet { defaults.set(customCommandsEnabled, forKey: Key.customCommandsEnabled.rawValue) }
-    }
-
-    /// With the feature on, controls only whether its launcher section appears.
-    var customCommandsShowInLauncher: Bool {
-        didSet {
-            defaults.set(
-                customCommandsShowInLauncher, forKey: Key.customCommandsShowInLauncher.rawValue)
-        }
-    }
-
     /// Also keyword-expansion consent, so it confirms first and never rides a backup.
     var snippetsEnabled: Bool {
         didSet { defaults.set(snippetsEnabled, forKey: Key.snippetsEnabled.rawValue) }
@@ -438,12 +425,8 @@ final class AppSettings {
             as? [String: [Double]] ?? [:]
         paletteExpandedCenterDisplays =
             Set(defaults.stringArray(forKey: Key.paletteExpandedCenterDisplays.rawValue) ?? [])
-        customCommandsEnabled = defaults.bool(forKey: Key.customCommandsEnabled.rawValue)
-        // These default on, so absence must be distinguished from a stored `false`.
-        customCommandsShowInLauncher =
-            defaults.object(forKey: Key.customCommandsShowInLauncher.rawValue) == nil
-            || defaults.bool(forKey: Key.customCommandsShowInLauncher.rawValue)
         snippetsEnabled = defaults.bool(forKey: Key.snippetsEnabled.rawValue)
+        // These default on, so absence must be distinguished from a stored `false`.
         snippetsShowInLauncher =
             defaults.object(forKey: Key.snippetsShowInLauncher.rawValue) == nil
             || defaults.bool(forKey: Key.snippetsShowInLauncher.rawValue)

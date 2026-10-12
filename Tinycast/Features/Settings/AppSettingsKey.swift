@@ -30,8 +30,6 @@ enum AppSettingsKey: String, CaseIterable {
     case paletteDraggable = "paletteDraggable"
     case palettePosition = "palettePosition"
     case paletteExpandedCenterDisplays = "paletteExpandedCenterDisplays"
-    case customCommandsEnabled = "customCommandsEnabled"
-    case customCommandsShowInLauncher = "customCommandsShowInLauncher"
     case snippetsEnabled = "snippetsEnabled"
     case snippetsShowInLauncher = "snippetsShowInLauncher"
     case snippetsFolder = "snippetsFolder"

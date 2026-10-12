@@ -33,7 +33,6 @@ open with an `## Invariants` section; read it before changing anything in that a
 [Apple Shortcuts](features/apple-shortcuts.md) ·
 [hotkeys](features/hotkeys.md) ·
 [window management](features/window-management.md) ·
-[custom commands](features/custom-commands.md) ·
 [uninstall](features/uninstall.md) ·
 [backup](features/backup.md) ·
 [settings file](features/settings-file.md)

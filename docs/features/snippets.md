@@ -246,8 +246,7 @@ from the snippet's editor in **Settings → Snippets**. Nothing about it reaches
 The feature switch — which carries keyword-monitoring consent — is likewise excluded from backups.
 
 `MessageHUDController` is shared rather than snippet-specific. It takes a message and a `DialogTone`
-(defaulting to `.success`), the same tone vocabulary `DialogController`'s dialogs use, so a
-custom command confirms a run through the same panel and the same tint rules; system actions'
+(defaulting to `.success`), the same tone vocabulary `DialogController`'s dialogs use; system actions'
 success/info feedback uses it too (see [launcher.md](launcher.md#system-actions)). Its leading
 trailing glyph, after the message, carries the tint. Its capsule uses `Theme.frosted(in:)`, the same
 whitish-tinted glass as the rest of the app's floating controls (see [ui.md](../ui.md#liquid-glass)).

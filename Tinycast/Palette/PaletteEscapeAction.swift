@@ -4,18 +4,15 @@ import Foundation
 enum PaletteEscapeAction: Equatable {
     case clearMenuQuery
     case closeMenu
-    case leaveArgumentField
     case clearQuery
     case goBack
     case hidePalette
 
     static func resolve(
-        menuOpen: Bool, menuQuery: String, argumentFocused: Bool, query: String, canGoBack: Bool,
+        menuOpen: Bool, menuQuery: String, query: String, canGoBack: Bool,
         behavior: EscapeKeyBehavior
     ) -> Self {
         if menuOpen { return menu(query: menuQuery) }
-        // An argument field is a step deeper than the query, so it is left before anything clears.
-        if argumentFocused { return .leaveArgumentField }
         if !query.isEmpty { return .clearQuery }
         guard behavior == .navigateBackOrClose else { return .hidePalette }
         return canGoBack ? .goBack : .hidePalette

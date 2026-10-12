@@ -315,12 +315,12 @@ and every shortcut stays editable afterwards.
 ## Wiring
 
 - **`AppEntry.Kind.windowCommand`** — entries are `window-command:<id>`, published by
-  `AppIndex.setWindowCommandsVisible(_:)` between the system-action and custom-command slices.
+  `AppIndex.setWindowCommandsVisible(_:)` between the system-action and built-in command slices.
   `LauncherView.rows` mirrors that position with a "Window Management" section; the slice order is the
   flat-selection invariant, so the two must move together.
 - **`HotKeyAction.windowCommand(id:)`** — persisted under
   `hotkey.windowCommand.<raw-id>`, matching the shared `HotKeyAction.defaultsKey` convention. Unlike
-  custom commands there is no bound-ID index to maintain: the catalog is fixed, so `HotKeyManager.start`
+  Apple Shortcuts there is no bound-ID index to maintain: the catalog is fixed, so `HotKeyManager.start`
   and `conflictOwner` iterate `WindowCommand.ID.allCases` and `register` no-ops on an unbound command.
 - **`WindowCommandCoordinator.runWindowCommand(id:)`** is the one funnel for both palette activation and the global
   hotkey, so the feature switch cannot be bypassed by either. A Space command branches out of it first

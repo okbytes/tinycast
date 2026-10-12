@@ -56,9 +56,6 @@ struct InterfaceSizeTests {
         expect(
             m.spacing.emojiSectionSpacing, Theme.Spacing.emojiSectionSpacing,
             "spacing.emojiSectionSpacing")
-        expect(
-            m.spacing.chatFollowTailSlack, Theme.Spacing.chatFollowTailSlack,
-            "spacing.chatFollowTailSlack")
 
         expect(m.radius.panel, Theme.Radius.panel, "radius.panel")
         expect(m.radius.row, Theme.Radius.row, "radius.row")
@@ -78,8 +75,6 @@ struct InterfaceSizeTests {
         expect(m.size.panelHeight, Theme.Size.panelHeight, "size.panelHeight")
         expect(m.size.headerHeight, Theme.Size.headerHeight, "size.headerHeight")
         expect(m.size.headerIconSlot, Theme.Size.headerIconSlot, "size.headerIconSlot")
-        expect(
-            m.size.searchFieldMinWidth, Theme.Size.searchFieldMinWidth, "size.searchFieldMinWidth")
         expect(m.size.headerPadding, Theme.Size.headerPadding, "size.headerPadding")
         expect(m.size.compactHeight, Theme.Size.compactHeight, "size.compactHeight")
         expect(m.size.bottomBarHeight, Theme.Size.bottomBarHeight, "size.bottomBarHeight")
@@ -130,9 +125,6 @@ struct InterfaceSizeTests {
         expect(m.size.volumeReadout, Theme.Size.volumeReadout, "size.volumeReadout")
 
         expect(m.typography.searchFieldSize, Theme.Typography.searchFieldSize, "typography.searchField")
-        expect(
-            m.typography.searchFieldNSFont == Theme.Typography.searchFieldNSFont,
-            "typography.searchFieldNSFont is the Theme font itself")
     }
 
     // MARK: - Fonts
@@ -229,7 +221,6 @@ struct InterfaceSizeTests {
             ("spacing.sectionHeaderBottom", m.spacing.sectionHeaderBottom),
             ("spacing.sectionSpacing", m.spacing.sectionSpacing),
             ("spacing.emojiSectionSpacing", m.spacing.emojiSectionSpacing),
-            ("spacing.chatFollowTailSlack", m.spacing.chatFollowTailSlack),
             ("radius.panel", m.radius.panel), ("radius.row", m.radius.row),
             ("radius.emojiCell", m.radius.emojiCell), ("radius.menu", m.radius.menu),
             ("radius.menuRow", m.radius.menuRow),
@@ -241,7 +232,6 @@ struct InterfaceSizeTests {
             ("size.panelWidth", m.size.panelWidth), ("size.panelHeight", m.size.panelHeight),
             ("size.headerHeight", m.size.headerHeight),
             ("size.headerIconSlot", m.size.headerIconSlot),
-            ("size.searchFieldMinWidth", m.size.searchFieldMinWidth),
             ("size.headerPadding", m.size.headerPadding),
             ("size.compactHeight", m.size.compactHeight),
             ("size.bottomBarHeight", m.size.bottomBarHeight),
