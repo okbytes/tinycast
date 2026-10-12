@@ -3,13 +3,6 @@ import SwiftUI
 
 struct BackupSettingsView: View {
     @Environment(AppCore.self) private var core
-    private var runningApps: RunningAppsMonitor { core.runningApps }
-    @State private var raycastFile: URL?
-    @State private var passphrase = ""
-    @State private var importing = false
-    @State private var status: Status?
-    @State private var selection: RaycastImportOptions = .all
-    @State private var isRaycastExport = false
     @State private var exportSelection = BackupCategory.all
     @State private var importSelection: Set<BackupCategory> = []
     @State private var exporting = false
@@ -25,22 +18,11 @@ struct BackupSettingsView: View {
         case failure(String)
     }
 
-    private var raycastRunning: Bool {
-        runningApps.runningBundleIDs.contains(where: BackupActions.isRaycastBundleID)
-    }
-
     /// Turning it on may ask first, so the switch follows the setting rather than the click.
     private var settingsFileSync: Binding<Bool> {
         Binding(
             get: { core.settings.settingsFileEnabled },
             set: { enabled in Task { await BackupActions.setSettingsFileEnabled(enabled, core: core) } })
-    }
-
-    private var raycastFileSubtitle: String {
-        guard let name = raycastFile?.lastPathComponent else {
-            return "A .rayconfig file from Raycast 2.0 or later."
-        }
-        return "\(name) — \(isRaycastExport ? "Raycast export" : "not a Raycast export")"
     }
 
     var body: some View {
@@ -71,7 +53,7 @@ struct BackupSettingsView: View {
                 }
                 if let manifest = openedManifest {
                     BackupCategorySelection(
-                        selection: $importSelection, available: available(in: manifest))
+                        selection: $importSelection, available: manifest.available)
                     LabeledContent {
                         if importingBackup {
                             ProgressView().controlSize(.small)
@@ -85,43 +67,6 @@ struct BackupSettingsView: View {
                 }
             } header: {
                 SettingsSectionHeader(.backupImport)
-            }
-
-            Section {
-                LabeledContent {
-                    Button("Choose…") { chooseRaycastFile() }
-                } label: {
-                    SettingsRowTitle(.backupImportFromRaycast, "Raycast Export")
-                    Text(raycastFileSubtitle)
-                }
-                LabeledContent {
-                    RevealableSecureField(
-                        title: "Passphrase", text: $passphrase, prompt: Text("Export password")
-                    )
-                    .labelsHidden()
-                    .textFieldStyle(.roundedBorder)
-                    // LabeledContent right-aligns its value text, caret and all; a field reads left.
-                    .multilineTextAlignment(.leading)
-                    .frame(width: 160)
-                    .onSubmit(runRaycastImport)
-                } label: {
-                    Text("Passphrase")
-                }
-                RaycastImportSelection(selection: $selection)
-                conflictNotice
-                LabeledContent {
-                    if importing {
-                        ProgressView().controlSize(.small)
-                    } else {
-                        Button("Import") { runRaycastImport() }
-                            .disabled(!isRaycastExport || passphrase.isEmpty || selection.isEmpty)
-                    }
-                } label: {
-                    Text("Import")
-                }
-                if let status { statusRow(status) }
-            } header: {
-                SettingsSectionHeader(.backupImportFromRaycast)
             }
 
             Section {
@@ -147,27 +92,6 @@ struct BackupSettingsView: View {
     }
 
     @ViewBuilder
-    private var conflictNotice: some View {
-        if raycastRunning {
-            LabeledContent {
-                Button("Quit Raycast") { BackupActions.quitRaycast() }
-            } label: {
-                Label(
-                    "Raycast is running — quit it to avoid hotkey conflicts.",
-                    systemImage: "exclamationmark.triangle.fill"
-                )
-                .foregroundStyle(.orange)
-            }
-        } else {
-            Label(
-                "Unset matching Raycast shortcuts to avoid conflicts.",
-                systemImage: "info.circle"
-            )
-            .foregroundStyle(.secondary)
-        }
-    }
-
-    @ViewBuilder
     private func statusRow(_ status: Status) -> some View {
         switch status {
         case .success(let message):
@@ -184,13 +108,6 @@ struct BackupSettingsView: View {
             return "A .tinycast file exported from Tinycast."
         }
         return openedManifest == nil ? "\(name) — couldn't be read" : name
-    }
-
-    private func available(in manifest: BackupManifest) -> [BackupCategory: Int] {
-        Dictionary(
-            uniqueKeysWithValues: BackupCategory.ordered(manifest.categories).map {
-                ($0, manifest.count($0))
-            })
     }
 
     private func runExport() {
@@ -251,31 +168,5 @@ struct BackupSettingsView: View {
         openedStaging?.discard()
         openedStaging = nil
         openedManifest = nil
-    }
-
-    private func chooseRaycastFile() {
-        guard let url = BackupActions.pickRaycastFile() else { return }
-        raycastFile = url
-        isRaycastExport = BackupActions.isRaycastExport(url)
-        status = nil
-    }
-
-    private func runRaycastImport() {
-        guard let file = raycastFile, isRaycastExport, !passphrase.isEmpty, !selection.isEmpty,
-            !importing
-        else { return }
-        importing = true
-        status = nil
-        Task {
-            defer { importing = false }
-            do {
-                let outcome = try await BackupActions.importRaycast(
-                    core: core, file: file, passphrase: passphrase, options: selection)
-                status = .success(BackupActions.raycastText(outcome))
-                passphrase = ""
-            } catch {
-                status = .failure(error.localizedDescription)
-            }
-        }
     }
 }

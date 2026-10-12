@@ -219,10 +219,7 @@ enum SettingsSearchCatalog {
             keywords: ["script", "shell"]),
         .init(
             .commandsCustomCommands, "Add Custom Command",
-            keywords: ["new", "script", "shell", "shortcut"]),
-        .init(
-            .commandsCustomCommands, "Import Raycast Scripts",
-            keywords: ["raycast", "script", "folder", "directory", "migrate"])
+            keywords: ["new", "script", "shell", "shortcut"])
     ]
 
     private static let quicklinks: [SettingsSearchEntry] = [
@@ -488,16 +485,13 @@ enum SettingsSearchCatalog {
     private static let backup: [SettingsSearchEntry] = [
         .init(
             pane: .backup,
-            keywords: ["export", "import", "restore", "migrate", "raycast"]),
+            keywords: ["export", "import", "restore", "migrate"]),
         .init(
             .backupExport, "Export Backup",
             keywords: ["save", "tinycast file", "archive"]),
         .init(
             .backupImport, "Backup File",
             keywords: ["restore", "choose", "tinycast file"]),
-        .init(
-            .backupImportFromRaycast, "Raycast Export",
-            keywords: ["migrate", "rayconfig", "passphrase"]),
         .init(
             .backupSettingsFile, "Sync settings file",
             keywords: ["settings.json", "config", "json", "dotfiles", ".config", "edit"])

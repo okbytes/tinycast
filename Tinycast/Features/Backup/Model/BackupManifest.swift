@@ -17,6 +17,11 @@ struct BackupManifest: Codable, Sendable, Equatable {
     }
 
     func count(_ category: BackupCategory) -> Int { counts[category.rawValue] ?? 0 }
+
+    /// What the file holds and how much, as `BackupCategorySelection` offers it.
+    var available: [BackupCategory: Int] {
+        Dictionary(uniqueKeysWithValues: categories.map { ($0, count($0)) })
+    }
 }
 
 enum BackupFormatError: LocalizedError, Equatable {

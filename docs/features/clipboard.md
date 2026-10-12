@@ -116,7 +116,7 @@ import rebuilds the same order it exported.
 one insert path a bulk import takes, `importEntries` included: it hashes the existing rows once into a
 dedupe set rather than scanning the table per candidate, holds one transaction, and moves a staged blob
 into `imagesDir` only once the row is known to be new. `adoptingImagesInto` is nil where the paths
-handed in are already the ones to keep, as the Raycast import's are.
+handed in are already the ones to keep.
 
 **The load query is deliberately two indexed branches**, not one `pinned_at IS NOT NULL OR rowid >= ?`.
 It fetches every pinned row plus the newest `memoryWindow` unpinned ones, keyed off the floor rowid
@@ -416,7 +416,7 @@ its maximum is a token.
 
 **A backup carries the path, never the bytes.** `BackupClipboardItem.file` exports `text` and no
 blob, a file already gone at export time is counted missing, and a restore drops a row whose path
-does not exist on this Mac — the same thing the Raycast import already does for an image path.
+does not exist on this Mac.
 Carrying file bytes would make a backup unbounded and defeat the point of referencing in place.
 
 ## Dragging out

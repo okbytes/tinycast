@@ -39,6 +39,7 @@ Findings from the initial survey that still shape the plan:
 
 - Removed AI, MCP, Quick Actions, the Support window and reminder, the in-app updater, the website.
 - Removed File Search, Raycast extensions and Menu Search.
+- Removed the Raycast import (`.rayconfig` and script folders); `.tinycast` backups are the one import.
 - Merged upstream through #1410 (`71279c8`), leaving out Dictation and the update-check toggle.
 - Cherry-picked upstream through #1481 (`da2c4e4`): 14 of 24 taken; the rest were for removed
   features, plus #1451, whose posture rewrite would loosen latest-only.
@@ -98,5 +99,3 @@ change.
 
 - Replace the Raycast backend for currency rates with an open source such as frankfurter.app, or
   make rates opt-in. It is the last unconditional network call at launch.
-- Review the Raycast settings import in Backup: a one-time migration path that may no longer earn
-  its keep.

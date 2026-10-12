@@ -13,7 +13,6 @@ struct SnippetsTests {
         // The in-process delivery tier drives a real text view, which needs AppKit awake.
         _ = NSApplication.shared
         testIdentityAndRevision()
-        testRaycastImport()
         try testMarkdownCodec()
         try testRepositoryStorage()
         try await testRepositoryConcurrency()
@@ -51,33 +50,6 @@ struct SnippetsTests {
         check(
             "source revision changes with source content",
             SnippetSourceRevision(content: "same") != SnippetSourceRevision(content: "same\n"))
-    }
-
-    private static func testRaycastImport() {
-        let imported = RaycastSnippetImport.parse([
-            ["title": "Email", "text": "person@example.com", "keyword": "  !email  "],
-            ["title": "Multiline 雪", "text": "First\nSecond"],
-            ["title": "Blank Keyword", "text": "Body", "keyword": "   "],
-            ["title": "   ", "text": "Skipped"],
-            ["title": "Missing Text"],
-            ["name": "Retired Key", "text": "Skipped"]
-        ])
-
-        check(
-            "Raycast import ignores an unrecognized container",
-            RaycastSnippetImport.parse(["snippets": []]).isEmpty)
-        check(
-            "Raycast import keeps valid entries and source order",
-            imported.map(\.name) == ["Email", "Multiline 雪", "Blank Keyword"])
-        // The assertions index the result, so a wrong count must fail rather than trap.
-        guard imported.count == 3 else { return }
-        check("Raycast import preserves text and Unicode", imported[1].text == "First\nSecond")
-        check(
-            "Raycast import trims keywords and normalizes blanks",
-            imported[0].keyword == "!email" && imported[2].keyword == nil)
-        check(
-            "Raycast import uses safe Tinycast defaults",
-            imported.allSatisfy { $0.isEnabled && !$0.showsConfirmation })
     }
 
     private static func testMarkdownCodec() throws {

@@ -89,7 +89,7 @@ struct OnboardingView: View {
         switch step {
         case 0: "Welcome to Tinycast"
         case 1: "Enable Pasting"
-        case 2: "Import from Raycast"
+        case 2: "Import a Backup"
         default: "You're all set"
         }
     }
@@ -98,7 +98,7 @@ struct OnboardingView: View {
         switch step {
         case 0: "Set a shortcut to summon the launcher from anywhere."
         case 1: "Let Tinycast paste items back into the app you were using."
-        case 2: "Bring your shortcuts, favorites, and clipboard history along."
+        case 2: "Bring your settings and shortcuts from another Tinycast."
         default: readyMessage
         }
     }
@@ -106,7 +106,7 @@ struct OnboardingView: View {
     private var heroSymbol: String {
         switch step {
         case 1: "accessibility"
-        case 2: "wand.and.stars"
+        case 2: "square.and.arrow.down"
         default: "checkmark"
         }
     }
@@ -133,7 +133,7 @@ struct OnboardingView: View {
         switch step {
         case 0: shortcutStep
         case 1: accessibilityStep
-        case 2: raycastStep
+        case 2: backupStep
         default: doneStep
         }
     }
@@ -179,36 +179,28 @@ struct OnboardingView: View {
         }
     }
 
-    private var raycastStep: some View {
+    private var backupStep: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             OnboardingCard {
                 OnboardingRow(
-                    title: "Raycast Export",
+                    title: "Backup File",
                     subtitle: model.fileSubtitle,
                     systemImage: "doc.badge.gearshape", tint: .orange
                 ) {
                     Button("Choose…") { model.chooseFile() }.controlSize(.small)
                 }
-                OnboardingDivider()
-                OnboardingRow(
-                    title: "Passphrase",
-                    subtitle: "The password you set when exporting from Raycast.",
-                    systemImage: "key", tint: .gray
-                ) {
-                    RevealableSecureField(title: "Passphrase", text: $model.passphrase)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 150)
-                        .onSubmit { model.run(core: core) }
-                }
             }
-            RaycastImportSelection(selection: $model.selection)
-                .padding(.horizontal, Theme.Spacing.xs)
+            if let manifest = model.manifest {
+                BackupCategorySelection(selection: $model.selection, available: manifest.available)
+                    .padding(.horizontal, Theme.Spacing.xs)
+            }
             if let status = model.status {
                 importStatus(status)
             } else {
-                caption("Optional — you can import later in Settings › Backup.")
+                caption("Optional — export one from Settings › Backup on your other Mac, or import later.")
             }
         }
+        .onDisappear { model.discardStaging() }
     }
 
     private var doneStep: some View {
@@ -361,7 +353,7 @@ struct OnboardingView: View {
     }()
 }
 
-/// The import step's state and async call, off the view so the body stays declarative.
+/// The import step's state and async calls, off the view so the body stays declarative.
 @MainActor
 @Observable
 final class OnboardingModel {
@@ -371,15 +363,14 @@ final class OnboardingModel {
     }
 
     var file: URL?
-    var passphrase = ""
+    var manifest: BackupManifest?
+    var selection: Set<BackupCategory> = []
     var importing = false
     var status: ImportStatus?
-    var selection: RaycastImportOptions = .all
-    var isRaycastExport = false
+    /// The opened file's extracted tree, held until it is applied or the step is left.
+    private var staging: BackupStaging?
 
-    var canImport: Bool {
-        isRaycastExport && !passphrase.isEmpty && !selection.isEmpty && !importing
-    }
+    var canImport: Bool { staging != nil && !selection.isEmpty && !importing }
     var didImport: Bool {
         if case .success = status { return true }
         return false
@@ -387,32 +378,45 @@ final class OnboardingModel {
 
     var fileSubtitle: String {
         guard let name = file?.lastPathComponent else {
-            return "Choose a .rayconfig file exported from Raycast v2.0 or newer."
+            return "A .tinycast file exported from Tinycast."
         }
-        return "\(name) — \(isRaycastExport ? "Raycast export" : "not a Raycast export")"
+        return manifest == nil ? "\(name) — couldn't be read" : name
     }
 
     func chooseFile() {
-        guard let url = BackupActions.pickRaycastFile() else { return }
+        guard let url = BackupActions.chooseBackupFile() else { return }
+        discardStaging()
         file = url
-        isRaycastExport = BackupActions.isRaycastExport(url)
-        status = nil
-    }
-
-    func run(core: AppCore) {
-        guard canImport, let file else { return }
-        importing = true
         status = nil
         Task {
-            defer { importing = false }
             do {
-                let outcome = try await BackupActions.importRaycast(
-                    core: core, file: file, passphrase: passphrase, options: selection)
-                status = .success(BackupActions.raycastText(outcome))
-                passphrase = ""
+                let (opened, manifest) = try await BackupActions.openBackup(at: url)
+                staging = opened
+                self.manifest = manifest
+                selection = manifest.categories
             } catch {
                 status = .failure(error.localizedDescription)
             }
         }
+    }
+
+    func run(core: AppCore) {
+        guard canImport, let staging else { return }
+        importing = true
+        status = nil
+        Task {
+            defer { importing = false }
+            let summary = await BackupActions.applyBackup(selection, from: staging, to: core)
+            // The stores adopt staged files during apply, so the tree goes either way.
+            discardStaging()
+            if let summary { status = .success(BackupActions.summaryText(summary)) }
+        }
+    }
+
+    /// The extracted tree can run to gigabytes, so leaving the step must not strand it.
+    func discardStaging() {
+        staging?.discard()
+        staging = nil
+        manifest = nil
     }
 }

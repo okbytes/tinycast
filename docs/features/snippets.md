@@ -49,7 +49,7 @@ record plus creation of a new one. Saving always updates the existing path; crea
 the same name uses distinct filename suffixes.
 
 The first load creates the folder and nothing else: a new channel starts with an empty library, and
-snippets only ever arrive from the editor or a Raycast import. Malformed Markdown is reported per file
+snippets only ever arrive from the editor or a backup import. Malformed Markdown is reported per file
 while valid files stay available.
 
 The store runs only while the feature is enabled: launch starts it for an enabled feature, and a
@@ -63,21 +63,10 @@ the store and its watchers stop, and the launcher section disappears — while t
 states survive for re-enabling. "Show in launcher" takes the section and the two Snippet commands out
 of the launcher together; keyword expansion and the browser's shortcut keep working.
 `snippetsShowInLauncher` travels in settings backups; `snippetsEnabled` deliberately does not, so an
-import can never enable keystroke listening — which is why either importer's summary says the switch is
+import can never enable keystroke listening — which is why the import summary says the switch is
 still off when snippets land, so a dormant keyword doesn't read as a broken one. `AppCore`'s settings
 sinks re-project on every change.
 
-## Importing from Raycast
-
-The encrypted `.rayconfig` flow in **Settings → Backup** can import Raycast's built-in snippets as
-an independently selectable category. Tinycast reads `title`, `text` and the optional `keyword` from
-the export's `snippets.snippets` collection. Invalid entries are skipped; valid entries are added in
-source order without overwriting the existing library. Duplicate names receive the same filename
-suffixes as snippets created in Tinycast, and duplicate keywords are preserved.
-
-Imported snippets are enabled and launcher-visible, with their confirmation off. Importing
-never enables automatic keyword expansion. A failure writing the snippet files is reported in the
-import summary without aborting the settings and clipboard categories the user also selected.
 
 ## Markdown format
 

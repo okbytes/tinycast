@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A sibling of `RaycastImportSelection`, not a generalisation: only this greys absent rows.
+/// The backup categories as checkboxes, offering only what a file holds when `available` is set.
 struct BackupCategorySelection: View {
     @Binding var selection: Set<BackupCategory>
     /// Categories the file actually holds, with how much. nil means everything is offered.

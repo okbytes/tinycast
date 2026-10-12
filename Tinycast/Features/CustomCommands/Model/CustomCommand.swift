@@ -180,19 +180,6 @@ final class CustomCommandStore {
         return value
     }
 
-    /// One commit for a whole import, and it returns how many of the drafts were new.
-    @discardableResult
-    func add(contentsOf drafts: [CustomCommand]) -> Int {
-        var updated = commands
-        let existing = commands.count
-        for draft in drafts {
-            guard let value = try? validated(draft, against: updated) else { continue }
-            updated.append(value)
-        }
-        commit(updated)
-        return updated.count - existing
-    }
-
     func update(_ draft: CustomCommand) throws {
         guard let index = commands.firstIndex(where: { $0.id == draft.id }) else { return }
         let value = try validated(draft, against: commands)

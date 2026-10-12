@@ -49,7 +49,7 @@ source, and staying that way.
 - **Notes** — an unlimited collection of plain Markdown files in one floating editor, searchable from
   the palette and rendered as you write.
 - **Emoji picker** — a searchable emoji grid, one keystroke away.
-- **Backup and import** — export your settings to a file, or import your setup from Raycast.
+- **Backup and import** — export your setup to a file, and import it on another Mac.
 
 ## Install
 

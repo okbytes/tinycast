@@ -1,7 +1,9 @@
 # Backup
 
-Export and import of Tinycast's own data as a single `.tinycast` file, plus the entry point for
-importing a Raycast export. The feature lives in `Features/Backup/`.
+Export and import of Tinycast's own data as a single `.tinycast` file — the one way a setup moves
+between Macs, or from Tinycast into Tinycast Dev, whose files each channel reads. It is imported from
+**Settings → Backup**, the **Import Backup** command, and onboarding's import step. The feature lives
+in `Features/Backup/`.
 
 A backup carries five independently selectable categories, ticked on export and again on import:
 **Settings & Shortcuts**, **Clipboard History**, **Snippets**, **Notes** and **Launcher Learning**.
@@ -45,15 +47,10 @@ A backup carries five independently selectable categories, ticked on export and 
 | `Model/BackupClipboardItem.swift` | The portable clip, with no path in it |
 | `Model/SettingsBackup.swift` | The settings, fixed/per-item hotkey payloads, and their `Codable` shape |
 | `Model/SettingsBackupCoverage.swift` | The coverage declaration the harness checks |
-| `Model/RaycastImport.swift` | The importable categories, the `Result` and its per-category trim |
-| `Model/RaycastImportError.swift` | The three failures an import reports |
 | `Service/BackupStaging.swift` | One scratch tree, created on init and removed on discard |
 | `Service/BackupComposer.swift` | Stores → staging; `plan` on main, `write` off it |
 | `Service/BackupApplier.swift` | Staging → stores, returning a per-category summary |
 | `Service/BackupActions.swift` | The effectful half: file pickers, the archive calls, dialogs, the settings-file switch |
-| `Service/RaycastDecoder.swift` | Container recognition, decrypt and decode |
-| `Service/RaycastImportReader.swift` | Raycast → Tinycast field mapping |
-| `Service/Scrypt.swift`, `Platform/Compression/Zlib.swift` | The crypto and decompression primitives |
 | `Settings/BackupCategorySelection.swift` | The category checkboxes, on both halves of the pane |
 | `Settings/BackupSettingsView.swift` | The pane, which also holds the [settings file](settings-file.md) switch |
 
@@ -138,4 +135,3 @@ what keeps a second pass from silently failing its inserts. Same reasoning as `Q
 
 The old flat `Tinycast-Settings-*.json` export is gone rather than deprecated, and nothing reads it.
 
-Raycast import is documented separately in [raycast-import.md](raycast-import.md).
