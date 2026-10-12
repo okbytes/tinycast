@@ -36,10 +36,9 @@ struct SpaceGestureTests {
     }
 
     static func fields(
-        _ phase: SpaceGesture.Phase, _ direction: SpaceDirection, augmented: Bool
+        _ phase: SpaceGesture.Phase, _ direction: SpaceDirection
     ) -> [SpaceGesture.Field] {
-        SpaceGesture.fields(
-            phase: phase, direction: direction, augmented: augmented, timestamp: 12_345)
+        SpaceGesture.fields(phase: phase, direction: direction, timestamp: 12_345)
     }
 
     static func value(_ fields: [SpaceGesture.Field], _ raw: UInt32) -> SpaceGesture.FieldValue? {
@@ -60,8 +59,7 @@ struct SpaceGestureTests {
         testDirection()
         testFixedPoint()
         testCommonFields()
-        testLegacyFields()
-        testAugmentedFields()
+        testPhaseFields()
         testPayloadShape()
         testPayloadValues()
         testRecordHeader()
@@ -95,78 +93,54 @@ struct SpaceGestureTests {
         // The floor is what keeps a deliberately tiny progress from quantizing away to a no-op.
         expectEqual(SpaceGesture.fixed1616(1e-9), 1, "a value below the step floors to +1")
         expectEqual(SpaceGesture.fixed1616(-1e-9), -1, "a negative value below the step floors to -1")
-        expectEqual(
-            SpaceGesture.fixed1616(Double(Float.leastNonzeroMagnitude)), 1,
-            "the legacy progress magnitude survives as +1 rather than vanishing")
     }
 
     // MARK: - Fields
 
     static func testCommonFields() {
-        for augmented in [false, true] {
-            for phase in SpaceGesture.Phase.allCases {
-                let table = fields(phase, .next, augmented: augmented)
-                expectEqual(integer(table, 55), 30, "the event is a DockControl event")
-                expectEqual(integer(table, 110), 23, "the HID type is a dock swipe")
-                expectEqual(integer(table, 132), phase.rawValue, "the phase is carried verbatim")
-                expectEqual(integer(table, 123), 1, "the motion is horizontal")
-                expect(
-                    Set(table.map(\.raw)).count == table.count,
-                    "no field is written twice for \(phase) augmented=\(augmented)")
-            }
+        for phase in SpaceGesture.Phase.allCases {
+            let table = fields(phase, .next)
+            expectEqual(integer(table, 55), 30, "the event is a DockControl event")
+            expectEqual(integer(table, 110), 23, "the HID type is a dock swipe")
+            expectEqual(integer(table, 132), phase.rawValue, "the phase is carried verbatim")
+            expectEqual(integer(table, 123), 1, "the motion is horizontal")
+            expect(
+                Set(table.map(\.raw)).count == table.count,
+                "no field is written twice for \(phase)")
+            expect(value(table, 4205) == nil, "the payload is never written as an ordinary field")
         }
         expectEqual(
             SpaceGesture.Phase.allCases.map(\.rawValue), [1, 2, 4],
             "began, changed and ended are posted in order")
     }
 
-    static func testLegacyFields() {
+    static func testPhaseFields() {
         for phase in SpaceGesture.Phase.allCases {
-            let next = fields(phase, .next, augmented: false)
-            let previous = fields(phase, .previous, augmented: false)
-            expectEqual(
-                double(next, 124), Double(Float.leastNonzeroMagnitude),
-                "legacy progress is the smallest float, positive for next")
-            expectEqual(
-                double(previous, 124), -Double(Float.leastNonzeroMagnitude),
-                "legacy progress is negative for previous")
-            expectEqual(double(next, 129), 1000, "legacy velocity rides on every phase")
-            expectEqual(double(next, 130), 1000, "legacy carries velocity on both axes")
-            expectEqual(double(previous, 129), -1000, "legacy velocity is signed by direction")
-            expect(value(next, 4205) == nil, "the payload is never written as an ordinary field")
-        }
-        expect(
-            fields(.began, .next, augmented: false).allSatisfy { $0.raw != 134 },
-            "the legacy path writes no phase alias")
-    }
-
-    static func testAugmentedFields() {
-        for phase in SpaceGesture.Phase.allCases {
-            let next = fields(phase, .next, augmented: true)
-            let previous = fields(phase, .previous, augmented: true)
+            let next = fields(phase, .next)
+            let previous = fields(phase, .previous)
             expectEqual(integer(next, 134), phase.rawValue, "the phase alias mirrors the phase")
             expectEqual(double(next, 138), 3, "the zoom delta is the constant the Dock expects")
             expectEqual(double(next, 125), 0.1, "the swipe starts at a nonzero position")
             expectEqual(double(next, 169), 12_345, "the process alias carries the timestamp")
-            // Sign stays consistent with the legacy path; inverting it moves the wrong way.
-            expect(double(next, 124)! > 0, "augmented progress is positive for next")
-            expect(double(previous, 124)! < 0, "augmented progress is negative for previous")
+            // Inverting the sign moves the wrong way.
+            expect(double(next, 124)! > 0, "progress is positive for next")
+            expect(double(previous, 124)! < 0, "progress is negative for previous")
             expectEqual(
                 SpaceGesture.fixed1616(double(next, 124)!), 1,
-                "augmented progress survives 16.16 quantization as exactly one step")
-            expect(value(next, 130) == nil, "the augmented path writes no Y velocity")
+                "progress survives 16.16 quantization as exactly one step")
+            expect(value(next, 130) == nil, "no Y velocity is written")
         }
         expect(
-            value(fields(.began, .next, augmented: true), 129) == nil,
+            value(fields(.began, .next), 129) == nil,
             "velocity before the last phase would bounce the Space back")
         expect(
-            value(fields(.changed, .next, augmented: true), 129) == nil,
+            value(fields(.changed, .next), 129) == nil,
             "the changed phase carries no velocity either")
         expectEqual(
-            double(fields(.ended, .next, augmented: true), 129), 1000,
+            double(fields(.ended, .next), 129), 1000,
             "only the ended phase flings")
         expectEqual(
-            double(fields(.ended, .previous, augmented: true), 129), -1000,
+            double(fields(.ended, .previous), 129), -1000,
             "the fling is signed by direction")
     }
 

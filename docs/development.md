@@ -4,8 +4,8 @@ The local loop: set up, build, run, regenerate. Verifying a change is [testing.m
 
 ## Requirements
 
-- macOS 26 or later (Liquid Glass).
-- Xcode 26 — it provides the SwiftUI macro plugin and the SDK.
+- macOS 27 or later, on Apple silicon.
+- Xcode 27 — it provides the SwiftUI macro plugin and the SDK.
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen), and for linting:
   `brew install swiftlint`.
 - [Bun](https://bun.sh), for the generators, `lint.sh` and `run-tests.sh --index`. It is the only

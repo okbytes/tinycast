@@ -31,7 +31,7 @@ fi
 
 echo "▸ Building ${APP_NAME}…"
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
-    -derivedDataPath "$DERIVED" -destination "platform=macOS,arch=$(uname -m)" \
+    -derivedDataPath "$DERIVED" -destination platform=macOS \
     build -quiet
 
 if pgrep -qf "$DEST/Contents/MacOS/"; then

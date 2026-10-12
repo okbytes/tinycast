@@ -10,7 +10,7 @@
 const fs = require("fs");
 const path = require("path");
 
-// Emoji added after this version may lack glyphs on the oldest supported macOS (26.0 ships Emoji 16.0).
+// Emoji added after this version may lack glyphs on the oldest supported macOS (27.0 has Emoji 17.0).
 const MAX_EMOJI_VERSION = 17.0;
 
 const EMOJI_TEST_URL = "https://unicode.org/Public/emoji/latest/emoji-test.txt";

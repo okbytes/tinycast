@@ -233,7 +233,7 @@ that report no position or size are rejected before any work happens.
 
 `AXEnhancedUserInterface` is cleared for the duration of the writes and restored immediately, because
 some apps reinterpret frame writes while it is on — but never while VoiceOver is running, which would
-break the screen reader. **This mitigation is inherited convention and unverified on macOS 26**; if a
+break the screen reader. **This mitigation is inherited convention and unverified on macOS 27**; if a
 stock Electron app tiles correctly without it, delete the helper rather than keep it.
 
 ## Switching Space
@@ -249,24 +249,21 @@ animation. The gesture is the only path that both works and skips the slide, and
 framework linkage and no SIP change — only public `CGEvent` calls carrying undocumented field numbers.
 
 `SpaceSwitcher` posts three phases — began, changed, ended — to `.cgSessionEventTap`. A two-phase
-gesture is ignored. Fields 55 (`DockControl`), 110 (dock-swipe HID type), 132 (phase), 123 (horizontal
-motion) and 124 (progress) are common to both encodings; **positive is "next"**, except that macOS 27
-applies Natural Scrolling to the synthetic swipe, so `SpaceSwitcher` reverses the direction while
-`com.apple.swipescrolldirection` is on (its default when the key is absent). Progress is
-deliberately the smallest representable nudge: a real distance makes the WindowServer draw the slide.
+gesture is ignored. The fields are 55 (`DockControl`), 110 (dock-swipe HID type), 132 (phase) and its
+alias 134, 123 (horizontal motion), 124 (progress), 138, 169 and 125. **Positive is "next"**, except
+that the Dock applies Natural Scrolling to the synthetic swipe, so `SpaceSwitcher` reverses the
+direction while `com.apple.swipescrolldirection` is on (its default when the key is absent).
+Progress is deliberately one 16.16 step: a real distance makes the WindowServer draw the slide.
 
-**macOS 27 changed the contract.** Through macOS 26 the public fields are enough, and velocity (129 and
-130) rides on every phase. From macOS 27 the Dock validates the gesture against a raw IOHID queue
-payload that no setter can reach, so `SpaceSwitcher` serialises the event with `CGEventCreateData`,
-appends the payload as a field-4205 record, and reparses it with `CGEventCreateFromData`. That path
-also adds fields 134, 138, 169 and 125, and carries velocity **only** on the ended phase — velocity
-earlier makes the Space slide back before it settles. `SpaceGesture` owns both tables so the two
-encodings can never drift apart, and the runtime OS selects between them: the SDK cannot, because a
-build made on 26 still has to work on 27.
+**The fields alone are not enough.** The Dock validates the gesture against a raw IOHID queue payload
+that no setter can reach, so `SpaceSwitcher` serialises the event with `CGEventCreateData`, appends
+the payload as a field-4205 record, and reparses it with `CGEventCreateFromData`. Velocity (129) rides
+**only** on the ended phase — velocity earlier makes the Space slide back before it settles.
+`SpaceGesture` owns the field table and the payload, so the two can never drift apart.
 
 Three details are load-bearing and each was expensive to learn:
 
-- **Phases are paced ~10 ms apart on macOS 27.** Posted back-to-back they coalesce and the Dock moves
+- **Phases are paced ~10 ms apart.** Posted back-to-back they coalesce and the Dock moves
   two Spaces. That pacing is why `perform` is asynchronous rather than a straight-line call.
 - **Velocity is momentum, not latency.** 2000 overshoots by two Spaces; 1000 lands exactly one, and
   lowering it does not make the switch slower.

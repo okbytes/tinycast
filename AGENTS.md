@@ -11,8 +11,8 @@ AGPL-3.0 under the original copyright notice.
 
 ## Posture: latest-only, always
 
-**Tinycast targets one macOS — the current stable release — and nothing else.** macOS 26+, the Xcode 26
-toolchain, Swift 6 language mode. There is no compatibility floor to defend, no shim layer and no
+**Tinycast targets one macOS — the current stable release — and nothing else.** macOS 27+ on Apple
+silicon, the Xcode 27 toolchain, Swift 6 language mode. There is no compatibility floor to defend, no shim layer and no
 deprecation debt, and that is the single largest reason the codebase stays as small as it does.
 
 Write code as if the platform released yesterday:

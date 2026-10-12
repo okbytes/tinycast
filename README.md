@@ -6,8 +6,8 @@ RAM.**
 <p align="center">
   <img alt="Swift 6.0"
        src="https://img.shields.io/badge/Swift-6.0-F05138?style=flat&logo=swift&logoColor=white">
-  <img alt="macOS 26 or later"
-       src="https://img.shields.io/badge/macOS-26%2B-000000?style=flat&logo=apple&logoColor=white">
+  <img alt="macOS 27 or later on Apple silicon"
+       src="https://img.shields.io/badge/macOS-27%2B-000000?style=flat&logo=apple&logoColor=white">
   <a href="LICENSE">
     <img alt="License: AGPL-3.0"
          src="https://img.shields.io/badge/License-AGPL--3.0-3DA639?style=flat"></a>

@@ -2,7 +2,7 @@ name: Tinycast
 options:
   bundleIdPrefix: com.tinycast
   deploymentTarget:
-    macOS: "26.0"
+    macOS: "27.0"
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -11,6 +11,7 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
+    ARCHS: arm64
     DEVELOPMENT_TEAM: P4RDBS9676
     CODE_SIGN_STYLE: Manual
     # A team identity: the keyboard helper's XPC check requires one. See docs/signing.md.
