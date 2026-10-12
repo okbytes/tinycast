@@ -11,15 +11,21 @@ enum FuzzyMatch {
 
     struct Match: Sendable {
         let tier: Tier
-        /// Characters into the candidate the hit begins; 0 for both anchored tiers.
-        let offset: Int
         let queryLength: Int
         let candidateLength: Int
         /// The subsequence walk's raw bonus total, and 0 for every literal tier.
         let spread: Int
 
-        /// One ordering for a caller ranking a single field, with no role to weigh.
-        var score: Int { FuzzyMatch.rawScore(self) }
+        /// One ordering across every tier, for a caller ranking a single field.
+        var score: Int {
+            switch tier {
+            case .exact: 100_000
+            case .prefix: 90_000 - candidateLength
+            case .wordStart: 80_000 - candidateLength
+            case .substring: 70_000 - candidateLength
+            case .subsequence: spread
+            }
+        }
     }
 
     /// A query folded once, so ranking doesn't re-fold it for every candidate field.
@@ -46,11 +52,7 @@ enum FuzzyMatch {
         }
     }
 
-    /// The tier a query hits a candidate at, with where and how tightly it landed.
-    static func match(query: String, candidate: String) -> Match? {
-        match(Query(query), candidate: candidate)
-    }
-
+    /// The tier a query hits a candidate at, and how tightly it landed.
     static func match(_ query: Query, candidate: String) -> Match? {
         match(query, candidate: Candidate(candidate))
     }
@@ -60,55 +62,37 @@ enum FuzzyMatch {
         let c = candidate.text
         let length = candidate.length
         guard !q.isEmpty else {
-            return Match(
-                tier: .exact, offset: 0, queryLength: 0, candidateLength: length, spread: 0)
+            return Match(tier: .exact, queryLength: 0, candidateLength: length, spread: 0)
         }
 
         if c == q {
             return Match(
-                tier: .exact, offset: 0, queryLength: query.characters.count,
-                candidateLength: length, spread: 0)
+                tier: .exact, queryLength: query.characters.count, candidateLength: length,
+                spread: 0)
         }
         if c.hasPrefix(q) {
             return Match(
-                tier: .prefix, offset: 0, queryLength: query.characters.count,
-                candidateLength: length, spread: 0)
+                tier: .prefix, queryLength: query.characters.count, candidateLength: length,
+                spread: 0)
         }
         if let range = c.range(of: q) {
-            let offset = c.distance(from: c.startIndex, to: range.lowerBound)
             return Match(
-                tier: isWordStart(c, range.lowerBound) ? .wordStart : .substring, offset: offset,
+                tier: isWordStart(c, range.lowerBound) ? .wordStart : .substring,
                 queryLength: query.characters.count, candidateLength: length, spread: 0)
         }
         guard let spread = subsequenceScore(query.characters, c) else { return nil }
         return Match(
-            tier: .subsequence, offset: 0, queryLength: query.characters.count,
-            candidateLength: length, spread: spread)
+            tier: .subsequence, queryLength: query.characters.count, candidateLength: length,
+            spread: spread)
     }
 
     /// Score-only form, for callers that rank one field and don't band by match strength.
-    static func score(query: String, candidate: String) -> Int? {
-        match(query: query, candidate: candidate).map(rawScore)
-    }
-
-    /// The folded form, for a caller sweeping many candidates against one query.
     static func score(_ query: Query, candidate: String) -> Int? {
-        match(query, candidate: candidate).map(rawScore)
+        match(query, candidate: candidate)?.score
     }
 
     static func score(_ query: Query, candidate: Candidate) -> Int? {
-        match(query, candidate: candidate).map(rawScore)
-    }
-
-    /// FileSearch ranks one field and wants a single ordering, not a role-aware one.
-    fileprivate static func rawScore(_ match: Match) -> Int {
-        switch match.tier {
-        case .exact: 100_000
-        case .prefix: 90_000 - match.candidateLength
-        case .wordStart: 80_000 - match.candidateLength
-        case .substring: 70_000 - match.candidateLength
-        case .subsequence: match.spread
-        }
+        match(query, candidate: candidate)?.score
     }
 
     /// The one fold every search shares: matching, learned-ranking keys and dedup all call it.

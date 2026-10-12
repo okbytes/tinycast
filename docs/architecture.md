@@ -14,7 +14,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ environment fact is an injected parameter.                                 │
 │ ⇒ Compiled verbatim by a harness, so it cannot drift.                      │
 │                                                                            │
-│ SearchRelevance · LauncherMatch · EntryNaming · ScriptRomanization ·       │
+│ FuzzyMatch · LauncherMatch · EntryNaming · ScriptRomanization ·            │
 │ LauncherOrder · LauncherSuggestions · LauncherRankingStore ·               │
 │ SearchScopes ·                                                             │
 │ Calculator/* · EmojiCatalog · EmojiGridGeometry ·                          │
@@ -200,15 +200,15 @@ Tinycast/
   Platform/         system shims: Permissions, LaunchAtLogin, InputSourceSwitcher, ScreenTarget,
                     AppDisplayName,
                     NotificationToken, AppPaths, Signposts, HealthTicker, Memo, ActivationPolicy,
-                    Images/, Compression/
+                    Images/
   Palette/          the palette shell: PalettePanel, PaletteWindowController, RootPaletteView,
                     the PaletteScreen protocol, PaletteCoordinator, PaletteState, PaletteMode
   Windows/          the non-palette AppKit surfaces: AppWindowController, Dialog/, HUD/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Calculator/ Calendar/ Emoji/
-    Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/
+    Launcher/ Calculator/ Calendar/ Camera/ Emoji/ Dictionary/ AppleShortcuts/
+    Uninstall/ SystemActions/ HotKeys/ KeyRemap/ Backup/
     WindowManagement/ Onboarding/ Settings/
     Clipboard/
         Model/      pure — the harness inputs

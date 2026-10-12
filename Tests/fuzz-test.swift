@@ -478,12 +478,12 @@ struct FuzzTest {
 
     static func sharedFold() {
         print("\n# shared fold")
-        check("exact tier", FuzzyMatch.match(query: "chess", candidate: "Chess")?.tier == .exact)
-        check("prefix tier", FuzzyMatch.match(query: "che", candidate: "Chess")?.tier == .prefix)
+        check("exact tier", FuzzyMatch.match(.init("chess"), candidate: "Chess")?.tier == .exact)
+        check("prefix tier", FuzzyMatch.match(.init("che"), candidate: "Chess")?.tier == .prefix)
         check(
-            "word-start tier", FuzzyMatch.match(query: "chr", candidate: "Google Chrome")?.tier == .wordStart)
-        check("substring tier", FuzzyMatch.match(query: "hes", candidate: "Chess")?.tier == .substring)
-        check("subsequence tier", FuzzyMatch.match(query: "css", candidate: "Chess")?.tier == .subsequence)
+            "word-start tier", FuzzyMatch.match(.init("chr"), candidate: "Google Chrome")?.tier == .wordStart)
+        check("substring tier", FuzzyMatch.match(.init("hes"), candidate: "Chess")?.tier == .substring)
+        check("subsequence tier", FuzzyMatch.match(.init("css"), candidate: "Chess")?.tier == .subsequence)
         check("the fold is width-insensitive", FuzzyMatch.normalized("ｃａｆｅ") == "cafe")
         check(
             "the fold is locale-independent",

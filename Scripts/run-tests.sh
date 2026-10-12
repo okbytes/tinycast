@@ -114,15 +114,15 @@ run() {
 }
 
 L=Tinycast/Features/Launcher/Model
-run slow -O fuzz-test      $L/SearchRelevance.swift $L/ScriptRomanization.swift \
+run slow -O fuzz-test      $L/FuzzyMatch.swift $L/ScriptRomanization.swift \
                            $L/LauncherMatch.swift $L/EntryNaming.swift $L/LauncherOrder.swift \
                            $L/LauncherRankingStore.swift $L/LauncherSuggestions.swift
-run ranking-test           $L/SearchRelevance.swift $L/ScriptRomanization.swift \
+run ranking-test           $L/FuzzyMatch.swift $L/ScriptRomanization.swift \
                            $L/LauncherMatch.swift $L/LauncherRankingStore.swift
 run scopes-test            $L/SearchScopes.swift
 run app-name-test          Tinycast/Platform/AppDisplayName.swift \
                            Tinycast/Platform/BundleLocalization.swift \
-                           $L/SearchRelevance.swift
+                           $L/FuzzyMatch.swift
 run favorites-test         $L/FavoriteSlots.swift
 run launcher-file-test     $L/LauncherFileFormat.swift \
                            Tinycast/Features/Settings/Model/SettingsFileJSON.swift
@@ -190,14 +190,14 @@ run emoji-search-test      Tinycast/Features/Emoji/Model/EmojiCatalog.swift \
                            Tinycast/Features/Emoji/Service/EmojiIndex.swift \
                            Tinycast/Features/Emoji/Service/FrequentEmojiStore.swift \
                            Tinycast/Features/Emoji/Service/PinnedEmojiStore.swift \
-                           Tinycast/Features/Launcher/Model/SearchRelevance.swift \
+                           Tinycast/Features/Launcher/Model/FuzzyMatch.swift \
                            Tinycast/Platform/AppPaths.swift Tinycast/Platform/Memo.swift
 run index emoji-search-performance \
                            Tinycast/Features/Emoji/Model/EmojiCatalog.swift \
                            Tinycast/Features/Emoji/Model/EmojiData.generated.swift \
                            Tinycast/Features/Emoji/Service/EmojiIndex.swift \
                            Tinycast/Features/Emoji/Service/FrequentEmojiStore.swift \
-                           Tinycast/Features/Launcher/Model/SearchRelevance.swift \
+                           Tinycast/Features/Launcher/Model/FuzzyMatch.swift \
                            Tinycast/Platform/AppPaths.swift Tinycast/Platform/Memo.swift
 run palette-selection-test Tinycast/Features/PaletteRowIndex.swift \
                            Tinycast/Features/Emoji/Model/EmojiGridGeometry.swift
@@ -239,7 +239,7 @@ run palette-navigation-test Tinycast/Palette/PaletteState.swift \
 run palette-filter-test    Tinycast/Palette/PaletteMode.swift \
                            Tinycast/Palette/PaletteFilterAction.swift
 run action-menu-search-test Tinycast/Palette/ActionMenuSearchQuery.swift \
-                            Tinycast/Features/Launcher/Model/SearchRelevance.swift
+                            Tinycast/Features/Launcher/Model/FuzzyMatch.swift
 run palette-shortcut-test  Tinycast/Palette/PaletteShortcut.swift
 run ascii-layout-test      Tinycast/Platform/ASCIIKeyboardLayout.swift
 run palette-tab-test       Tinycast/Palette/PaletteMode.swift \
@@ -313,7 +313,7 @@ run settings-history-test  Tinycast/Features/Settings/SettingsTab.swift \
                            Tinycast/Features/Settings/SettingsAnchor.swift \
                            Tinycast/Features/Settings/SettingsNavigationState.swift \
                            Tinycast/Features/Settings/SettingsSearchCatalog.swift \
-                           $L/SearchRelevance.swift
+                           $L/FuzzyMatch.swift
 
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
