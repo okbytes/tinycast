@@ -31,7 +31,7 @@ earliest scope wins; within one folder, the newest `CFBundleShortVersionString` 
   lowers it to the `SearchProfile` the comparator reads. A new naming criterion picks one of those four
   fields; needing a fifth means the criterion was modelled wrong.
 - **`EntryNaming.profile` runs over every kind, once per index change**, so a naming rule can never
-  apply to applications and quietly skip snippets — and nothing is built per keystroke. `AppIndex.scan`
+  apply to applications and quietly skip commands — and nothing is built per keystroke. `AppIndex.scan`
   names the app slice on its own, off-main: transliterating a CJK index is ICU work, and
   `publishEntries` runs on the main actor whenever any unrelated slice changes.
 - **The fields stay separate.** Which field matched is half of what the comparator reads — an exact
@@ -80,7 +80,7 @@ refreshes collapse into a single trailing scan.
 | Field | What lands in it | Compared against | Ranks |
 | --- | --- | --- | --- |
 | title | the display name | the query read into Latin | yes |
-| alternate titles | the bundle's names in the user's other languages and English, a renamed bundle's file name, `CFBundleAlternateNames`, a snippet's keyword | the query as typed | yes |
+| alternate titles | the bundle's names in the user's other languages and English, a renamed bundle's file name, `CFBundleAlternateNames` | the query as typed | yes |
 | subtitle | a row's own subtitle | the query read into Latin | yes |
 | keywords | the declared Info.plist name, and the title and subtitle joined both ways | the query read into Latin | no — they only make an entry appear |
 
@@ -244,7 +244,7 @@ not name the entry, so a title scoring the same wins rule 10.
 
 A query that *equals* a category's name lists that whole category under its section header, in the
 order the section shows when the field is empty. The section title and singular label,
-`Snippets`/`Snippet` or `Window Management`/`Window Command`, come straight from `KindDescriptor`.
+`System Actions`/`System Action` or `Window Management`/`Window Command`, come straight from `KindDescriptor`.
 An entry whose display name equals the query joins the listing.
 
 At three characters or more, a prefix at the start of either name or one of its words also includes
@@ -289,7 +289,7 @@ can't say what it acts on.
 ### User aliases
 
 `AliasStore` (`Launcher/Service/`) keeps one user-chosen alias per entry, keyed by `preferenceKey`
-like favorites and learned ranking, so every entry kind — apps, commands, snippets —
+like favorites and learned ranking, so every entry kind — apps, commands, Apple Shortcuts —
 can carry one. An alias is deliberate in a way no vendor field is, so an exact hit is rule 1 and a
 prefix hit rule 5. Only a hit **from its start** earns those rules; anywhere else the alias ranks as
 an alternate title by score, so `dark` finds an alias `toggle light / dark`, while `term` inside
@@ -386,7 +386,7 @@ Tinycast itself:
 2. entries with a score above 1 and no bound shortcut, in empty-list order — a shortcut is already the
    faster way in;
 3. while fewer than five, built-in commands with no alias or shortcut, by
-   `CommandID.suggestionPriority`: Clipboard History, Search Emoji & Symbols, then Create Snippet. A
+   `CommandID.suggestionPriority`: Clipboard History, then Search Emoji & Symbols. A
    command whose feature is off is absent from the index, so it is never offered.
 
 A suggested entry leaves its kind section below, so no row appears twice. `AppIndex.Results` carries
@@ -406,7 +406,7 @@ permission-aware failures. With the palette closed it targets the frontmost app,
 Quit All act on the same window a palette launch would have.
 
 System actions occupy their own launcher section and their own Settings pane. The empty-query publication
-order is applications, snippets, system actions, window commands, then
+order is applications, system actions, window commands, then
 built-in commands; the sectioned view filters in that same order so the visible rows remain
 identical to the flat selection index.
 Search, favorites, visibility and learned ranking work through the normal `AppEntry` path, and every
@@ -438,8 +438,8 @@ its own for real media keys. Volume Up/Down walk a 5% grid (`VolumeLevel.stepped
 `Tests/volume-test.swift`): an off-grid level snaps to the next line rather than past it, so from 37%
 up lands on 40% and down on 35%, and repeated presses stay on round numbers.
 
-An action whose effect is invisible reports back through a pill (`MessageHUDController`, the same one
-Snippets confirm through) rather than finishing silently:
+An action whose effect is invisible reports back through a pill (`MessageHUDController`) rather
+than finishing silently:
 `SystemActionRunner.run` returns a `SystemActionFeedback` naming the state it landed in
 (`Trash Emptied`, `Hidden Files Shown`, `Dark Appearance`, `Bluetooth Off`, `3 Disks Ejected`), and
 `AppCore` shows it with a `DialogTone` derived from the feedback's `isNoOp` flag: `.success` when
@@ -478,8 +478,8 @@ dismissal matches Accessibility subroles rather than English labels.
 `AppIndex.setWindowCommandsVisible(_:)` and shown under a "Window Management" section. Like system
 actions they carry dedicated global hotkeys (`AppEntry.hotKeyAction` returns `.windowCommand(id:)`),
 so launcher rows render keycaps for them. Their per-command shortcut and visibility controls live in
-Settings › Window Management rather than a launcher-category pane of their own — the same call already
-made for snippets. The feature ships off. See
+Settings › Window Management rather than a launcher-category pane of their own. The feature ships
+off. See
 [window-management.md](window-management.md).
 
 ## Apple Shortcuts
@@ -498,7 +498,7 @@ and three places read it: `FeatureCommandsSection` draws the pane's rows from it
 category gate for it in both `isVisible` and `allowsHotKey`. Stamping the entry rather than sniffing its
 id is what keeps "which pane owns this" out of the entry-ID namespace.
 
-Four panes own commands today — Snippets, Window Management, Clipboard and Emoji. What is left in
+Two panes own commands today — Clipboard and Emoji. What is left in
 Settings › Commands is the set no feature switch governs: Calculator History, Open Camera, the three
 backup commands, Tinycast Settings and Quit.
 
@@ -596,9 +596,8 @@ favorite, alias and learned ranking survive the round trip, and its shortcut kee
 The row is offered only where Settings can undo it, and `KindDescriptor.canHideFromSearch` is that
 rule — per kind, and a new `Kind` case has to answer it to compile. Applications, Commands,
 System Actions and Window Commands each
-draw a per-row checkbox in their pane, so they carry it. Snippets do not: their pane lists a record
-with its own switches, not a launcher checkbox — a hide nothing in Settings can visibly undo is a
-trap, not a shortcut.
+draw a per-row checkbox in their pane, so they carry it: a hide nothing in Settings can visibly undo
+is a trap, not a shortcut.
 `AppActionsMenu` adds the query-driven guard the favorites row already uses: a typed URL lives only
 for its query and has no preference to write.
 

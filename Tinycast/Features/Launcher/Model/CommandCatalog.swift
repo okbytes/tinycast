@@ -50,7 +50,6 @@ enum CommandCatalog {
 extension SettingsTab {
     var ownedCommands: [CommandID] {
         switch self {
-        case .snippets: [.searchSnippets, .createSnippet]
         case .clipboard: [.clipboardHistory, .pasteSequentially]
         case .emoji: [.searchEmoji]
         default: []

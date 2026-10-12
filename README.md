@@ -34,8 +34,6 @@ source, and staying that way.
 - **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
 - **Apple Shortcuts** — search and run the shortcuts you built in the Shortcuts app, with aliases and
   global hotkeys.
-- **Snippets** — reusable Markdown templates with dynamic placeholders, arguments, nested references
-  and optional keyword expansion.
 - **Window management** — 34 Rectangle-style actions: halves, quarters, thirds, sizing, nudging,
   display moves, fullscreen and Spaces.
 - **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, mute, hidden
@@ -74,10 +72,9 @@ Tinycast is self-signed, so clear the flag once:
 
 ## Permissions
 
-**Accessibility** — needed when Tinycast pastes or expands text into another app, and the only
-permission snippet keyword expansion needs. You're prompted when you first use a feature that needs
-it; grant access in **System Settings → Privacy & Security → Accessibility**. Snippets ship
-disabled, and keystrokes are matched locally, never stored and never sent anywhere.
+**Accessibility** — needed when Tinycast pastes text into another app. You're prompted when you
+first use a feature that needs it; grant access in **System Settings → Privacy & Security →
+Accessibility**.
 
 ## Using it
 
@@ -85,7 +82,6 @@ disabled, and keystrokes are matched locally, never stored and never sent anywhe
 2. Press it anywhere → the palette floats in. Type to filter, **↵** to launch.
 3. **Tab** switches between Apps and Clipboard; **↑/↓** move, **Esc** dismisses.
 4. **Settings → Shortcuts** — search an app or command and record a global shortcut.
-5. **Settings → Snippets** — enable the feature, then create templates with expansion keywords.
 
 ## Building from source
 

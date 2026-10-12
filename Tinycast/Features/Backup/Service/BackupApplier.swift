@@ -6,11 +6,7 @@ enum BackupApplier {
     struct Summary: Sendable {
         var settings: SettingsBackup.ApplySummary?
         var clipboard = 0
-        var snippets = 0
-        var snippetsNeedEnabling = false
         var learning = 0
-        /// Reported rather than thrown: a failure here must not abort the categories after it.
-        var problems: [String] = []
     }
 
     static func apply(
@@ -25,15 +21,6 @@ enum BackupApplier {
         if categories.contains(.clipboard) {
             summary.clipboard = await importClipboard(bundle, into: core.clipboardStore)
             if summary.clipboard > 0 { core.clipboardStore.load() }
-        }
-        if categories.contains(.snippets) {
-            do {
-                summary.snippets = try await applySnippets(bundle, to: core)
-                summary.snippetsNeedEnabling =
-                    summary.snippets > 0 && !core.settings.snippetsEnabled
-            } catch {
-                summary.problems.append("Couldn't import snippets: \(error.localizedDescription)")
-            }
         }
         if categories.contains(.learning) {
             summary.learning = applyLearning(bundle, to: core)
@@ -81,23 +68,6 @@ enum BackupApplier {
         }
     }
 
-    private static func applySnippets(_ bundle: BackupBundle, to core: AppCore) async throws -> Int {
-        let documents = bundle.documents(in: bundle.snippetsDirectory, extension: "md")
-        guard !documents.isEmpty else { return 0 }
-        // Started first, so imported snippets reach the launcher at once rather than on relaunch.
-        if core.settings.snippetsEnabled { await core.snippetsStore.start() }
-        let existing = Set(core.snippetsStore.snippets.map { Pair($0.snippet.name, $0.snippet.text) })
-        let incoming = documents.compactMap { document in
-            try? SnippetMarkdownSerializer.parse(
-                content: document.contents,
-                fileURL: bundle.snippetsDirectory.appendingPathComponent(document.name))
-        }
-        // Deduped, so importing the same backup twice doesn't leave a second copy of everything.
-        let fresh = incoming.filter { !existing.contains(Pair($0.name, $0.text)) }
-        guard !fresh.isEmpty else { return 0 }
-        return try await core.snippetsStore.importSnippets(fresh).count
-    }
-
     private static func applyLearning(_ bundle: BackupBundle, to core: AppCore) -> Int {
         var applied = 0
         if let visits = bundle.decodeLearning(.ranking, as: [String: LauncherVisit].self) {
@@ -113,16 +83,5 @@ enum BackupApplier {
             applied += entries.count
         }
         return applied
-    }
-
-    /// Name and body together, so two snippets sharing one name still both survive an import.
-    private struct Pair: Hashable {
-        let name: String
-        let text: String
-
-        init(_ name: String, _ text: String) {
-            self.name = name
-            self.text = text
-        }
     }
 }

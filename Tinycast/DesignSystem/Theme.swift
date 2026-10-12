@@ -142,17 +142,10 @@ enum Theme {
         static let emojiSkinToneGlyph: CGFloat = 13
         /// One density preview; five fit across the Emoji settings detail pane.
         static let emojiSettingsGridPreview: CGFloat = 72
-        /// Settings editor modals (Snippets): fixed width, intrinsic height.
-        static let editorSheetWidth: CGFloat = 480
-        /// The multi-line box inside those modals; it scrolls rather than grows the panel.
-        static let editorTextHeight: CGFloat = 120
         /// The confirmation HUD's width ceiling, and its distance above the screen bottom.
         static let hudMaxWidth: CGFloat = 420
         static let hudEdgeOffset: CGFloat = 48
-        /// Questions and notices stay compact; controls keep the room their native widgets need.
         static let dialogCompactWidth: CGFloat = 290
-        /// Tinycast's own control dialog: fixed width, height measured from its SwiftUI content.
-        static let dialogWidth: CGFloat = 420
         static let dialogButtonHeight: CGFloat = menuButton - 2
         /// Subject glyph and its fixed tile at the top of a dialog.
         static let dialogSymbol: CGFloat = 28

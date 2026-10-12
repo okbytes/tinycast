@@ -10,7 +10,6 @@ enum HotKeyAction: Hashable, Sendable {
     case systemAction(id: SystemAction.ID)
     case windowCommand(id: WindowCommand.ID)
     case appleShortcut(id: UUID)
-    case snippet(id: StoredSnippet.ID)
 
     /// The UserDefaults key, and the `HotKeyCenter` registration id: one per action.
     var defaultsKey: String {
@@ -21,7 +20,6 @@ enum HotKeyAction: Hashable, Sendable {
         case .systemAction(let id): "hotkey.systemAction." + id.rawValue
         case .windowCommand(let id): "hotkey.windowCommand." + id.rawValue
         case .appleShortcut(let id): "hotkey.appleShortcut." + id.uuidString.lowercased()
-        case .snippet(let id): "hotkey.snippet." + id
         }
     }
 

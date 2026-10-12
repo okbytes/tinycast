@@ -14,7 +14,6 @@ struct RootPaletteView: View {
     @Environment(FrequentEmojiStore.self) private var frequentEmoji
     @Environment(DictionarySession.self) private var dictionary
     @Environment(UninstallSession.self) private var uninstall
-    @Environment(SnippetsStore.self) private var snippets
     @Environment(AppSettings.self) private var settings
     @Environment(\.metrics) private var metrics
     @Environment(\.openURL) private var openURL
@@ -46,9 +45,6 @@ struct RootPaletteView: View {
         case .uninstall:
             return UninstallScreen(
                 session: uninstall, core: core, vm: vm, openActions: openActions)
-        case .snippets:
-            return SnippetsScreen(
-                store: snippets, core: core, vm: vm, openActions: openActions)
         case .emoji:
             return EmojiScreen(
                 index: emojiIndex, frequent: frequentEmoji, pinned: core.pinnedEmoji, core: core, vm: vm,

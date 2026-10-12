@@ -91,12 +91,6 @@ final class ClipboardManager {
         poll()
     }
 
-    // Load-bearing: a mismatched count means a foreign write the next poll must still see.
-    func synchronizeAfterTinycastPasteboardMutation(changeCount: Int) {
-        guard NSPasteboard.general.changeCount == changeCount else { return }
-        lastChangeCount = changeCount
-    }
-
     /// A Finder select-all must not insert ten thousand rows on one poll tick.
     nonisolated static let maxCapturedFiles = 32
 

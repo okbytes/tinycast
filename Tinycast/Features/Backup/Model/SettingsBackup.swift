@@ -40,8 +40,6 @@ struct SettingsBackup: Codable {
         var openOnCursorScreen: Bool?
         // Safe to carry: it grants no permission class, just repositions the window.
         var paletteDraggable: Bool?
-        // `snippetsEnabled` is absent: an import must not enable keystroke listening.
-        var snippetsShowInLauncher: Bool?
         var windowManagementEnabled: Bool?
         var windowManagementShowInLauncher: Bool?
         var windowGap: Int?
@@ -110,7 +108,6 @@ extension SettingsBackup {
             rootSearchSensitivity: s.rootSearchSensitivity.rawValue,
             openOnCursorScreen: s.openOnCursorScreen,
             paletteDraggable: s.paletteDraggable,
-            snippetsShowInLauncher: s.snippetsShowInLauncher,
             windowManagementEnabled: s.windowManagementEnabled,
             windowManagementShowInLauncher: s.windowManagementShowInLauncher,
             windowGap: s.windowGap,
@@ -279,10 +276,6 @@ extension SettingsBackup {
             count += 1
         }
         // Writing through AppSettings is enough; AppCore's sinks re-project the rest.
-        if let flag = s.snippetsShowInLauncher {
-            settings.snippetsShowInLauncher = flag
-            count += 1
-        }
         if let flag = s.windowManagementEnabled {
             settings.windowManagementEnabled = flag
             count += 1

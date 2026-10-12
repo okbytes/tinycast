@@ -109,7 +109,7 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + systemActions + commands
-        + appleShortcuts + clipboard + snippets + windowManagement
+        + appleShortcuts + clipboard + windowManagement
         + calendar + emoji + permissions + backup
 
     private static let general: [SettingsSearchEntry] = [
@@ -213,24 +213,6 @@ enum SettingsSearchCatalog {
         .init(
             group: .appleShortcutsShortcuts, "Aliases and shortcuts",
             keywords: ["alias", "hotkey", "hide"])
-    ]
-
-    private static let snippets: [SettingsSearchEntry] = [
-        .init(
-            pane: .snippets,
-            keywords: ["expansion", "keyword", "text replacement", "template"]),
-        .init(
-            .snippetsSnippets, "Enable snippets",
-            keywords: ["expansion", "keystrokes", "accessibility"]),
-        .init(
-            group: .snippetsCommands, "Snippet commands",
-            keywords: ["shortcut", "hotkey", "launcher", "browser"]),
-        .init(
-            .snippetsLibrary, "New Snippet",
-            keywords: ["add", "keyword", "expansion"]),
-        .init(
-            .snippetsLibrary, "Snippets Folder",
-            keywords: ["reveal", "finder", "markdown", "files", "location", "path", "dotfiles"])
     ]
 
     private static let windowManagement: [SettingsSearchEntry] = [

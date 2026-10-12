@@ -189,9 +189,6 @@ neither `.fullScreenAuxiliary` nor `.fullScreenNone`. AppKit fullscreens a resiz
 ever setting `.fullScreenPrimary` on it, so testing that flag would make Fullscreen a silent no-op on
 Settings.
 
-This mirrors `InjectionTarget` in [Text injection](text-injection.md), which solved the same problem
-for keystrokes: same shape, same `Service/` position, one idea applied twice.
-
 ## Applying a placement
 
 `WindowMover.perform(_:target:gap:cycle:)` is the only entry point. `target` is **explicit**
@@ -328,13 +325,13 @@ and every shortcut stays editable afterwards.
   app, and activating an app that lives on another Space pulls that Space forward — a race against the
   gesture that can land on the opposite Space from the one asked for.
 - **Settings** — `windowManagementEnabled` (off), `windowManagementShowInLauncher` (on), `windowGap`
-  (0) and `windowCycle` (`.off`). All four ride in settings backups: unlike `snippetsEnabled` they
-  grant no permission class of their own.
+  (0) and `windowCycle` (`.off`). All four ride in settings backups: they grant no
+  permission class of their own.
 - **Per-command visibility** reuses `VisibilityStore` as-is; clearing a recorded shortcut is how a
   hotkey is disabled, so there is no separate per-command enabled flag. Each command
   row carries an alias field, dimmed while its entry is hidden from the launcher. Window commands
   deliberately get **no** launcher-category pane of their own — they are managed inside Settings ›
-  Window Management, the same call already made for snippets.
+  Window Management.
 
 ## Testing
 

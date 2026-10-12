@@ -260,20 +260,6 @@ final class AppSettings {
         palettePositions[display] = [offset.x, offset.y]
     }
 
-    /// Also keyword-expansion consent, so it confirms first and never rides a backup.
-    var snippetsEnabled: Bool {
-        didSet { defaults.set(snippetsEnabled, forKey: Key.snippetsEnabled.rawValue) }
-    }
-
-    var snippetsShowInLauncher: Bool {
-        didSet { defaults.set(snippetsShowInLauncher, forKey: Key.snippetsShowInLauncher.rawValue) }
-    }
-
-    /// The snippets folder as the user wrote it, `~` allowed; nil keeps it in Application Support.
-    var snippetsFolder: String? {
-        didSet { defaults.set(snippetsFolder, forKey: Key.snippetsFolder.rawValue) }
-    }
-
     /// Doubles as calendar-access consent, so only `CalendarCoordinator` may write it.
     var calendarEnabled: Bool {
         didSet { defaults.set(calendarEnabled, forKey: Key.calendarEnabled.rawValue) }
@@ -425,12 +411,6 @@ final class AppSettings {
             as? [String: [Double]] ?? [:]
         paletteExpandedCenterDisplays =
             Set(defaults.stringArray(forKey: Key.paletteExpandedCenterDisplays.rawValue) ?? [])
-        snippetsEnabled = defaults.bool(forKey: Key.snippetsEnabled.rawValue)
-        // These default on, so absence must be distinguished from a stored `false`.
-        snippetsShowInLauncher =
-            defaults.object(forKey: Key.snippetsShowInLauncher.rawValue) == nil
-            || defaults.bool(forKey: Key.snippetsShowInLauncher.rawValue)
-        snippetsFolder = defaults.string(forKey: Key.snippetsFolder.rawValue)
         // Opt-in: until it is asked for, EventKit is never loaded.
         calendarEnabled = defaults.bool(forKey: Key.calendarEnabled.rawValue)
         // No case is zero, so an unset key falls through to the default.

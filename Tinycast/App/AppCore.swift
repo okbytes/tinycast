@@ -11,10 +11,6 @@ final class AppCore {
     let clipboardStore = ClipboardStore()
     @ObservationIgnored private var clipboardTextIndexer: ClipboardTextIndexer?
     let clipboardManager: ClipboardManager
-    let snippetsStore: SnippetsStore
-    let snippetListener = SnippetKeywordListener(
-        syntheticEventTag: Paster.tinycastEventTag)
-    let textInjector: TextInjector
     let hotKeys = HotKeyManager()
     let keyRemap = KeyRemapManager()
     let windowMover = WindowMover()
@@ -43,16 +39,6 @@ final class AppCore {
     let dictionary = DictionarySession()
     let activationPolicy = ActivationPolicy()
     let uninstall = UninstallSession()
-
-    /// Set when a snippet editor should open with Settings; the pane consumes it.
-    var pendingSnippetEdit: SnippetEditRequest?
-
-    @ObservationIgnored private(set) lazy var snippetCoordinator = SnippetCoordinator(
-        store: snippetsStore, listener: snippetListener, injector: textInjector,
-        clipboardStore: clipboardStore, appIndex: appIndex, settings: settings,
-        windowController: windowController, paletteCoordinator: paletteCoordinator,
-        settingsCoordinator: settingsCoordinator,
-        showMessage: { [unowned self] in self.showMessage($0, tone: $1) }, core: self)
 
     @ObservationIgnored private(set) lazy var paletteCoordinator = PaletteCoordinator(
         palette: palette, settings: settings, appIndex: appIndex,
@@ -83,7 +69,6 @@ final class AppCore {
         settingsCoordinator: settingsCoordinator,
         systemActionCoordinator: systemActionCoordinator,
         windowCommandCoordinator: windowCommandCoordinator,
-        snippetCoordinator: snippetCoordinator,
         core: self)
     @ObservationIgnored private(set) lazy var clipboardCoordinator = ClipboardCoordinator(
         clipboardStore: clipboardStore, clipboardManager: clipboardManager, settings: settings,
@@ -121,10 +106,6 @@ final class AppCore {
         appIndex = AppIndex(ranking: launcherRanking, aliases: aliases)
         let clipboardManager = ClipboardManager(store: clipboardStore, settings: settings)
         self.clipboardManager = clipboardManager
-        snippetsStore = SnippetsStore(repository: Self.snippetsRepository(for: settings))
-        textInjector = TextInjector(
-            clipboardManager: clipboardManager,
-            settings: settings)
     }
 
     func start() {
@@ -152,7 +133,6 @@ final class AppCore {
 
             keyRemap.healthTicker = healthTicker
             hotKeys.modifierTapMonitor.healthTicker = healthTicker
-            snippetListener.healthTicker = healthTicker
 
             hotKeys.onTogglePalette = { [weak self] in self?.paletteCoordinator.togglePalette() }
             hotKeys.onRunCommand = { [weak self] id in self?.launcherCoordinator.runCommand(id) }
@@ -164,9 +144,6 @@ final class AppCore {
             }
             hotKeys.onRunAppleShortcut = { [weak self] id in
                 self?.appleShortcutCoordinator.run(id: id)
-            }
-            hotKeys.onExpandSnippet = { [weak self] id in
-                self?.snippetCoordinator.expandSnippetFromHotKey(id: id)
             }
             appIndex.onScan = { [weak self] in
                 guard let self else { return }
@@ -195,20 +172,6 @@ final class AppCore {
             hotKeys.start()
             keyRemap.start(settings: settings)
 
-            snippetsStore.onSnapshot = { [weak self] snapshot in
-                guard let self else { return }
-                self.snippetCoordinator.applySnippetsLauncherPresence()
-                self.snippetListener.update(snapshot.records)
-                self.hotKeys.removeSnippetBindings(keeping: snapshot.fileIDs)
-            }
-            // Off out of the box, so an unused feature costs no load, watcher or tap.
-            if settings.snippetsEnabled {
-                Task { await snippetsStore.start() }
-                snippetCoordinator.startSnippetKeywordListener()
-            }
-            // Unconditional: a disabled feature has to take its command rows down with it.
-            snippetCoordinator.applySnippetsLauncherPresence()
-
             observeFeatureSwitches()
 
             // First launch binds no hotkey, so guide once; the marker is written at show-time.
@@ -233,8 +196,6 @@ final class AppCore {
             return appIndex.apps.first { $0.kind == .application && $0.bundleID == bundleID }?.name
         case .appleShortcut(let id):
             return appleShortcutCoordinator.name(of: id)
-        case .snippet(let id):
-            return snippetsStore.record(id: id)?.snippet.name
         case .togglePalette, .command, .systemAction, .windowCommand:
             return nil
         }
@@ -271,9 +232,6 @@ final class AppCore {
         clipboardTextIndexer?.stop()
         keyRemap.prepareForTermination()
         inputSourceSwitcher.endSession()
-        textInjector.prepareForTermination()
-        snippetListener.stop()
-        snippetsStore.stop()
     }
 
     // MARK: - Feature switches
@@ -302,19 +260,14 @@ final class AppCore {
                 _ = $0.menuBarLinkedEventsOnly
                 _ = $0.hideCurrentEvent
             }, reproject: { $0.calendarCoordinator.applyClock() })
-        track({ _ = $0.snippetsEnabled }, reproject: { $0.snippetCoordinator.applySnippetsEnabled() })
         // Not a feature switch, but the same re-projection: a combo has the chord's ⇧ bit baked in.
         track({ _ = $0.hyperKeyIncludesShift }, reproject: { $0.applyHyperChord() })
-        track(
-            { _ = $0.snippetsShowInLauncher },
-            reproject: { $0.snippetCoordinator.applySnippetsLauncherPresence() })
         track({ _ = $0.appearance }, reproject: { $0.applyAppearance() })
         track({ _ = $0.interfaceSize }, reproject: { $0.windowController.applyInterfaceSize() })
         // Settings panes did these on change; settings.json can change them with no pane open.
         track(
             { _ = $0.clipboardRetention },
             reproject: { $0.clipboardCoordinator.applyRetention($0.settings.clipboardRetention) })
-        track({ _ = $0.snippetsFolder }, reproject: { $0.applySnippetsFolder() })
     }
 
     /// `.system` resolves to `nil`, so AppKit follows macOS with nothing polling.
@@ -350,16 +303,6 @@ final class AppCore {
     private func applyHyperChord() {
         guard settings.hyperKey != .none else { return }
         hotKeys.retargetHyperBindings(includesShift: settings.hyperKeyIncludesShift)
-    }
-
-    private func applySnippetsFolder() {
-        let repository = Self.snippetsRepository(for: settings)
-        Task { await snippetsStore.relocate(to: repository) }
-    }
-
-    private static func snippetsRepository(for settings: AppSettings) -> SnippetRepository {
-        SnippetRepository(
-            snippetsDirectory: AppPaths.contentFolder(settings.snippetsFolder, named: "Snippets"))
     }
 
     private func applyWindowCommandsPresence() {
@@ -456,12 +399,5 @@ final class AppCore {
     /// The volume slider, so `dialogs` stays the single owner of every prompt in the app.
     func pickVolume(current: Float32) async -> Float32? {
         await dialogs.pickVolume(current: current)
-    }
-
-    /// The snippet argument prompt, for the same reason.
-    func fillSnippetArguments(
-        snippetName: String, arguments: [SnippetTemplateEngine.MissingArgument]
-    ) async -> [String: String]? {
-        await dialogs.fillSnippetArguments(snippetName: snippetName, arguments: arguments)
     }
 }

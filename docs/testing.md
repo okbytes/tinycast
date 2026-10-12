@@ -105,7 +105,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `window-command-test` | `WindowManagement/WindowCommand.swift`, `WindowPlacementEngine.swift`, `WindowActionMemory.swift` |
 | `uninstall-test` | all five pure files in `Uninstall/Model/` |
 | `apple-shortcut-test` | all of `AppleShortcuts/Model/` — the `shortcuts list` parser and entry ids |
-| `snippets-test` | all of `Snippets/Model/` and `Snippets/Service/`, plus `Platform/HealthTicker.swift` |
 | `icon-cache-test` | `Platform/Images/IconCache.swift` — row sizing at 1×/2×, warm reuse, stamp and style invalidation, bitmap release, fitted geometry across all 256 alpha values, and that a row icon draws identically to the 96px one |
 | `entry-icon-test` | `EntryIcon` — that each case draws, caches and prints apart from the others, and that a moved `FileIconStamp` retires the bitmap decoded before it |
 | `settings-backup-test` | `Settings/AppSettingsKey.swift`, `Backup/Model/SettingsBackupCoverage.swift` |
@@ -241,7 +240,6 @@ Measured at the end of the 2026 refactor, on `main`. Useful as orders of magnitu
 | Comment density | 1,653 of 27,289 source lines (6.1%) |
 | The harness suite | ~15 s wall clock, 11-way parallel (~98 s serial, ~140 s before either) |
 | `palette-selection-test` | 111,684 assertions — a tripwire: a change in this count means the row-order model moved |
-| `SnippetKeywordPolicy` match | 7 µs/keystroke at 50 keywords, 59 µs at 1,000 — the `lowercased()` is 0.09 µs of it |
 | `ClipboardStore.pinnedItems` | 27–127 µs per uncached search, 1,000-row window — no cache earns its invalidation yet |
 | `count items of trash` | 5,000 ms against a cold Finder on an *empty* Trash, 110 ms warm — why AppleScript is detached |
 
@@ -286,7 +284,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - With macOS set to a decimal-comma region (Italian), `2,3 + 1,5` answers `3,8`, `max(2,5; 3)`
   answers `3`, and ↵ pastes `3,8`; General ▸ Calculator ▸ Number format `English` restores `2.3 + 1.5`
   and re-renders past Calculator History in the chosen format
-- Section headers appear in order: Favorites, Applications, Snippets, System Actions,
+- Section headers appear in order: Favorites, Applications, System Actions,
   Window Management, Commands
 - With a non-ASCII input source active, ⌘K opens Actions; ↑/↓ move it, ↵ activates, Escape closes it
 - In either ⌘K Actions panel, typing filters immediately in the bottom search band without changing
@@ -365,7 +363,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - A double-tap binding fires; Hyper Key remaps and its status dot is green
 - Every binding survives quit and relaunch
 - `Enable Commands` off leaves every pane-owned command listed, searchable and firing —
-  Clipboard, Emoji and Snippets
+  Clipboard and Emoji
 
 ### Uninstall
 
@@ -385,14 +383,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Unchecking a row hides it from search, and its hotkey still fires
 - Deleting a shortcut in Shortcuts frees its alias and hotkey on the next launcher open
 - A shortcut that fails shows Tinycast's dialog with the tool's error
-
-### Snippets
-
-- With snippets **off**: no launcher entries, no keyword expansion, and no permission prompt at launch
-- Enabling shows the consent dialog **before** the Accessibility prompt
-- Declining leaves the feature off and prompts for nothing
-- After enabling, a keyword expands in a text field; an argument-bearing snippet prompts then delivers
-- Editing a snippet file externally reloads it
 
 ### Calculator and currency
 
@@ -463,7 +453,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - An image clip round-trips and still renders; the archive can then be deleted without breaking it
 - A file whose `manifest.json` `format` was hand-edited is refused **with a message naming it**
 - Cancelling the save panel leaves nothing in `~/Library/Caches/com.tinycast.app.dev/backup-staging/`
-- **`snippetsEnabled` is not in the exported file**, and importing does not enable snippets
 
 ### Clean install
 
@@ -479,8 +468,8 @@ tccutil reset Accessibility com.tinycast.app.dev 2>/dev/null || true
 ```
 
 - Launches with every store directory absent — no crash, no hang; onboarding runs
-- Palette opens and lists apps; clipboard, snippets and calculator history are all empty
-  and all accept a first entry
+- Palette opens and lists apps; clipboard and calculator history are both empty
+  and both accept a first entry
 - **Every setting shows its intended default.** Walk the panes: this is what catches a broken
   absence-versus-`false` read
 - Quit and relaunch: everything created above persisted

@@ -151,7 +151,7 @@ shortcut-recorder callout, and `menuRow` is deliberately equal to
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·
 `emojiGridInset 16` ·
 `settingsSidebar 215` · `settingsRowIcon 20` · `dialogCompactWidth 290` ·
-`dialogWidth 420` · `dialogButtonHeight 34` · `dialogSymbol 28` · `dialogSymbolContainer 52` ·
+`dialogButtonHeight 34` · `dialogSymbol 28` · `dialogSymbolContainer 52` ·
 `dialogIcon 32` · `hudWidth 200` ·
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeReadout 38`
 
@@ -337,11 +337,11 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
 - **Button role.** `DialogAction.Role` colors the label: a default `.standard` action uses
   `primaryAction`, another `.standard` uses `Color.primary`, `.destructive` uses
   `Theme.Colors.destructive`, and `.cancel` uses `textSecondary`. Because role is independent of tone, a
-  red-glyph security warning can carry a plain white button, and turning on Snippets or Calendar is
+  red-glyph security warning can carry a plain white button, and turning on Calendar is
   `.neutral` + `.standard` rather than a red alarm.
 - **Surface.** A dialog applies one system `.glassEffect(.regular)` to a
   `RoundedRectangle(panel 26)`. Confirmations and notices use `dialogCompactWidth 290`, including the
-  volume slider; form dialogs use `dialogWidth 420`. `panelScrim` sits beneath the glass so the dialog
+  volume slider. `panelScrim` sits beneath the glass so the dialog
   keeps the launcher's darker density without losing the system material. `DialogPanel` clips its
   `NSHostingView` layer to the same continuous radius, then lets AppKit draw the native window shadow;
   this avoids both the rectangular outline of an unshaped panel and the hard bounds of a SwiftUI blur.
@@ -405,7 +405,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   `HUDPresenter.extend()`, so the bar slides to its new value in place instead of replaying the
   entrance.
 - **`MessageHUDController`'s pill** is every _other_ transient
-  confirmation: Snippets confirming a run, and every system action whose effect
+  confirmation: every system action whose effect
   is invisible (`Trash Emptied`, `Hidden Files Shown`, `Bluetooth Off`). One capsule shape, sized to
   its message (`hudMaxWidth 420` ceiling), clipped to a `Capsule()`, with a plain glyph leading the
   message: `checkmark` green for `.success`, `exclamationmark` red for `.danger`,
@@ -475,19 +475,11 @@ around it are Tinycast's own, `CameraButton` over `ModalActionButtonStyle`.
 ## Dialog accessories
 
 A dialog carries at most one control beyond its buttons, and `DialogAccessory` makes that structural
-rather than a convention — `.volume` for the Set Volume prompt, `.snippetArguments` for a snippet's
-`{argument}` values. Text fields take `dialogTextField()`, and a snippet's inline enumerated
-arguments are `DialogChip`s.
+rather than a convention — `.volume` for the Set Volume prompt.
 
 **Arrow keys belong to the accessory, not the panel.** `DialogPanel.handlesArrowKeys` is set from
-`DialogAccessory.claimsArrowKeys`, so the slider still steps on ←/→ while a snippet's argument field
-keeps its caret.
-
-The first text field takes focus from `DialogController.windowDidBecomeKey`, never from the view.
-When the panel turns key AppKit picks its own first responder — the Cancel button with Keyboard
-navigation on — and over another app that happens only after `show` returns, so focus a SwiftUI view
-asks for loses to it. The panel can also turn key inside `makeKeyAndOrderFront`, before SwiftUI has
-built the field, so `DialogPanel.focusFirstTextField` lays the content out first.
+`DialogAccessory.claimsArrowKeys`, so the slider steps on ←/→ while any other dialog leaves them to
+whatever has focus.
 
 ## Settings
 
@@ -507,9 +499,6 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   is unaffected.
 - **`.settingsEnabled(_:)`, never a bare `.disabled(_:)`.** It dims as well as disables, so a
   switched-off row reads as unavailable rather than merely unresponsive.
-- **A control placed directly on an editor panel's glass loses its accent colour.** Inside a grouped
-  `Form` row it keeps it. A panel with such a control asks for
-  `settingsEditorPanelSurface(controlsOnGlass: false)`, which draws the same glass behind the content.
 - **A secret is a `RevealableSecureField`, never a bare `SecureField`.** One eye, one place, so an API
   key, a header value and a passphrase all offer the same way to check a pasted value before saving.
   It re-hides on its own once the field is cleared, and its eye is disabled while it is empty.
@@ -545,25 +534,14 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   isn't dragged by its content. Onboarding keeps the transparent titlebar it was
   tuned for. Never hand-draw a header band; a main surface takes the system's
   material, not `glassEffect`.
-- `SettingsComponents.swift` holds only what more than one pane or editor needs: **`SettingsRow`**,
+- `SettingsComponents.swift` holds only what more than one pane needs: **`SettingsRow`**,
   **`SettingsTabIcon`** (the sidebar tile reused by feature switches),
   **`SettingsFeatureToggleLabel`** (the icon, title and subtitle of a feature's master switch),
   **`FeatureSwitchSection`** (a feature's master switch plus its launcher-visibility companion),
-  **`SettingsFilterField`** (the filter row above a long list), **`launcherVisibilityHelp()`**, and the
-  Settings editor header, fields and surface. `ModalActionButtonStyle.swift` keeps every borderless surface's actions on one
-  implementation — dialogs, Settings editors and the camera footer. `Onboarding/OnboardingCard.swift` keeps the older hand-drawn card,
+  **`SettingsFilterField`** (the filter row above a long list) and **`launcherVisibilityHelp()`**.
+  `ModalActionButtonStyle.swift` keeps every borderless surface's actions on one
+  implementation — dialogs and the camera footer. `Onboarding/OnboardingCard.swift` keeps the older hand-drawn card,
   which that window still uses.
-- **A Settings editor borrows the dialog language, not its job.** `SettingsEditorPresenter` hosts the
-  existing form in an activating, transparent child `NSPanel`, with the same `panel 26` Liquid Glass
-  surface, 3pt/8% entrance and matte action buttons. A blocking child covers and dims the whole parent,
-  including its titlebar, so a press on it drags the parent; nested editors form one stack owned by the
-  Settings-window session. As with a sheet, a drag on an editor's empty space moves the Settings window:
-  the surface puts `WindowDragBackground` behind its content, and the panel hands `performDrag(with:)`
-  up to its parent. The
-  presenting binding remains the dismissal source of truth, while launcher handoffs are consumed into
-  pane-local state so opening an editor does not repaint the split view. A list that can keep growing
-  scrolls at a stated row count instead, so a panel's height stays a property of the editor, not of
-  what has been typed into it.
 - **The sidebar searches every pane *and* its rows.** `.searchable(placement: .sidebar)` sits above the list and
   swaps it for a flat, ranked result list; each result carries the pane's `systemImage`, the row's
   title and a `Pane › Section` breadcrumb, and arrowing through them moves the pane, as System

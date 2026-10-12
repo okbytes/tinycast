@@ -51,7 +51,7 @@ struct SettingsBackupTest {
             mirrored["emojiGridColumns"] == .emojiGridColumns)
 
         // Named one by one: a backup now carries content, so it is far likelier to be sent on.
-        for key: AppSettingsKey in [.snippetsEnabled, .calendarEnabled] {
+        for key: AppSettingsKey in [.calendarEnabled] {
             check(
                 "\(key.rawValue) stays out of a backup",
                 excluded[key.rawValue] != nil && mirrored.values.allSatisfy { $0 != key })
@@ -65,14 +65,6 @@ struct SettingsBackupTest {
         check(
             naming("every exclusion carries a real reason", Array(emptyReasons)),
             emptyReasons.isEmpty)
-
-        // The privacy property this whole harness exists to protect.
-        check(
-            "snippetsEnabled stays out of a backup",
-            excluded[AppSettingsKey.snippetsEnabled.rawValue] != nil)
-        check(
-            "snippetsEnabled is not backed up under another field",
-            !mirroredKeys.contains(AppSettingsKey.snippetsEnabled.rawValue))
 
         let claimedTwice = external.keys.filter { mirrored[$0] != nil }
         check(

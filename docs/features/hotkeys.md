@@ -54,7 +54,7 @@ keeps a dropped search scope from deleting a working shortcut, and running on un
 covers LaunchServices still resolving an app for a few seconds after it is trashed.
 
 Shortcuts are also spelled as typeable chords (`ctrl+option+left`) in the opt-in
-[settings file](settings-file.md) — all but those of content and Apple Shortcuts.
+[settings file](settings-file.md) — all but those of Apple Shortcuts.
 `HotKeySpelling` is that grammar; `HotKeySettingsFile` applies through `setBinding`, so `UserDefaults`
 stays the one store either way.
 
@@ -63,13 +63,6 @@ unlike a fixed catalog, there is no `allCases` to walk — so it needs an index 
 re-register from. It is pruned not at launch but after the first successful read of the library,
 since a failed read looks exactly like deletion
 (see [apple-shortcuts.md](apple-shortcuts.md#sweeping-deleted-shortcuts)).
-
-Snippets index `StoredSnippet.ID`, the file's path, in `boundSnippetIDs`. The store runs only while
-the feature is on, so they are swept not at launch but on every snapshot, by
-`removeSnippetBindings`; a file that fails to parse still counts, since it is mid-edit rather than
-gone. A rename outside Tinycast or a new Snippets Folder therefore drops the shortcut, and none
-travels in a backup, where an imported snippet lands at a new path
-(see [snippets.md](snippets.md#shortcuts)).
 
 `HotKeyBinding` takes the synthesised `Codable`, so a `.combo` writes
 `{"combo":{"_0":{"carbonKeyCode":N,"carbonModifiers":N}}}` and a `.doubleTap` writes

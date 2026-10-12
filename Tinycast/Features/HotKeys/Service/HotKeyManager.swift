@@ -10,7 +10,6 @@ final class HotKeyManager {
     var onRunSystemAction: ((SystemAction.ID) -> Void)?
     var onRunWindowCommand: ((WindowCommand.ID) -> Void)?
     var onRunAppleShortcut: ((UUID) -> Void)?
-    var onExpandSnippet: ((StoredSnippet.ID) -> Void)?
     /// Names what only the stores know; the fixed catalogs resolve here. Set in `AppCore.start()`.
     var displayName: ((HotKeyAction) -> String?)?
     /// Whether the action's launcher category is switched on. Set in `AppCore.start()`.
@@ -47,7 +46,6 @@ final class HotKeyManager {
     private let encoder = JSONEncoder()
     private let boundKey = "boundAppBundleIDs"
     private let boundAppleShortcutKey = "boundAppleShortcutIDs"
-    private let boundSnippetKey = "boundSnippetIDs"
 
     func start() {
         for action in candidateActions { bindings[action] = storedBinding(for: action) }
@@ -72,24 +70,10 @@ final class HotKeyManager {
     /// Pruned by `AppleShortcutCoordinator` after a successful read, never here at launch.
     var boundAppleShortcutIDs: [UUID] { boundIDs(key: boundAppleShortcutKey) }
 
-    /// Swept by `removeSnippetBindings` on each load, never at launch: the store may be off.
-    var boundSnippetIDs: [StoredSnippet.ID] {
-        UserDefaults.standard.stringArray(forKey: boundSnippetKey) ?? []
-    }
-
     /// A deleted app takes its Settings row with it, so nothing else could ever clear its binding.
     func removeAppBindings(where isUninstalled: (String) -> Bool) {
         for bundleID in boundBundleIDs where isUninstalled(bundleID) {
             let action = HotKeyAction.app(bundleID: bundleID)
-            if recordingAction == action { recordingAction = nil }
-            setBinding(nil, for: action)
-        }
-    }
-
-    /// Covers a file deleted or renamed outside Tinycast, which no Settings row is left to clear.
-    func removeSnippetBindings(keeping liveIDs: Set<StoredSnippet.ID>) {
-        for id in boundSnippetIDs where !liveIDs.contains(id) {
-            let action = HotKeyAction.snippet(id: id)
             if recordingAction == action { recordingAction = nil }
             setBinding(nil, for: action)
         }
@@ -129,8 +113,6 @@ final class HotKeyManager {
             index(bundleID, bound: binding != nil, key: boundKey)
         case .appleShortcut(let id):
             index(id, bound: binding != nil, key: boundAppleShortcutKey)
-        case .snippet(let id):
-            index(id, bound: binding != nil, key: boundSnippetKey)
         case .togglePalette, .command, .systemAction, .windowCommand:
             break
         }
@@ -169,7 +151,6 @@ final class HotKeyManager {
         var actions = HotKeyAction.builtInActions
         actions += boundBundleIDs.map { .app(bundleID: $0) }
         actions += boundAppleShortcutIDs.map { .appleShortcut(id: $0) }
-        actions += boundSnippetIDs.map { .snippet(id: $0) }
         actions += SystemAction.ID.allCases.map { .systemAction(id: $0) }
         actions += WindowCommand.ID.allCases.map { .windowCommand(id: $0) }
         candidateActionsCache = actions
@@ -190,8 +171,6 @@ final class HotKeyManager {
             return WindowCommandCatalog.command(id: id)?.name ?? "Window Command"
         case .appleShortcut:
             return displayName?(action) ?? "Apple Shortcut"
-        case .snippet:
-            return displayName?(action) ?? "Snippet"
         }
     }
 
@@ -223,7 +202,6 @@ final class HotKeyManager {
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)
         case .appleShortcut(let id): onRunAppleShortcut?(id)
-        case .snippet(let id): onExpandSnippet?(id)
         }
     }
 

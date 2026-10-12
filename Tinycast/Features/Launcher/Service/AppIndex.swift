@@ -4,7 +4,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     enum Kind: String, CaseIterable, Sendable {
         case application
         case command
-        case snippet
         case systemAction
         case windowCommand
         case appleShortcut
@@ -21,11 +20,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                     label: "Command", sectionTitle: "Commands",
                     openVerb: "Run Command", canHideFromSearch: true,
                     canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
-            case .snippet:
-                return KindDescriptor(
-                    label: "Snippet", sectionTitle: "Snippets",
-                    openVerb: "Paste Snippet", canHideFromSearch: false,
-                    canRevealInFinder: true, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
             case .systemAction:
                 return KindDescriptor(
                     label: "System Action", sectionTitle: "System Actions",
@@ -122,8 +116,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return WindowCommandCatalog.command(forEntryID: id).map { .windowCommand(id: $0.id) }
         case .appleShortcut:
             return AppleShortcut.id(fromEntryID: id).map { .appleShortcut(id: $0) }
-        case .snippet:
-            return StoredSnippet.id(fromEntryID: id).map { .snippet(id: $0) }
         }
     }
 
@@ -145,7 +137,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
 
     private var kindSymbol: String {
         switch kind {
-        case .snippet: return "text.quote"
         case .command: return CommandCatalog.command(for: self)?.sfSymbol ?? "questionmark"
         case .systemAction: return SystemActionCatalog.action(forEntryID: id)?.sfSymbol ?? "questionmark"
         case .windowCommand:
@@ -208,8 +199,6 @@ extension AppEntry.Kind {
 final class AppIndex {
     private(set) var apps: [AppEntry] = []
 
-    private var snippetEntries: [AppEntry] = []
-
     /// The launcher's rows in order, with the size of each leading section at their head.
     struct Results: Equatable {
         var entries: [AppEntry] = []
@@ -261,8 +250,6 @@ final class AppIndex {
     private var appleShortcutEntries: [AppEntry] = []
     /// The catalog's commands a disabled feature hides; the Commands slice is recomputed from it.
     private var hiddenCommands: Set<CommandID> = []
-    /// Kept out of launcher search by a "Show in launcher" switch, yet still runnable by shortcut.
-    private var unlistedCommands: Set<CommandID> = []
     private var nameCache = BundleNameCache()
     private var isRefreshing = false
     /// Set when a refresh lands mid-scan, so a scope edit is never silently dropped.
@@ -286,7 +273,7 @@ final class AppIndex {
     private var visibleCatalogEntries: [AppEntry] {
         CommandCatalog.all.filter {
             guard let command = CommandCatalog.command(for: $0) else { return true }
-            return !hiddenCommands.contains(command) && !unlistedCommands.contains(command)
+            return !hiddenCommands.contains(command)
         }
     }
 
@@ -303,14 +290,6 @@ final class AppIndex {
         publishEntries()
     }
 
-    func setCommandsListed(_ commands: Set<CommandID>, _ listed: Bool) {
-        let updated =
-            listed ? unlistedCommands.subtracting(commands) : unlistedCommands.union(commands)
-        guard updated != unlistedCommands else { return }
-        unlistedCommands = updated
-        publishEntries()
-    }
-
     /// Discovered from the Shortcuts app, so it arrives already built and sorted.
     func setAppleShortcuts(_ entries: [AppEntry]) {
         guard entries != appleShortcutEntries else { return }
@@ -323,25 +302,6 @@ final class AppIndex {
         let entries = visible ? Self.allWindowCommandEntries : []
         guard entries != windowCommandEntries else { return }
         windowCommandEntries = entries
-        publishEntries()
-    }
-
-    func updateSnippets(_ records: [StoredSnippet]) {
-        let entries =
-            records
-            .filter { $0.snippet.isEnabled }
-            .map { record in
-                AppEntry(
-                    id: record.entryID,
-                    name: record.snippet.name,
-                    url: record.fileURL,
-                    bundleID: nil,
-                    kind: .snippet,
-                    alternateTitles: [record.snippet.keyword].compactMap { $0 })
-            }
-            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        guard entries != snippetEntries else { return }
-        snippetEntries = entries
         publishEntries()
     }
 
@@ -451,7 +411,7 @@ final class AppIndex {
         let updated =
             discoveredEntries
             + Self.named(
-                appleShortcutEntries + snippetEntries
+                appleShortcutEntries
                     + Self.systemActionEntries
                     + windowCommandEntries
                     + commandEntries)

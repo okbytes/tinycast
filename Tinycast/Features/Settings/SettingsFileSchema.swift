@@ -53,9 +53,6 @@ enum SettingsFileSchema {
         case .builtInCommandsEnabled: return launcher.kindBinding(for: key, kind: .command)
         case .builtInCommands: return launcher.commandsBinding(for: key, owner: nil)
         case .appleShortcutsEnabled: return bind(settings, \.appleShortcutsEnabled)
-        case .snippetsShowInLauncher: return bind(settings, \.snippetsShowInLauncher)
-        case .snippetsFolder: return bind(settings, \.snippetsFolder, accept: folder)
-        case .snippetsCommands: return launcher.commandsBinding(for: key, owner: .snippets)
         case .windowManagementEnabled: return bind(settings, \.windowManagementEnabled)
         case .windowManagementShowInLauncher:
             return bind(settings, \.windowManagementShowInLauncher)
@@ -81,12 +78,6 @@ enum SettingsFileSchema {
         case .calendarMenuBarHidesWhenEmpty: return bind(settings, \.calendarMenuBarHidesWhenEmpty)
         case .hideCurrentEvent: return bind(settings, \.hideCurrentEvent)
         }
-    }
-
-    /// A folder is absolute or under `~/`; null puts it back in Application Support.
-    private static func folder(_ path: String?) -> String?? {
-        guard let path else { return .some(nil) }
-        return AppPaths.isFolderPath(path) ? path : nil
     }
 }
 

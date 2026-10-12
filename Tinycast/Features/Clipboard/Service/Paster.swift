@@ -2,9 +2,6 @@ import AppKit
 import Carbon.HIToolbox
 
 enum Paster {
-    /// Stamped on Tinycast's own synthetic keystrokes so the snippet keyword tap can skip them.
-    static let tinycastEventTag: Int64 = 0x54494E59
-
     /// Covers the gap between `activate()` returning and the target app accepting a keystroke.
     private static let activationDelay: TimeInterval = 0.08
 
@@ -142,12 +139,6 @@ enum Paster {
         postCommand(key: CGKeyCode(kVK_ANSI_V), toPid: pid)
     }
 
-    /// Synthesize ⌘C, for reading a selection an app will not surface over Accessibility.
-    @MainActor
-    static func postCommandC(toPid pid: pid_t? = nil) {
-        postCommand(key: CGKeyCode(kVK_ANSI_C), toPid: pid)
-    }
-
     @MainActor
     private static func postCommand(key: CGKeyCode, toPid pid: pid_t?) {
         guard Permissions.ensureAccessibility() else { return }
@@ -159,8 +150,6 @@ enum Paster {
 
         down.flags = .maskCommand
         up.flags = .maskCommand
-        down.setIntegerValueField(.eventSourceUserData, value: tinycastEventTag)
-        up.setIntegerValueField(.eventSourceUserData, value: tinycastEventTag)
 
         if let pid {
             down.postToPid(pid)

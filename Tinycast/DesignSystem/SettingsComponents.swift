@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-// The few pieces more than one Settings pane or editor needs; everything else stays feature-owned.
+// The few pieces more than one Settings pane needs; everything else stays feature-owned.
 
 /// The Settings sidebar tile, shared with the matching feature switches.
 struct SettingsTabIcon: View {
@@ -177,112 +177,9 @@ extension View {
         disabled(!isEnabled).opacity(isEnabled ? 1 : 0.45)
     }
 
-    func settingsEditorTextField() -> some View {
-        modifier(SettingsEditorTextField())
-    }
-
-    func settingsEditorTextArea(height: CGFloat) -> some View {
-        modifier(SettingsEditorTextArea(height: height))
-    }
-
-    /// `controlsOnGlass: false` draws the glass behind, so a control keeps its accent colour.
-    func settingsEditorPanelSurface(controlsOnGlass: Bool = true) -> some View {
-        modifier(SettingsEditorPanelSurface(controlsOnGlass: controlsOnGlass))
-    }
-
     /// The one place that says hiding a row from the launcher never unbinds its shortcut.
     func launcherVisibilityHelp() -> some View {
         help("Show in launcher. Its shortcut works either way.")
-    }
-}
-
-struct SettingsEditorHeader: View {
-    let title: String
-    var subtitle: String?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text(title)
-                .font(Theme.Typography.panelTitle)
-            if let subtitle {
-                Text(subtitle)
-                    .font(Theme.Typography.rowTitle)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-}
-
-struct SettingsEditorField<Content: View>: View {
-    let title: String
-    var labelFont: Font?
-    @ViewBuilder var content: Content
-
-    init(
-        _ title: String, labelFont: Font? = nil,
-        @ViewBuilder content: () -> Content
-    ) {
-        self.title = title
-        self.labelFont = labelFont
-        self.content = content()
-    }
-
-    var body: some View {
-        LabeledContent {
-            content
-                .labelsHidden()
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-        } label: {
-            Text(title).font(labelFont)
-        }
-    }
-}
-
-private struct SettingsEditorTextField: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .textFieldStyle(.plain)
-            .padding(.horizontal, Theme.Spacing.lg)
-            .frame(height: Theme.Size.dialogButtonHeight)
-            .background(
-                RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
-                    .fill(Theme.Colors.controlSurface))
-    }
-}
-
-private struct SettingsEditorTextArea: ViewModifier {
-    let height: CGFloat
-
-    func body(content: Content) -> some View {
-        content
-            .scrollContentBackground(.hidden)
-            .padding(Theme.Spacing.sm)
-            .frame(height: height)
-            .background(
-                RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
-                    .fill(Theme.Colors.controlSurface))
-    }
-}
-
-private struct SettingsEditorPanelSurface: ViewModifier {
-    let controlsOnGlass: Bool
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
-        // In front of the glass: a glass fill is hit-testable and would hide a handle behind it.
-        let draggable = content.background(WindowDragBackground())
-        if controlsOnGlass {
-            draggable
-                .background(Theme.Colors.panelScrim, in: shape)
-                .glassEffect(.regular, in: shape)
-        } else {
-            draggable.background {
-                shape.fill(Theme.Colors.panelScrim).glassEffect(.regular, in: shape)
-            }
-        }
     }
 }
 

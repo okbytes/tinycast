@@ -57,6 +57,10 @@ cut=(
     Tinycast/Platform/PseudoTerminal.swift Tinycast/DesignSystem/InlineArgumentFields.swift
     Tinycast/DesignSystem/SymbolPicker.swift Tests/custom-command-test.swift
     docs/features/custom-commands.md
+    'Tinycast/Features/Snippets/*' 'Tinycast/Features/TextInjection/*' 'Tests/snippets-*'
+    docs/features/snippets.md Tinycast/Platform/AccessibilityText.swift
+    Tinycast/Platform/FolderPicker.swift Tinycast/Features/Settings/SettingsEditorPresenter.swift
+    Tinycast/Windows/Dialog/DialogChip.swift Tinycast/Windows/Dialog/DialogTextField.swift
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

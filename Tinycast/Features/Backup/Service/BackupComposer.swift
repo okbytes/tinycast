@@ -9,7 +9,6 @@ enum BackupComposer {
         var appVersion: String
         var settings: Data?
         var clipboardDatabase: URL?
-        var snippetsDirectory: URL?
         var learning: [BackupBundle.LearningPart: Data] = [:]
         var learningRecords = 0
     }
@@ -29,9 +28,6 @@ enum BackupComposer {
             plan.settings = try? SettingsBackup.gather(from: core).encoded()
         }
         if categories.contains(.clipboard) { plan.clipboardDatabase = core.clipboardStore.dbURL }
-        if categories.contains(.snippets) {
-            plan.snippetsDirectory = core.snippetsStore.snippetsDirectory
-        }
         if categories.contains(.learning) {
             // From memory, not the files: the ranking store persists asynchronously.
             let encoder = BackupBundle.encoder
@@ -58,10 +54,6 @@ enum BackupComposer {
             let outcome = try writeClipboard(from: database, into: bundle)
             counts[BackupCategory.clipboard.rawValue] = outcome.written
             missingImages = outcome.missing
-        }
-        if let directory = plan.snippetsDirectory {
-            counts[BackupCategory.snippets.rawValue] = try copyDocuments(
-                from: directory, to: bundle.snippetsDirectory)
         }
         if !plan.learning.isEmpty {
             for (part, data) in plan.learning { try bundle.write(data, to: bundle.learningURL(part)) }
@@ -142,24 +134,5 @@ enum BackupComposer {
             kind: kind, text: item.text, imageName: imageName,
             createdAt: item.createdAt, sourceBundleID: item.sourceBundleID,
             pinnedAt: item.pinnedAt)
-    }
-
-    /// Markdown copied verbatim: both repositories read `.md` back, so a round trip loses nothing.
-    private nonisolated static func copyDocuments(
-        from source: URL, to destination: URL
-    ) throws
-        -> Int
-    {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: source.path)) ?? []
-        var copied = 0
-        for name in names.sorted() where (name as NSString).pathExtension == "md" {
-            guard BackupBundle.isSafeName(name) else { continue }
-            // Resolved: a symlinked note must travel as a file, since the reader refuses links.
-            try FileManager.default.copyItem(
-                at: source.appendingPathComponent(name).resolvingSymlinksInPath(),
-                to: destination.appendingPathComponent(name))
-            copied += 1
-        }
-        return copied
     }
 }

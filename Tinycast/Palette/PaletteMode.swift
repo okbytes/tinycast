@@ -6,7 +6,6 @@ enum PaletteMode: String, CaseIterable, Identifiable {
     case calculatorHistory
     case emoji
     case uninstall
-    case snippets
     case dictionary
 
     var id: String { rawValue }
@@ -18,7 +17,6 @@ enum PaletteMode: String, CaseIterable, Identifiable {
         case .calculatorHistory: return "plus.forwardslash.minus"
         case .emoji: return "face.smiling"
         case .uninstall: return "trash"
-        case .snippets: return "curlybraces"
         case .dictionary: return "book.closed"
         }
     }
@@ -29,7 +27,6 @@ enum PaletteMode: String, CaseIterable, Identifiable {
         case .calculatorHistory: return "Do math, convert units, or search your past calculations…"
         case .emoji: return "Search emoji and symbols…"
         case .uninstall: return "Filter files and folders by name…"
-        case .snippets: return "Search snippets…"
         case .dictionary: return "Look up a word…"
         }
     }

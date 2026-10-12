@@ -51,6 +51,7 @@ Findings from the initial survey that still shape the plan:
 - Removed System Settings panes from the launcher; the System Settings app itself is still listed.
 - Removed Quicklinks; bookmarks live in Apple Shortcuts.
 - Removed Custom Commands; scripts run as Apple Shortcuts.
+- Removed Snippets, with the text injection and template engine Quicklinks also used.
 - Merged upstream through #1410 (`71279c8`), leaving out Dictation and the update-check toggle.
 - Cherry-picked upstream through #1481 (`da2c4e4`): 14 of 24 taken; the rest were for removed
   features, plus #1451, whose posture rewrite would loosen latest-only.

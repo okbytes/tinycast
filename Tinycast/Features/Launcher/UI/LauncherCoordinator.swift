@@ -9,7 +9,6 @@ final class LauncherCoordinator {
     private let settingsCoordinator: SettingsCoordinator
     private let systemActionCoordinator: SystemActionCoordinator
     private let windowCommandCoordinator: WindowCommandCoordinator
-    private let snippetCoordinator: SnippetCoordinator
     /// The backup commands only, which need the live stores to gather from and apply to.
     private unowned let core: AppCore
 
@@ -20,7 +19,6 @@ final class LauncherCoordinator {
         settingsCoordinator: SettingsCoordinator,
         systemActionCoordinator: SystemActionCoordinator,
         windowCommandCoordinator: WindowCommandCoordinator,
-        snippetCoordinator: SnippetCoordinator,
         core: AppCore
     ) {
         self.ranking = ranking
@@ -29,7 +27,6 @@ final class LauncherCoordinator {
         self.settingsCoordinator = settingsCoordinator
         self.systemActionCoordinator = systemActionCoordinator
         self.windowCommandCoordinator = windowCommandCoordinator
-        self.snippetCoordinator = snippetCoordinator
         self.core = core
     }
 
@@ -70,14 +67,10 @@ final class LauncherCoordinator {
             core.appleShortcutCoordinator.run(id: id)
             return
         }
-        let previous = windowController.previousTarget
         paletteCoordinator.hidePalette(restoreFocus: false)
         switch app.kind {
         case .application:
             AppLauncher.launch(app.url)
-        case .snippet:
-            guard let snippetID = StoredSnippet.id(fromEntryID: app.id) else { return }
-            snippetCoordinator.expandSnippet(id: snippetID, target: previous)
         case .command, .systemAction, .windowCommand,
             .appleShortcut:
             break  // handled above
@@ -102,10 +95,6 @@ final class LauncherCoordinator {
             core.dictionaryCoordinator.show()
         case .openInBrowser:
             break  // Query-driven: it runs where the typed text is, never through this funnel.
-        case .searchSnippets:
-            snippetCoordinator.showSnippets()
-        case .createSnippet:
-            snippetCoordinator.editSnippet(nil)
         case .exportSettings:
             dismissPalette()
             Task { await BackupActions.runExportCommand(core: core) }

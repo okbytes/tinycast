@@ -18,7 +18,6 @@ struct SettingsFileTest {
         try testReplace()
         try testUnreadable()
         try testSymlink()
-        try testContentFolders()
         testPaths()
 
         print(failures == 0 ? "\nALL PASSED" : "\n\(failures) FAILED")
@@ -48,12 +47,12 @@ struct SettingsFileTest {
             SettingsFileKey.sections == [
                 "general", "appearance", "hyperKey", "calculator", "search", "applications",
                 "systemActions", "commands", "appleShortcuts",
-                "snippets", "windowManagement", "clipboard", "emoji",
+                "windowManagement", "clipboard", "emoji",
                 "calendar"
             ])
 
         // A file that could switch one of these on would grant what only the app may ask for.
-        let grantPaths = ["snippets.enabled", "calendar.enabled", "clipboard.textSearchEnabled"]
+        let grantPaths = ["calendar.enabled", "clipboard.textSearchEnabled"]
         check(
             "no capability grant has a settings.json key",
             grantPaths.allSatisfy { SettingsFileKey(rawValue: $0) == nil })
@@ -329,45 +328,6 @@ struct SettingsFileTest {
     }
 
     // MARK: - Paths
-
-    private static func testContentFolders() throws {
-        let bundleID = "com.tinycast.settings-file-test.\(UUID().uuidString)"
-        let standard = AppPaths.applicationSupport(bundleID: bundleID)
-        defer { try? FileManager.default.removeItem(at: standard) }
-        let home = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path
-        check(
-            "no folder keeps notes in Application Support",
-            AppPaths.contentFolder(nil, named: "Notes", bundleID: bundleID).lastPathComponent == "Notes")
-        check(
-            "a folder under ~ reads from the home folder",
-            AppPaths.contentFolder("~/Dotfiles/notes", named: "Notes", bundleID: bundleID).path
-                == home + "/Dotfiles/notes")
-        check(
-            "a relative folder is not a folder",
-            !AppPaths.isFolderPath("notes") && !AppPaths.isFolderPath("~notes"))
-
-        let folder = scratchFolder()
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let target = folder.appending(path: "dotfiles/snippets")
-        let link = folder.appending(path: "Snippets")
-        try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
-        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
-        check(
-            "a symlinked folder resolves to its target",
-            AppPaths.contentFolder(link.path, named: "Snippets", bundleID: bundleID).path
-                == target.resolvingSymlinksInPath().path)
-
-        let defaultFolder = AppPaths.contentFolder(nil, named: "Snippets", bundleID: bundleID)
-        check(
-            "choosing the default folder stores nothing",
-            AppPaths.contentFolderSetting(for: defaultFolder, named: "Snippets", bundleID: bundleID)
-                == nil)
-        check(
-            "choosing one in the home folder stores it under ~",
-            AppPaths.contentFolderSetting(
-                for: URL(filePath: home + "/Dotfiles/snippets"), named: "Snippets", bundleID: bundleID)
-                == "~/Dotfiles/snippets")
-    }
 
     private static func testPaths() {
         let expected = [

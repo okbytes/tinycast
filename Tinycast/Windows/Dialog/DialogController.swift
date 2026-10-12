@@ -76,22 +76,6 @@ final class DialogController: NSObject, NSWindowDelegate {
         return Float32(volume.level)
     }
 
-    func fillSnippetArguments(
-        snippetName: String, arguments: [SnippetTemplateEngine.MissingArgument]
-    ) async -> [String: String]? {
-        let state = SnippetArgumentsState(arguments: arguments)
-        let request = DialogRequest(
-            title: snippetName, message: "Fill in the template fields.", symbol: "curlybraces",
-            tone: .neutral,
-            actions: [
-                DialogAction(title: "Expand"),
-                DialogAction(title: "Cancel", role: .cancel)
-            ],
-            defaultIndex: 0, cancelIndex: 1, accessory: .snippetArguments(state))
-        guard await present(request) == 0 else { return nil }
-        return state.values
-    }
-
     private func present(_ request: DialogRequest) async -> Int {
         // Keyed on the continuation, so a panel still fading can't swallow the next.
         guard continuation == nil else { return request.cancelIndex }
@@ -101,7 +85,6 @@ final class DialogController: NSObject, NSWindowDelegate {
             let width =
                 switch request.accessory {
                 case nil, .volume: metrics.size.dialogCompactWidth
-                case .snippetArguments: metrics.size.dialogWidth
                 }
             let content = hostingView(
                 DialogView(
@@ -187,12 +170,6 @@ final class DialogController: NSObject, NSWindowDelegate {
     /// Optical centering: an exactly centred dialog reads low, as the palette would.
     private static let centerLift: CGFloat = 0.08
     // MARK: - NSWindowDelegate
-
-    /// After AppKit's own first-responder pick, which a view's focus request can't outlast.
-    func windowDidBecomeKey(_ notification: Notification) {
-        guard let panel, notification.object as? NSWindow === panel else { return }
-        panel.focusFirstTextField()
-    }
 
     /// Click-away resolves as a dismissal rather than leaving an orphaned dialog behind.
     func windowDidResignKey(_ notification: Notification) {
