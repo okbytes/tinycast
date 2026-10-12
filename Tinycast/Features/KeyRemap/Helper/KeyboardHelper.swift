@@ -1,4 +1,5 @@
 import Foundation
+import IOKit.hid
 import XPC
 import os
 
@@ -6,8 +7,13 @@ import os
 @main
 enum KeyboardHelper {
     static let subsystem = "com.tinycast.keyboard-helper"
+    /// Run with this, the helper only reports Input Monitoring in its exit status; see `RemapWorker`.
+    static let accessCheckArgument = "--check-input-monitoring"
 
     static func main() {
+        if CommandLine.arguments.dropFirst().first == accessCheckArgument {
+            exit(IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted ? 0 : 1)
+        }
         let logger = Logger(subsystem: subsystem, category: "lifecycle")
         // Seizing and the driver's socket both need root; run as anyone else, it would only spin.
         guard geteuid() == 0 else {

@@ -21,7 +21,6 @@ struct GeneralSettingsView: View {
                 // A Quick Press choice is meaningless for a different key.
                 settings.hyperKeyQuickPress = .none
                 if key == settings.mehKey { settings.mehKey = .none }
-                if key != .none { Permissions.ensureAccessibility() }
             })
     }
 
@@ -35,10 +34,7 @@ struct GeneralSettingsView: View {
     private var mehKeySelection: Binding<HyperKeyPhysicalKey> {
         Binding(
             get: { settings.mehKey },
-            set: { key in
-                settings.mehKey = key
-                if key != .none { Permissions.ensureAccessibility() }
-            })
+            set: { settings.mehKey = $0 })
     }
 
     private var mehSubtitle: String {
@@ -405,10 +401,10 @@ private struct KeyRemapStatusRow: View {
             return Problem(
                 message: "The keyboard driver isn't running. Allow it under Driver Extensions.",
                 action: "Open Settings…", fix: KeyRemapManager.openLoginItemsSettings)
-        case .needsAccessibility:
+        case .needsInputMonitoring:
             return Problem(
-                message: "Remapping needs Accessibility access.",
-                action: "Grant Access…", fix: Permissions.openAccessibilitySettings)
+                message: "Add Tinycast's keyboard helper under Input Monitoring.",
+                action: "Show Helper…", fix: KeyRemapManager.showHelperInInputMonitoring)
         }
     }
 }

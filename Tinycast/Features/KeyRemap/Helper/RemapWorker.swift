@@ -7,6 +7,7 @@ final class RemapWorker {
     private static let seizeRetryInterval: TimeInterval = 1
     /// launchd starts the helper again on Tinycast's next message, so an idle one need not linger.
     private static let idleExitDelay: TimeInterval = 30
+    private static let accessCheckInterval: TimeInterval = 1
 
     private let mailbox: HelperMailbox
     private let client: VirtualHIDClient
@@ -16,6 +17,9 @@ final class RemapWorker {
     private var generation: UInt64 = 0
     private var lastSeizeAttempt: TimeInterval = -.infinity
     private var idleSince: TimeInterval?
+    private var lastAccessCheck: TimeInterval = -.infinity
+    /// A fresh copy of the helper asking TCC, since this process's own answer never changes.
+    private var accessCheck: Process?
     /// The executable as it was at launch; an app update replaces it, and this copy must go.
     private let launchedExecutable = RemapWorker.executableIdentity()
     private let logger = Logger(subsystem: KeyboardHelper.subsystem, category: "worker")
@@ -53,6 +57,32 @@ final class RemapWorker {
         }
         if needsReconcile || (wantsKeyboard && !seizer.isSeized) { reconcile() }
         exitIfIdleOrReplaced(at: now)
+        exitIfNewlyGranted(at: now)
+    }
+
+    /// A refusal sticks for the process's life, so a grant made since needs a helper of its own.
+    private func exitIfNewlyGranted(at now: TimeInterval) {
+        if let accessCheck, !accessCheck.isRunning {
+            self.accessCheck = nil
+            if accessCheck.terminationStatus == EXIT_SUCCESS {
+                logger.info("Input Monitoring granted; exiting so launchd starts a helper that can seize")
+                exit(EXIT_SUCCESS)
+            }
+        }
+        guard accessCheck == nil, seizer.lastFailure == KeyRemapHelperInterface.seizeNotPermitted,
+            now - lastAccessCheck >= Self.accessCheckInterval,
+            let executable = Bundle.main.executableURL
+        else { return }
+        lastAccessCheck = now
+        let check = Process()
+        check.executableURL = executable
+        check.arguments = [KeyboardHelper.accessCheckArgument]
+        do {
+            try check.run()
+            accessCheck = check
+        } catch {
+            logger.error("could not start the access check: \(error.localizedDescription)")
+        }
     }
 
     /// Only hold the keyboard while every report can reach the virtual one; otherwise it is dead.

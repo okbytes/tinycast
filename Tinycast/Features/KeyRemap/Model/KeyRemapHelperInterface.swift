@@ -8,7 +8,7 @@ enum KeyRemapHelperInterface {
     static let driverDaemonPath =
         "/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/"
         + "Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon"
-    /// `kIOReturnNotPermitted`: a seize with no Accessibility grant covering the helper.
+    /// `kIOReturnNotPermitted`: a seize with no Input Monitoring grant on the helper itself.
     static let seizeNotPermitted = Int32(bitPattern: 0xE000_02E2)
     /// `kIOReturnExclusiveAccess`: another process, typically Karabiner-Elements, already holds it.
     static let seizeExclusiveAccess = Int32(bitPattern: 0xE000_02C5)

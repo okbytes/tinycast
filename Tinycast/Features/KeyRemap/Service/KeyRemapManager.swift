@@ -17,7 +17,7 @@ final class KeyRemapManager: HealthCheckable {
         case driverUnsupported
         case noBuiltInKeyboard
         case keyboardInUse
-        case needsAccessibility
+        case needsInputMonitoring
         case starting
         case active
     }
@@ -52,6 +52,12 @@ final class KeyRemapManager: HealthCheckable {
     /// Login Items & Extensions holds both approvals: the helper, and the driver extension.
     static func openLoginItemsSettings() {
         SMAppService.openSystemSettingsLoginItems()
+    }
+
+    static func showHelperInInputMonitoring() {
+        let helper = Bundle.main.bundleURL.appending(path: "Contents/Helpers/TinycastKeyboardHelper")
+        NSWorkspace.shared.activateFileViewerSelecting([helper])
+        Permissions.openInputMonitoringSettings()
     }
 
     func start(settings: AppSettings) {
@@ -244,7 +250,7 @@ final class KeyRemapManager: HealthCheckable {
         if helper.seizedKeyboards > 0 { return .active }
         if !helper.virtualKeyboardReady { return .starting }
         switch helper.seizeFailure {
-        case KeyRemapHelperInterface.seizeNotPermitted: return .needsAccessibility
+        case KeyRemapHelperInterface.seizeNotPermitted: return .needsInputMonitoring
         case KeyRemapHelperInterface.seizeExclusiveAccess: return .keyboardInUse
         default: return helper.builtInKeyboards == 0 ? .noBuiltInKeyboard : .starting
         }

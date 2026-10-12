@@ -71,10 +71,15 @@ received nothing once the built-in keyboard was seized.
 
 ### Permissions
 
-The helper needs no grant of its own. macOS attributes a daemon to the app that registered it, so the
-Accessibility grant Tinycast already holds covers the seize; without it the seize fails with
-`kIOReturnNotPermitted`, which Settings reports. Turning a key on asks the user to allow the helper
-once under **Login Items & Extensions**.
+The seize is an **Input Monitoring** check on the helper itself. macOS does not attribute it to
+Tinycast, and a root daemon cannot prompt, so the user adds `Contents/Helpers/TinycastKeyboardHelper`
+to the list by hand; each copy of Tinycast at its own path needs its own entry. Without it the seize
+fails with `kIOReturnNotPermitted`, and Settings offers to reveal the helper beside the pane. A refusal
+sticks for the life of the process — `IOHIDCheckAccess` included — so while refused the helper asks
+TCC through a fresh copy of itself each second (`--check-input-monitoring`, which only sets its exit
+status) and exits once granted; launchd starts one that can seize on Tinycast's next message, about two
+seconds after the grant. Turning a key on also asks the user to allow the helper once under **Login
+Items & Extensions**.
 
 ## The driver protocol
 
@@ -133,3 +138,5 @@ if fn moved in between.
 1. Install the driver package from its releases page and run its manager's `activate`, approving the
    driver extension under **Login Items & Extensions → Driver Extensions**.
 2. Choose a Hyper or Meh key in **Settings → General**, and allow the helper when asked.
+3. Add the helper under **Privacy & Security → Input Monitoring** when Settings asks; the keyboard is
+   taken over within a couple of seconds.
