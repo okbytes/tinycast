@@ -354,12 +354,11 @@ final class AppCore {
     /// `tone` styles the glyph, `confirmRole` the button; separate on purpose.
     func confirm(
         title: String, message: String?, symbol: String?, confirmTitle: String,
-        tone: DialogTone = .danger, confirmRole: DialogAction.Role = .destructive,
-        dismissTitle: String = "Cancel"
+        tone: DialogTone = .danger, confirmRole: DialogAction.Role = .destructive
     ) async -> Bool {
         await dialogs.confirm(
             title: title, message: message, symbol: symbol, tone: tone, confirmTitle: confirmTitle,
-            confirmRole: confirmRole, dismissTitle: dismissTitle)
+            confirmRole: confirmRole)
     }
 
     /// A question with more than two answers; the returned index is into `options`.

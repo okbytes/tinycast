@@ -15,9 +15,9 @@ enum AXWindowAccess {
 
     // MARK: - Finding windows
 
-    static func application(for pid: pid_t, timeout: Float = messagingTimeout) -> AXUIElement {
+    static func application(for pid: pid_t) -> AXUIElement {
         let application = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(application, timeout)
+        AXUIElementSetMessagingTimeout(application, messagingTimeout)
         return application
     }
 

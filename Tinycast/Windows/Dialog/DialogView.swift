@@ -18,7 +18,7 @@ extension DialogTone {
     }
 }
 
-/// Tinycast's Liquid Glass dialog, compact unless a native control needs more room.
+/// Tinycast's Liquid Glass dialog.
 struct DialogView: View {
     @Environment(\.metrics) private var metrics
     let request: DialogRequest
@@ -44,9 +44,8 @@ struct DialogView: View {
                     }
                 }
 
-                switch request.accessory {
-                case .volume(let volume): VolumeSlider(state: volume)
-                case nil: EmptyView()
+                if let volume = request.volume {
+                    VolumeSlider(state: volume)
                 }
             }
             .padding(.horizontal, metrics.spacing.xs)

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Built-in launcher actions, surfaced alongside the user-authored ones.
+/// Built-in launcher actions.
 enum CommandID: String, CaseIterable, Sendable {
     case calculatorHistory = "command:calculator-history"
     case clipboardHistory = "command:clipboard-history"

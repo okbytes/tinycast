@@ -42,7 +42,7 @@ final class CameraSession {
 
     func stop() {
         guard let capture else { return }
-        // A reused session without an output of its own feeds a new preview layer no frames.
+        // Every open rebuilds through `configure`, which skips a camera unplugged since.
         self.capture = nil
         photoOutput = nil
         guard capture.isRunning else { return }

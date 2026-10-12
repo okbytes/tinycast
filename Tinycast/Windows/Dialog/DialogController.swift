@@ -16,13 +16,13 @@ final class DialogController: NSObject, NSWindowDelegate {
 
     func confirm(
         title: String, message: String?, symbol: String?, tone: DialogTone, confirmTitle: String,
-        confirmRole: DialogAction.Role, dismissTitle: String = "Cancel"
+        confirmRole: DialogAction.Role
     ) async -> Bool {
         let request = DialogRequest(
             title: title, message: message, symbol: symbol, tone: tone,
             actions: [
                 DialogAction(title: confirmTitle, role: confirmRole),
-                DialogAction(title: dismissTitle, role: .cancel)
+                DialogAction(title: "Cancel", role: .cancel)
             ],
             defaultIndex: 0, cancelIndex: 1)
         return await present(request) == 0
@@ -71,7 +71,7 @@ final class DialogController: NSObject, NSWindowDelegate {
                 DialogAction(title: "Set Volume"),
                 DialogAction(title: "Cancel", role: .cancel)
             ],
-            defaultIndex: 0, cancelIndex: 1, accessory: .volume(volume))
+            defaultIndex: 0, cancelIndex: 1, volume: volume)
         guard await present(request) == 0 else { return nil }
         return Float32(volume.level)
     }
@@ -82,19 +82,16 @@ final class DialogController: NSObject, NSWindowDelegate {
         return await withCheckedContinuation { continuation in
             self.continuation = continuation
             onPresentationChanged(true)
-            let width =
-                switch request.accessory {
-                case nil, .volume: metrics.size.dialogCompactWidth
-                }
+            let width = metrics.size.dialogWidth
             let content = hostingView(
                 DialogView(
                     request: request, width: width,
                     onChoose: { [weak self] index in
                         self?.finish(index)
                     }),
-                width: width, minHeight: 0)
+                width: width)
             let panel = DialogPanel(content: content, cornerRadius: metrics.radius.panel)
-            panel.handlesArrowKeys = request.accessory?.claimsArrowKeys ?? false
+            panel.handlesArrowKeys = request.volume != nil
             panel.delegate = self
             panel.onKey = { [weak self] key in
                 guard let self else { return }
@@ -105,7 +102,7 @@ final class DialogController: NSObject, NSWindowDelegate {
                     finish(request.defaultIndex)
                 case .increment, .decrement:
                     // Keying the slider lands on the same values Volume Up/Down produce.
-                    guard case .volume(let volume) = request.accessory else { return }
+                    guard let volume = request.volume else { return }
                     volume.level = VolumeLevel.stepped(volume.level, up: key == .increment)
                 }
             }
@@ -149,12 +146,11 @@ final class DialogController: NSObject, NSWindowDelegate {
 
     private var metrics: InterfaceMetrics { settings.interfaceSize.metrics }
 
-    private func hostingView(_ view: some View, width: CGFloat, minHeight: CGFloat) -> NSView {
+    private func hostingView(_ view: some View, width: CGFloat) -> NSView {
         let hosting = NSHostingView(rootView: AnyView(view.environment(\.metrics, metrics)))
         // Measure at the fixed width first: the message wraps, so height follows width.
-        hosting.setFrameSize(NSSize(width: width, height: minHeight))
-        let fitted = hosting.fittingSize
-        hosting.setFrameSize(NSSize(width: width, height: max(fitted.height, minHeight)))
+        hosting.setFrameSize(NSSize(width: width, height: 0))
+        hosting.setFrameSize(NSSize(width: width, height: hosting.fittingSize.height))
         return hosting
     }
 

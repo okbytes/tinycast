@@ -18,7 +18,7 @@ enum BackupArchive {
         }
     }
 
-    /// No `UID`/`GID` to restore a foreign owner, no `IDX` to dangle; `MTM` feeds the note sort.
+    /// No `UID`/`GID` to restore a foreign owner, and no `IDX` to dangle.
     private static var keySet: ArchiveHeader.FieldKeySet? {
         ArchiveHeader.FieldKeySet("TYP,PAT,DAT,MOD,MTM")
     }

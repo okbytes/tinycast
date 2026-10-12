@@ -14,28 +14,28 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                 return KindDescriptor(
                     label: "Application", sectionTitle: "Applications",
                     openVerb: "Open Application", canHideFromSearch: true,
-                    canRevealInFinder: true, canDragOut: true, isSymbolIcon: false, rankPriority: 4)
+                    canRevealInFinder: true, canDragOut: true, isSymbolIcon: false, rankPriority: 1)
             case .command:
                 return KindDescriptor(
                     label: "Command", sectionTitle: "Commands",
                     openVerb: "Run Command", canHideFromSearch: true,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
+                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 0)
             case .systemAction:
                 return KindDescriptor(
                     label: "System Action", sectionTitle: "System Actions",
                     openVerb: "Run System Action", canHideFromSearch: true,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
+                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 0)
             case .windowCommand:
                 return KindDescriptor(
                     label: "Window Command", sectionTitle: "Window Management",
                     openVerb: "Move Window", canHideFromSearch: true,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
+                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 0)
             case .appleShortcut:
                 // File-backed so every row draws the Shortcuts app's own icon.
                 return KindDescriptor(
                     label: "Apple Shortcut", sectionTitle: "Apple Shortcuts",
                     openVerb: "Run Shortcut", canHideFromSearch: true,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: false, rankPriority: 3)
+                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: false, rankPriority: 0)
             }
         }
     }
@@ -126,11 +126,8 @@ struct AppEntry: Identifiable, Hashable, Sendable {
 
     var canDragOut: Bool { kind.descriptor.canDragOut }
 
-    /// What this row draws, and the only thing any icon path needs to ask.
-    var iconSource: EntryIcon { defaultIcon }
-
-    /// Derived from the kind alone: synthetic entries get a symbol tile, everything else its file.
-    private var defaultIcon: EntryIcon {
+    /// What this row draws: synthetic entries get a symbol tile, everything else its file.
+    var iconSource: EntryIcon {
         guard kind.descriptor.isSymbolIcon else { return .file(stamp: iconStamp) }
         return .symbol(kindSymbol)
     }
@@ -151,7 +148,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         return IconCache.icon(for: iconSource, fileURL: url)
     }
 
-    /// Icon identity for a row's async load: re-skinning changes the glyph while `id` stays put.
+    /// Icon identity for a row's async load: a moved icon stamp changes the glyph, not `id`.
     var iconKey: String { "\(id)|\(iconSource)" }
 }
 

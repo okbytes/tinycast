@@ -13,8 +13,8 @@ the Mac's cameras and copies a photo to the clipboard.
   video rather than a stage swapped out from under the user, and the TCC prompt never takes key from
   a panel already up. `stop()` runs from the fade-out's completion, so the camera light never
   outlives the panel but is never torn down under a visible one either. It also drops the
-  `AVCaptureSession`, so every open builds its own: a reused session with no output of its own
-  restarts to a black stage.
+  `AVCaptureSession`, so every open builds its own through `configure()`, which reopens on the
+  camera last switched to unless it has been unplugged since.
 - **Escape, click-away and the shot all end the same way.** Every route goes through
   `CameraCoordinator.close()`, which drops the panel and stops the session. Taking a photo closes
   too — the command is done, so the camera goes out with it rather than idling for a second shot.

@@ -183,44 +183,6 @@ extension View {
     }
 }
 
-/// A feature pane's opening section: the master switch, then its launcher-visibility companion.
-struct FeatureSwitchSection: View {
-    let anchor: SettingsAnchor
-    let enableTitle: String
-    var enableSubtitle: String?
-    @Binding var isEnabled: Bool
-    @Binding var showsInLauncher: Bool
-    var showsIcon = false
-    var showsHeader = true
-
-    var body: some View {
-        if showsHeader {
-            section
-        } else {
-            section.settingsAnchor(anchor)
-        }
-    }
-
-    private var section: some View {
-        Section {
-            Toggle(isOn: $isEnabled) {
-                if showsIcon, let enableSubtitle {
-                    SettingsFeatureToggleLabel(
-                        anchor: anchor, title: enableTitle, subtitle: enableSubtitle)
-                } else {
-                    SettingsRowTitle(anchor, enableTitle)
-                    if let enableSubtitle { Text(enableSubtitle) }
-                }
-            }
-            Toggle("Show in launcher", isOn: $showsInLauncher)
-                // The switch above stays live so the feature can always be turned back on.
-                .settingsEnabled(isEnabled)
-        } header: {
-            if showsHeader { SettingsSectionHeader(anchor) }
-        }
-    }
-}
-
 /// The filter row above a long list, shaped like a search field rather than a form text field.
 struct SettingsFilterField: View {
     let prompt: String
@@ -351,12 +313,16 @@ private struct AliasTextField: NSViewRepresentable {
 
 /// Dressed like `ShortcutRecorder`; the persistent AppKit field preserves focus across updates.
 struct AliasField: View {
-    /// The owner's `preferenceKey`, taken raw so a row without an `AppEntry` can carry one too.
     let key: String
     let name: String
     @Environment(AliasStore.self) private var aliases
     @State private var draft = ""
     @State private var focused = false
+
+    init(entry: AppEntry) {
+        key = entry.preferenceKey
+        name = entry.name
+    }
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.menu, style: .continuous)
@@ -421,11 +387,5 @@ struct AliasField: View {
     private func clear() {
         draft = ""
         commit()
-    }
-}
-
-extension AliasField {
-    init(entry: AppEntry) {
-        self.init(key: entry.preferenceKey, name: entry.name)
     }
 }

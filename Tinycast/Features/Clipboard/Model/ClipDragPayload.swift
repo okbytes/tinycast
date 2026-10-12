@@ -15,8 +15,8 @@ extension ClipboardItem {
         let copy = text ?? ""
         guard textForm == .link else { return .text(copy) }
         switch LinkDestination.detect(copy) {
-        case .web(let url), .network(let url), .deeplink(let url): return .link(url, copy)
-        case .path, nil: return .text(copy)
+        case .web(let url), .deeplink(let url): return .link(url, copy)
+        case nil: return .text(copy)
         }
     }
 }

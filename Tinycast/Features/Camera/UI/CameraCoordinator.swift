@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Owns the standalone camera surface: one panel at a time, and the camera stops with it.
+/// Owns the camera surface: one panel at a time, and the camera stops with it.
 @MainActor
 @Observable
 final class CameraCoordinator {

@@ -128,7 +128,7 @@ enum Theme {
         static let clipboardMediaHeight: CGFloat = 260
         /// The preview pane is ~460pt wide, so 900px stays crisp at 2× without over-decoding.
         static let clipboardPreviewPixel: CGFloat = 900
-        /// Opening size and resize floor: the Quick Actions row's width, the sidebar's full height.
+        /// Opening size and resize floor; the height fits the sidebar in full.
         static let settingsWindow = CGSize(width: 900, height: 700)
         /// Settings sidebar: a fixed column, wide enough for "Window Management".
         static let settingsSidebar: CGFloat = 215
@@ -145,12 +145,12 @@ enum Theme {
         /// The confirmation HUD's width ceiling, and its distance above the screen bottom.
         static let hudMaxWidth: CGFloat = 420
         static let hudEdgeOffset: CGFloat = 48
-        static let dialogCompactWidth: CGFloat = 290
+        static let dialogWidth: CGFloat = 290
         static let dialogButtonHeight: CGFloat = menuButton - 2
         /// Subject glyph and its fixed tile at the top of a dialog.
         static let dialogSymbol: CGFloat = 28
         static let dialogSymbolContainer: CGFloat = 52
-        /// Shared measurement for dialog accessories and the volume-HUD glyph.
+        /// Shared by the camera's no-video glyph and the volume HUD's speaker.
         static let dialogIcon: CGFloat = 32
         /// 16:9 and wider than a dialog: the camera is the surface itself.
         static let cameraStage = CGSize(width: 560, height: 315)
@@ -192,7 +192,6 @@ enum Theme {
         static let initialOpacity: CGFloat = 0.08
     }
 
-    /// Motion owned by Tinycast's menus; extension-provided panels keep their own behavior.
     @MainActor
     enum MenuMotion {
         static let entryScale: CGFloat = 0.94

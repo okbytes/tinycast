@@ -20,7 +20,7 @@ enum WindowTarget {
         return app.map(WindowTarget.external)
     }
 
-    /// The window, or its parent: the note switcher is a key child of the editor it sits over.
+    /// The window, or its parent: a key child panel belongs to the window it sits over.
     private static func placeable(_ window: NSWindow) -> NSWindow? {
         [window, window.parent].compactMap { $0 }.first(where: isPlaceable)
     }

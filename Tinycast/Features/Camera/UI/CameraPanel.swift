@@ -1,7 +1,7 @@
 import AppKit
 import Carbon.HIToolbox
 
-/// A camera surface's panel; keys go through `sendEvent`, so ↵ and Esc need no focused subview.
+/// The camera's panel; keys go through `sendEvent`, so ↵ and Esc need no focused subview.
 final class CameraPanel: NSPanel {
     enum Action {
         case primary

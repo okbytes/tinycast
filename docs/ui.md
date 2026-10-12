@@ -38,7 +38,7 @@ These are the things that quietly break the look if changed. Preserve them unles
 - **Dark is the baseline and its values are frozen.** Every `Theme.Colors` token resolves per appearance, and its **dark branch is the literal the forced-dark build shipped** — restated, never recomputed. Retune a light branch freely; touch a dark one only when the task is to change Dark. `AppCore.applyAppearance()` is the only place an appearance is assigned, from `AppSettings.appearance`; `.system` assigns `nil` so AppKit follows macOS.
 - **New colors go through `Theme.Colors.ramp(dark:light:)`** (an alpha that inverts) or `adaptive(dark:light:)` (two explicit `NSColor`s, for anything that isn't a plain inversion — `panelScrim`). Never a bare `Color.white.opacity(…)` in a view: it disappears in Light.
 - **No grays, no opaque fills on the surface.** Reach for `Theme.Colors.*` instead of `.gray`, `NSColor.windowBackground`, etc.
-- **Two things stay fixed in both appearances, on purpose.** The `EdgeDissolve`/`OverflowFade` gradients are **mask luminance, not color** — inverting them breaks the dissolve everywhere. And `IconCache` cannot use a dynamic `NSColor` at all: it rasterizes off-main, so the surface is carried explicitly and is part of the cache key.
+- **Two things stay fixed in both appearances, on purpose.** The `EdgeDissolve` gradients are **mask luminance, not color** — inverting them breaks the dissolve everywhere. And `IconCache` cannot use a dynamic `NSColor` at all: it rasterizes off-main, so the surface is carried explicitly and is part of the cache key.
 - **An icon is drawn for a surface *and* a system icon style, and both move under you.** macOS restyles the icons `NSWorkspace` hands out when System Settings → Appearance → **Icon & widget style** changes, so `IconStyleMonitor` and Tinycast's own appearance both call `IconCache.invalidateStyled()`. **The monitor may not invalidate on the notification itself.** AppKit posts `NSWorkspaceIconAppearanceConfigurationDidChange` before IconServices has swapped what `NSWorkspace` vends — measured at 25–120ms behind, jittering run to run — and the images it hands back are live objects macOS restyles in place, so flattening one on the signal freezes the *outgoing* style into a bitmap nothing ever invalidates again. `IconStyleMonitor` therefore polls `IconCache.styleFingerprint()` until the pixels actually move, and only then invalidates. Waiting also sidesteps the cost: re-flattening every icon the instant a restyle begins forces a cold IconServices regeneration, measured at 160× the settled draw cost. That drops the cached bitmaps, bumps every cache key so an in-flight decode cannot repopulate a stale one, and moves `IconCache.style.generation`. **Any view that draws an icon must key its fetch on that generation** — wrap the view's own key in `IconRequest`, or call `IconCache.observeStyle()` where the icon is resolved synchronously in a `body`. It is reached through `IconCache` rather than injected precisely because icons are drawn in menus, popovers and every list, where a missed injection would be a silent staleness bug.
 - **No hard dividers between the list and the bars.** The header and bottom bar are `safeAreaInset` overlays with no background; separation comes from `edgeDissolve()`, nothing else. (One deliberate exception: the vertical hairline between a list and its preview pane, as the clipboard screen draws.)
 - **The panel corner is clipped once, at the root.** `RootPaletteView.body` ends with `.background(panelScrim) → .background(GlassEffectView()) → .clipShape(RoundedRectangle(26, .continuous))`. Keep that order; the scrim goes _over_ the glass, and the clip is last.
@@ -150,7 +150,7 @@ shortcut-recorder callout, and `menuRow` is deliberately equal to
 `clipboardListWidth 290` · `clipboardFilterMenuWidth 200` ·
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·
 `emojiGridInset 16` ·
-`settingsSidebar 215` · `settingsRowIcon 20` · `dialogCompactWidth 290` ·
+`settingsSidebar 215` · `settingsRowIcon 20` · `dialogWidth 290` ·
 `dialogButtonHeight 34` · `dialogSymbol 28` · `dialogSymbolContainer 52` ·
 `dialogIcon 32` · `hudWidth 200` ·
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeReadout 38`
@@ -230,26 +230,7 @@ the `ScrollView`, **before `.thinScrollbar()`** (so the scrollbar overlay stays 
 - The mask spans the scroll view's **full** frame (`.ignoresSafeArea()`) — otherwise the bars' safe-area insets shift the gradient onto at-rest rows.
 
 **Palette only.** Every one of its call sites is a palette screen, and the bands above are measured
-against the palette's bars. A Settings list underlaps nothing, so it uses `.overflowFade()` instead.
-
----
-
-## The overflow fade
-
-Source: `DesignSystem/Scrolling/OverflowFade.swift`.
-
-The counterpart for any list with no bars over it — the Settings lists and bounded popups — and
-deliberately a separate type: sharing one modifier would tie such a list to geometry that only means
-something under a bar. Attach with `.overflowFade()` on the `ScrollView`, before `.thinScrollbar()`,
-or pass `includingTop: true` for a bounded popup whose title and rows scroll together.
-
-- **Bottom by default.** Settings has nothing above its lists; popups opt into the top
-  edge because their content, including the title, can scroll past it.
-- Fade band: **24px** with the original single-stop curve by default; popups opt into the progressive
-  top-and-bottom curve and their own 30pt band.
-- **No alpha floor.** Each enabled edge eases with how much content is hidden there and clears
-  completely once the list rests against it.
-- No `.ignoresSafeArea()`: a Settings list carries no bar insets to correct for.
+against the palette's bars.
 
 ---
 
@@ -340,8 +321,8 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   red-glyph security warning can carry a plain white button, and turning on Calendar is
   `.neutral` + `.standard` rather than a red alarm.
 - **Surface.** A dialog applies one system `.glassEffect(.regular)` to a
-  `RoundedRectangle(panel 26)`. Confirmations and notices use `dialogCompactWidth 290`, including the
-  volume slider. `panelScrim` sits beneath the glass so the dialog
+  `RoundedRectangle(panel 26)`. Every dialog is `dialogWidth 290` wide, the volume slider's
+  included. `panelScrim` sits beneath the glass so the dialog
   keeps the launcher's darker density without losing the system material. `DialogPanel` clips its
   `NSHostingView` layer to the same continuous radius, then lets AppKit draw the native window shadow;
   this avoids both the rectangular outline of an unshaped panel and the hard bounds of a SwiftUI blur.
@@ -351,8 +332,8 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   `selection`, while a destructive action uses the destructive tint. The **volume HUD** and **message
   pill** keep the non-glass panel recipe.
 - **Layout.** Subject glyph in a low-opacity rounded tile, then title (`panelTitle`) + wrapped
-  secondary message, optional accessory and full-width actions. Content uses a 22-point inset while
-  the actions keep the tighter `dialogInset 18`. One action spans the row; two sit side by side with
+  secondary message, the optional volume slider and full-width actions. Content uses a 22-point
+  inset while the actions keep the tighter `dialogInset 18`. One action spans the row; two sit side by side with
   **Cancel rendered leading** only while both labels fit on one line, then `ViewThatFits` stacks them.
   Three or more always stack in the caller's semantic order. `DialogView.visualOrder` reorders only
   horizontal display;
@@ -472,13 +453,13 @@ on top of it.
 `AVCaptureVideoPreviewLayer` is hosted in one `NSViewRepresentable` and nothing else; the buttons
 around it are Tinycast's own, `CameraButton` over `ModalActionButtonStyle`.
 
-## Dialog accessories
+## The volume slider
 
-A dialog carries at most one control beyond its buttons, and `DialogAccessory` makes that structural
-rather than a convention — `.volume` for the Set Volume prompt.
+Set Volume is the one dialog carrying a control beyond its buttons: `DialogRequest.volume` hands it a
+`VolumeState`, and the caller reads the chosen level back out of that state.
 
-**Arrow keys belong to the accessory, not the panel.** `DialogPanel.handlesArrowKeys` is set from
-`DialogAccessory.claimsArrowKeys`, so the slider steps on ←/→ while any other dialog leaves them to
+**Arrow keys belong to the slider, not the panel.** `DialogPanel.handlesArrowKeys` is set only when
+the request carries a volume, so the slider steps on ←/→ while any other dialog leaves them to
 whatever has focus.
 
 ## Settings
@@ -537,7 +518,6 @@ system-drawn and a pane reads exactly as macOS System Settings does.
 - `SettingsComponents.swift` holds only what more than one pane needs: **`SettingsRow`**,
   **`SettingsTabIcon`** (the sidebar tile reused by feature switches),
   **`SettingsFeatureToggleLabel`** (the icon, title and subtitle of a feature's master switch),
-  **`FeatureSwitchSection`** (a feature's master switch plus its launcher-visibility companion),
   **`SettingsFilterField`** (the filter row above a long list) and **`launcherVisibilityHelp()`**.
   `ModalActionButtonStyle.swift` keeps every borderless surface's actions on one
   implementation — dialogs and the camera footer. `Onboarding/OnboardingCard.swift` keeps the older hand-drawn card,

@@ -1,7 +1,7 @@
 import Foundation
 
-/// Which meeting is worth showing, and whether it is time. Every clock read is an injected `now`.
-struct UpcomingWindow: Sendable {
+/// Which meetings count, and how long until each. Every clock read is an injected `now`.
+enum UpcomingWindow {
     /// The one place the rule lives, so the menu bar's label and its agenda cannot drift.
     static func agenda(from events: [MeetingEvent], now: Date) -> [MeetingEvent] {
         events

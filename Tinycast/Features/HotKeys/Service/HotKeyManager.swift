@@ -68,7 +68,10 @@ final class HotKeyManager {
     }
 
     /// Pruned by `AppleShortcutCoordinator` after a successful read, never here at launch.
-    var boundAppleShortcutIDs: [UUID] { boundIDs(key: boundAppleShortcutKey) }
+    var boundAppleShortcutIDs: [UUID] {
+        (UserDefaults.standard.stringArray(forKey: boundAppleShortcutKey) ?? [])
+            .compactMap(UUID.init(uuidString:))
+    }
 
     /// A deleted app takes its Settings row with it, so nothing else could ever clear its binding.
     func removeAppBindings(where isUninstalled: (String) -> Bool) {
@@ -110,9 +113,9 @@ final class HotKeyManager {
 
         switch action {
         case .app(let bundleID):
-            index(bundleID, bound: binding != nil, key: boundKey)
+            indexBundleID(bundleID, bound: binding != nil)
         case .appleShortcut(let id):
-            index(id, bound: binding != nil, key: boundAppleShortcutKey)
+            indexAppleShortcut(id, bound: binding != nil)
         case .togglePalette, .command, .systemAction, .windowCommand:
             break
         }
@@ -205,25 +208,18 @@ final class HotKeyManager {
         }
     }
 
-    // MARK: - UUID-keyed indexes
+    // MARK: - Bound-ID indexes
 
-    private func boundIDs(key: String) -> [UUID] {
-        (UserDefaults.standard.stringArray(forKey: key) ?? []).compactMap(UUID.init(uuidString:))
+    private func indexBundleID(_ bundleID: String, bound: Bool) {
+        var ids = Set(boundBundleIDs)
+        if bound { ids.insert(bundleID) } else { ids.remove(bundleID) }
+        UserDefaults.standard.set(Array(ids), forKey: boundKey)
     }
 
-    private func index(_ id: UUID, bound: Bool, key: String) {
-        var set = Set(boundIDs(key: key))
-        if bound { set.insert(id) } else { set.remove(id) }
-        persist(set, key: key)
-    }
-
-    private func index(_ id: String, bound: Bool, key: String) {
-        var set = Set(UserDefaults.standard.stringArray(forKey: key) ?? [])
-        if bound { set.insert(id) } else { set.remove(id) }
-        UserDefaults.standard.set(Array(set), forKey: key)
-    }
-
-    private func persist(_ ids: Set<UUID>, key: String) {
-        UserDefaults.standard.set(ids.map { $0.uuidString.lowercased() }.sorted(), forKey: key)
+    private func indexAppleShortcut(_ id: UUID, bound: Bool) {
+        var ids = Set(boundAppleShortcutIDs)
+        if bound { ids.insert(id) } else { ids.remove(id) }
+        UserDefaults.standard.set(
+            ids.map { $0.uuidString.lowercased() }.sorted(), forKey: boundAppleShortcutKey)
     }
 }

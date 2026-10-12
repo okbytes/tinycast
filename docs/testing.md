@@ -134,7 +134,6 @@ when touching a pure file:
 - `HotKeys/Model/DoubleTap*` still take the clock as a parameter
 - `WindowManagement/Model/` still touches no `NSScreen` and makes no AX call
 - `Features/PaletteRowIndex.swift` still imports Foundation alone, despite living under `Features/`
-- `Platform/LinkDestination.swift` is still handed the home directory rather than reading it
 
 ## Build and size checks
 

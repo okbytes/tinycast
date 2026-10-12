@@ -168,8 +168,7 @@ struct RootPaletteView: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if !isCollapsed {
                         bottomBar(
-                            pillLabel: screen.primaryActionTitle, showActionGroup: showActionGroup,
-                            showActions: screen.hasActions(at: sel))
+                            pillLabel: screen.primaryActionTitle, showActionGroup: showActionGroup)
                     }
                 }
                 // The panel has no title bar, so this thin top margin is the only place left to grab it.
@@ -389,8 +388,6 @@ struct RootPaletteView: View {
                 guard !screen.rows.isEmpty else { return .handled }
                 // An error calc card is the selection but has no actions — don't open an empty panel.
                 guard screen.hasPrimaryAction(at: selection(in: screen)) else { return .handled }
-                // Same for a menu the footer doesn't offer: ⌘K opens exactly what the bar advertises.
-                guard screen.hasActions(at: selection(in: screen)) else { return .handled }
                 toggleActions()
                 return .handled
             }
@@ -548,15 +545,13 @@ struct RootPaletteView: View {
         vm.mode == .uninstall ? Theme.Colors.destructive : .primary
     }
 
-    private func bottomBar(
-        pillLabel: String, showActionGroup: Bool, showActions: Bool
-    ) -> some View {
+    private func bottomBar(pillLabel: String, showActionGroup: Bool) -> some View {
         // Floating controls, no bar; the edge dissolve ghosts the rows passing beneath.
         HStack(spacing: 0) {
             appMenuButton
             Spacer()
             if showActionGroup {
-                actionGroup(pillLabel: pillLabel, showActions: showActions)
+                actionGroup(pillLabel: pillLabel)
             }
         }
         .padding(.horizontal, metrics.spacing.md)
@@ -571,7 +566,7 @@ struct RootPaletteView: View {
     }
 
     /// The footer control group: primary action and the Actions toggle sharing one glass capsule.
-    private func actionGroup(pillLabel: String, showActions: Bool) -> some View {
+    private func actionGroup(pillLabel: String) -> some View {
         HStack(spacing: 2) {
             BarButton(action: activateSelection) {
                 HStack(spacing: metrics.spacing.sm) {
@@ -581,16 +576,14 @@ struct RootPaletteView: View {
                     KeyCapChip(text: "↵", style: .outline)
                 }
             }
-            if showActions {
-                BarButton(action: toggleActions) {
-                    HStack(spacing: metrics.spacing.sm) {
-                        Text("Actions")
-                            .font(metrics.typography.bar)
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                        HStack(spacing: metrics.spacing.xxs) {
-                            KeyCapChip(text: "⌘", style: .outline)
-                            KeyCapChip(text: "K", style: .outline)
-                        }
+            BarButton(action: toggleActions) {
+                HStack(spacing: metrics.spacing.sm) {
+                    Text("Actions")
+                        .font(metrics.typography.bar)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    HStack(spacing: metrics.spacing.xxs) {
+                        KeyCapChip(text: "⌘", style: .outline)
+                        KeyCapChip(text: "K", style: .outline)
                     }
                 }
             }

@@ -106,9 +106,7 @@ struct InterfaceSizeTests {
             m.size.clipboardPreviewPixel, Theme.Size.clipboardPreviewPixel,
             "size.clipboardPreviewPixel")
         expect(m.size.emojiGridInset, Theme.Size.emojiGridInset, "size.emojiGridInset")
-        expect(
-            m.size.dialogCompactWidth, Theme.Size.dialogCompactWidth,
-            "size.dialogCompactWidth")
+        expect(m.size.dialogWidth, Theme.Size.dialogWidth, "size.dialogWidth")
         expect(
             m.size.dialogButtonHeight, Theme.Size.dialogButtonHeight,
             "size.dialogButtonHeight")
@@ -249,7 +247,7 @@ struct InterfaceSizeTests {
             ("size.clipboardListWidth", m.size.clipboardListWidth),
             ("size.clipboardMediaHeight", m.size.clipboardMediaHeight),
             ("size.emojiGridInset", m.size.emojiGridInset),
-            ("size.dialogCompactWidth", m.size.dialogCompactWidth),
+            ("size.dialogWidth", m.size.dialogWidth),
             ("size.dialogButtonHeight", m.size.dialogButtonHeight),
             ("size.dialogSymbol", m.size.dialogSymbol),
             ("size.dialogSymbolContainer", m.size.dialogSymbolContainer),

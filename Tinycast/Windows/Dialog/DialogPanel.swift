@@ -12,7 +12,7 @@ final class DialogPanel: NSPanel {
     }
 
     var onKey: ((Key) -> Void)?
-    /// Arrows are a control's keys, not the panel's; a text field needs them for its caret.
+    /// Arrows are a control's keys, not the panel's: left off, they reach whatever has focus.
     var handlesArrowKeys = false
 
     init(content: NSView, cornerRadius: CGFloat) {

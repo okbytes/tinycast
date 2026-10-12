@@ -87,7 +87,7 @@ struct InterfaceMetrics: Equatable, Sendable {
         var clipboardPreviewPixel: CGFloat { scaledPoints(Theme.Size.clipboardPreviewPixel, scale) }
         var emojiGridInset: CGFloat { scaledPoints(Theme.Size.emojiGridInset, scale) }
 
-        var dialogCompactWidth: CGFloat { scaledPoints(Theme.Size.dialogCompactWidth, scale) }
+        var dialogWidth: CGFloat { scaledPoints(Theme.Size.dialogWidth, scale) }
         var dialogButtonHeight: CGFloat {
             menuButton
                 - scaledPoints(Theme.Size.menuButton - Theme.Size.dialogButtonHeight, scale)

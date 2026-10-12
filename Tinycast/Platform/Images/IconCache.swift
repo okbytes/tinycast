@@ -45,7 +45,7 @@ enum SystemSymbolName {
     }
 }
 
-/// A feature sets one rather than branching `AppEntry`.
+/// What an entry's row draws: its file's icon, or a symbol tile.
 enum EntryIcon: Hashable, Sendable {
     /// The stamp is `FileIconStamp`'s: it moves when the file's icon does, retiring the old bitmap.
     case file(stamp: Int)

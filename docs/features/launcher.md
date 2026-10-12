@@ -152,8 +152,8 @@ name. Rule 4 applies at any length: rule 2 only protects an exact title past thr
 
 ### Kind priority
 
-- **Apps win the ties.** `KindDescriptor.rankPriority` puts applications (4) above command-like kinds
-  (3), so a first-party app is never shadowed by the Tinycast command named after it: Calculator over
+- **Apps win the ties.** `KindDescriptor.rankPriority` puts applications (1) above command-like kinds
+  (0), so a first-party app is never shadowed by the Tinycast command named after it: Calculator over
   Calculator History.
 - **Two entries with the same alias** fall through to the next rule.
 

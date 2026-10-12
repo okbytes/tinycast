@@ -40,8 +40,11 @@ final class LauncherCoordinator {
             }
             ranking.visit(itemKey: app.preferenceKey, query: term)
         }
-        // Commands dispatch before the palette hides: mode-switching commands keep it open.
-        if app.kind == .command {
+        switch app.kind {
+        case .application:
+            paletteCoordinator.hidePalette(restoreFocus: false)
+            AppLauncher.launch(app.url)
+        case .command:
             guard let id = CommandCatalog.command(for: app) else { return }
             // Query-driven: only this row knows the URL the typed text resolved to.
             if id == .openInBrowser {
@@ -49,31 +52,17 @@ final class LauncherCoordinator {
                 AppLauncher.open(app.url)
                 return
             }
+            // Dispatched with the palette still up: mode-switching commands keep it open.
             runCommand(id)
-            return
-        }
-        if app.kind == .systemAction {
+        case .systemAction:
             guard let action = SystemActionCatalog.action(forEntryID: app.id) else { return }
             systemActionCoordinator.runSystemAction(id: action.id)
-            return
-        }
-        if app.kind == .windowCommand {
+        case .windowCommand:
             guard let command = WindowCommandCatalog.command(forEntryID: app.id) else { return }
             windowCommandCoordinator.runWindowCommand(id: command.id)
-            return
-        }
-        if app.kind == .appleShortcut {
+        case .appleShortcut:
             guard let id = AppleShortcut.id(fromEntryID: app.id) else { return }
             core.appleShortcutCoordinator.run(id: id)
-            return
-        }
-        paletteCoordinator.hidePalette(restoreFocus: false)
-        switch app.kind {
-        case .application:
-            AppLauncher.launch(app.url)
-        case .command, .systemAction, .windowCommand,
-            .appleShortcut:
-            break  // handled above
         }
     }
 

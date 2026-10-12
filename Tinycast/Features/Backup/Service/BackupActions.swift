@@ -9,25 +9,23 @@ extension UTType {
 /// The backup flows' entry points, shared by the Settings pane and the commands.
 @MainActor
 enum BackupActions {
-    // MARK: - Tinycast native (own file panels; dialogs come from `AppCore`)
+    // MARK: - File panels (dialogs come from `AppCore`)
 
-    /// The shared save panel; an accessory app must activate first or it opens behind.
-    static func chooseSaveLocation(named base: String, type: UTType) -> URL? {
+    /// An accessory app must activate first, or the panel opens behind.
+    private static func chooseSaveLocation() -> URL? {
         let panel = NSSavePanel()
-        panel.allowedContentTypes = [type]
-        let ext = type.preferredFilenameExtension ?? "json"
-        panel.nameFieldStringValue = "\(base)-\(dateStamp()).\(ext)"
+        panel.allowedContentTypes = [.tinycastBackup]
+        let ext = UTType.tinycastBackup.preferredFilenameExtension ?? "json"
+        panel.nameFieldStringValue = "Tinycast-\(dateStamp()).\(ext)"
         panel.canCreateDirectories = true
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK else { return nil }
         return panel.url
     }
 
-    static func chooseBackupFile() -> URL? { chooseFile(ofType: .tinycastBackup) }
-
-    private static func chooseFile(ofType type: UTType) -> URL? {
+    static func chooseBackupFile() -> URL? {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [type]
+        panel.allowedContentTypes = [.tinycastBackup]
         panel.allowsMultipleSelection = false
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK else { return nil }
@@ -42,7 +40,7 @@ enum BackupActions {
     ) async throws
         -> BackupComposer.Result
     {
-        guard let destination = chooseSaveLocation(named: "Tinycast", type: .tinycastBackup) else {
+        guard let destination = chooseSaveLocation() else {
             throw CancellationError()
         }
         let plan = BackupComposer.plan(categories, from: core)

@@ -136,13 +136,9 @@ enum Paster {
     /// Synthesize ⌘V, to `pid` alone when given, else through the system tap.
     @MainActor
     static func postCommandV(toPid pid: pid_t? = nil) {
-        postCommand(key: CGKeyCode(kVK_ANSI_V), toPid: pid)
-    }
-
-    @MainActor
-    private static func postCommand(key: CGKeyCode, toPid pid: pid_t?) {
         guard Permissions.ensureAccessibility() else { return }
         let source = CGEventSource(stateID: .combinedSessionState)
+        let key = CGKeyCode(kVK_ANSI_V)
 
         guard let down = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: true),
             let up = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: false)

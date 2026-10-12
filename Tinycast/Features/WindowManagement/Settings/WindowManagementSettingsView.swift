@@ -8,14 +8,17 @@ struct WindowManagementSettingsView: View {
     var body: some View {
         @Bindable var settings = settings
         return Form {
-            FeatureSwitchSection(
-                anchor: .windowManagementWindowManagement,
-                enableTitle: "Enable window management",
-                enableSubtitle: "Moves the last window you used. Needs Accessibility.",
-                isEnabled: $settings.windowManagementEnabled,
-                showsInLauncher: $settings.windowManagementShowInLauncher,
-                showsIcon: true,
-                showsHeader: false)
+            Section {
+                Toggle(isOn: $settings.windowManagementEnabled) {
+                    SettingsFeatureToggleLabel(
+                        anchor: .windowManagementWindowManagement, title: "Enable window management",
+                        subtitle: "Moves the last window you used. Needs Accessibility.")
+                }
+                Toggle("Show in launcher", isOn: $settings.windowManagementShowInLauncher)
+                    // The switch above stays live so the feature can always be turned back on.
+                    .settingsEnabled(settings.windowManagementEnabled)
+            }
+            .settingsAnchor(.windowManagementWindowManagement)
 
             Group {
                 options

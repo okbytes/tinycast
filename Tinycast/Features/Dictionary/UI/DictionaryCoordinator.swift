@@ -1,6 +1,6 @@
 import Foundation
 
-/// The dictionary's action surface: open the screen on a term, and act on the entry it shows.
+/// The dictionary's action surface: open the screen, and act on the entry it shows.
 @MainActor
 final class DictionaryCoordinator {
     private let paletteCoordinator: PaletteCoordinator

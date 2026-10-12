@@ -21,7 +21,7 @@ struct AppIconView: View {
 
     var body: some View {
         let size = pointSize.map { IconSize(points: $0, scale: displayScale) }
-        // Keyed on the icon, not the entry: re-skinning an extension leaves `id` untouched.
+        // Keyed on the icon, not the entry: a new icon on disk leaves `id` untouched.
         let request = IconRequest(Key(icon: app.iconKey, size: size))
         let warm = IconCache.cached(app.iconSource, fileURL: app.url, size: size)
         let image = warm ?? (loaded?.request == request ? loaded?.image : nil)

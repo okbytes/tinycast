@@ -74,9 +74,9 @@ because a newline inside a clip is escaped as `\n` by the encoder and can never 
 
 **AppleArchive, LZFSE, and a deliberately narrow keyset.** `"TYP,PAT,DAT,MOD,MTM"` rather than
 `.defaultForArchive`: no `UID`/`GID`, which would restore another Mac's numeric owner, and no `IDX`,
-whose hardlink dedup would record a link to a blob outside the staged tree. `MTM` stays because the
-note list sorts on modification date. LZFSE rather than LZMA because clipboard PNGs dominate the
-payload and are already compressed.
+whose hardlink dedup would record a link to a blob outside the staged tree. `MTM` keeps each file's
+modification date. LZFSE rather than LZMA because clipboard PNGs dominate the payload and are
+already compressed.
 
 **Extraction is filtered, not trusted.** `BackupArchive.open` passes an `ArchiveHeader.EntryFilter`
 that returns `.skip` for any entry whose path is absolute or contains `..`, and then refuses an extract

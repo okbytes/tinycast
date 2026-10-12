@@ -1,10 +1,10 @@
 import AVFoundation
 import SwiftUI
 
-/// What every camera surface puts above its footer: live video, or why there is none.
+/// What the camera puts above its footer: live video, or why there is none.
 struct CameraStage: View {
     let feed: CameraSession.Feed
-    var mirrored = true
+    let mirrored: Bool
 
     var body: some View {
         switch feed {

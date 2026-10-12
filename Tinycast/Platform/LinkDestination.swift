@@ -1,46 +1,24 @@
 import Foundation
 
-/// What a link points at, detected by shape alone.
-enum LinkDestination: Hashable, Sendable {
+/// What a link points at, detected by shape alone; a local path is not a link.
+enum LinkDestination: Sendable {
     case web(URL)
-    /// A mountable share: `smb://`, `afp://`, `nfs://`, `ftp://`, `sftp://`, `ftps://`.
-    case network(URL)
-    /// Any other registered scheme — `spotify://`, `slack://`, `shortcuts://`, `mailto:`.
+    /// Any other scheme — `spotify://`, `smb://`, `shortcuts://`, `mailto:`.
     case deeplink(URL)
-    /// An absolute local path, tilde already expanded.
-    case path(String)
 
-    private static let networkSchemes: Set<String> = ["smb", "afp", "nfs", "ftp", "sftp", "ftps"]
-
-    /// `homeDirectory` is injected rather than read, so a harness run can't depend on the machine.
-    static func detect(_ link: String, homeDirectory: String = NSHomeDirectory()) -> Self? {
+    static func detect(_ link: String) -> Self? {
         let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
-        if let path = absolutePath(trimmed, homeDirectory: homeDirectory) {
-            return .path(path)
-        }
         if let scheme = scheme(of: trimmed) {
-            guard let url = url(from: trimmed) else { return nil }
-            // A file: URL names a local path, so it resolves to one rather than to a deeplink.
-            if scheme == "file" { return url.isFileURL ? .path(url.path) : nil }
-            if scheme == "http" || scheme == "https" { return .web(url) }
-            return networkSchemes.contains(scheme) ? .network(url) : .deeplink(url)
+            guard scheme != "file", let url = url(from: trimmed) else { return nil }
+            return scheme == "http" || scheme == "https" ? .web(url) : .deeplink(url)
         }
         // A bare host is how people write a website down, so it reads as https.
         guard looksLikeBareHost(trimmed), let url = url(from: "https://" + trimmed) else {
             return nil
         }
         return .web(url)
-    }
-
-    private static func absolutePath(_ value: String, homeDirectory: String) -> String? {
-        if value.hasPrefix("/") { return value }
-        guard value.hasPrefix("~") else { return nil }
-        let home = homeDirectory.hasSuffix("/") ? String(homeDirectory.dropLast()) : homeDirectory
-        if value == "~" { return home }
-        guard value.hasPrefix("~/") else { return nil }
-        return home + String(value.dropFirst(1))
     }
 
     /// The lowercased scheme when the value starts with an RFC 3986 `scheme:`.
