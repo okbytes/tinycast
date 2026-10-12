@@ -1,20 +1,9 @@
 import Foundation
 
-/// Launcher items in settings.json: each app, pane, system action and built-in command as a record.
+/// Launcher items in settings.json: each app, system action and built-in command as a record.
 @MainActor
 final class LauncherSettingsFile {
     private typealias Record = LauncherFileFormat.Record
-
-    private enum Bundle {
-        case app, pane
-
-        var kind: AppEntry.Kind { self == .app ? .application : .systemSettings }
-        var noun: String { self == .app ? "app" : "settings pane" }
-
-        func action(_ bundleID: String) -> HotKeyAction {
-            self == .app ? .app(bundleID: bundleID) : .settingsPane(bundleID: bundleID)
-        }
-    }
 
     private struct Item {
         let name: String
@@ -23,7 +12,6 @@ final class LauncherSettingsFile {
     }
 
     private struct BundleRecords {
-        let bundle: Bundle
         var applied: Set<String> = []
         var waiting: [String: Record] = [:]
     }
@@ -42,14 +30,6 @@ final class LauncherSettingsFile {
         self.aliases = aliases
         self.visibility = visibility
         self.shortcuts = shortcuts
-    }
-
-    func appsBinding(for key: SettingsFileKey) -> SettingsFileBinding {
-        bundlesBinding(for: key, .app)
-    }
-
-    func panesBinding(for key: SettingsFileKey) -> SettingsFileBinding {
-        bundlesBinding(for: key, .pane)
     }
 
     func systemActionsBinding(for key: SettingsFileKey) -> SettingsFileBinding {
@@ -86,14 +66,14 @@ final class LauncherSettingsFile {
         var issues: [SettingsFileIssue] = []
         for (key, var held) in bundleRecords {
             guard !held.waiting.isEmpty else { continue }
-            let known = knownBundleIDs(held.bundle)
+            let known = knownBundleIDs()
             let ready = held.waiting.filter { known.contains($0.key) }
             guard !ready.isEmpty else { continue }
             held.applied.formUnion(ready.keys)
             for name in ready.keys { held.waiting[name] = nil }
             bundleRecords[key] = held
-            let items = ready.keys.sorted().map { item($0, held.bundle) }
-            issues += apply(ready, to: items, noun: held.bundle.noun, key: key)
+            let items = ready.keys.sorted().map { item($0) }
+            issues += apply(ready, to: items, noun: "app", key: key)
         }
         return issues + shortcuts.commit()
     }
@@ -121,13 +101,13 @@ final class LauncherSettingsFile {
             })
     }
 
-    private func bundlesBinding(for key: SettingsFileKey, _ bundle: Bundle) -> SettingsFileBinding {
+    func appsBinding(for key: SettingsFileKey) -> SettingsFileBinding {
         SettingsFileBinding(
             key,
             read: { [self] in
                 let state = bundleRecords[key]
-                let known = knownBundleIDs(bundle).union(state?.applied ?? [])
-                let live = customized(known.map { item($0, bundle) })
+                let known = knownBundleIDs().union(state?.applied ?? [])
+                let live = customized(known.map { item($0) })
                 let liveNames = Set(live.map(\.name))
                 let held = (state?.waiting ?? [:]).filter { !liveNames.contains($0.key) }
                 let records = live + held.map { (name: $0.key, record: $0.value) }
@@ -137,32 +117,31 @@ final class LauncherSettingsFile {
                 let previous = bundleRecords[key]
                 let spelling = shortcuts.spelling
                 let read = LauncherFileFormat.records(from: json) { name in
-                    previous?.waiting[name] ?? record(of: item(name, bundle), spelling)
+                    previous?.waiting[name] ?? record(of: item(name), spelling)
                 }
                 guard let decoded = read else { return [.invalidValue(key)] }
-                let known = knownBundleIDs(bundle).union(previous?.applied ?? [])
+                let known = knownBundleIDs().union(previous?.applied ?? [])
                 let present = decoded.records.filter { known.contains($0.key) }
                 bundleRecords[key] = BundleRecords(
-                    bundle: bundle, applied: Set(present.keys),
+                    applied: Set(present.keys),
                     waiting: decoded.records.filter { !known.contains($0.key) })
-                let live = customized(known.map { item($0, bundle) }).map(\.name)
-                let items = Set(live).union(present.keys).sorted().map { item($0, bundle) }
+                let live = customized(known.map { item($0) }).map(\.name)
+                let items = Set(live).union(present.keys).sorted().map { item($0) }
                 return decoded.problems.map { .invalidEntry(key, $0) }
-                    + apply(present, to: items, noun: bundle.noun, key: key)
+                    + apply(present, to: items, noun: "app", key: key)
             })
     }
 
     // MARK: - Items
 
-    private func item(_ bundleID: String, _ bundle: Bundle) -> Item {
-        Item(name: bundleID, preferenceKey: bundleID, action: bundle.action(bundleID))
+    private func item(_ bundleID: String) -> Item {
+        Item(name: bundleID, preferenceKey: bundleID, action: .app(bundleID: bundleID))
     }
 
     /// What Settings lists, plus a bound app outside the search scopes, which keeps its shortcut.
-    private func knownBundleIDs(_ bundle: Bundle) -> Set<String> {
-        let hotKeys = shortcuts.hotKeys
-        var bundleIDs = Set(bundle == .app ? hotKeys.boundBundleIDs : hotKeys.boundPaneBundleIDs)
-        for entry in appIndex.apps where entry.kind == bundle.kind {
+    private func knownBundleIDs() -> Set<String> {
+        var bundleIDs = Set(shortcuts.hotKeys.boundBundleIDs)
+        for entry in appIndex.apps where entry.kind == .application {
             if let bundleID = entry.bundleID { bundleIDs.insert(bundleID) }
         }
         return bundleIDs

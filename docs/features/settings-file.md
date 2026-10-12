@@ -43,7 +43,7 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
 | `HotKeys/Model/HotKeySpelling.swift` | A binding as typed text |
 | `HotKeys/Service/HotKeySettingsFile.swift` | Applies chords through `HotKeyManager`, conflicts reported |
 | `Launcher/Model/LauncherFileFormat.swift` | A launcher item's shortcut, alias and visibility as JSON |
-| `Launcher/Service/LauncherSettingsFile.swift` | Apps, panes, system actions and built-in commands |
+| `Launcher/Service/LauncherSettingsFile.swift` | Apps, system actions and built-in commands |
 | `WindowManagement/Model/WindowManagementFileFormat.swift` | Command shortcuts and aliases as JSON |
 | `WindowManagement/Service/WindowManagementSettingsFile.swift` | Their two bindings |
 
@@ -61,7 +61,7 @@ target, so a file linked from a dotfiles repository stays linked.
 - **Turning it on** with no file writes one from the current settings. Over an existing file, a dialog
   asks: **Import** applies the file, **Replace** overwrites it.
 - **At launch**, while on, the file is applied after `AppIndex`'s first scan: every sink is wired by
-  then, and the file's apps and panes have entries to match. A missing file is written again; an
+  then, and the file's apps have entries to match. A missing file is written again; an
   unreadable one is reported and left alone.
 - **App → file.** Every bound value is read inside `withObservationTracking`; a change saves 300 ms
   later, and the save writes only when the whole render differs from the one the two sides last agreed
@@ -131,7 +131,7 @@ where it was. A chord another action still holds is reported, and the old bindin
 ## Launcher items
 
 Each pane that lists items writes the ones with something set, as records keyed by ID:
-`applications.apps` and `systemSettings.panes` by bundle ID, `systemActions.actions` by action ID, and
+`applications.apps` by bundle ID, `systemActions.actions` by action ID, and
 built-in commands under the pane that lists them — `clipboard.commands`, `emoji.commands`, and the rest
 in `commands.builtIn` — by their ID after `command:`. App Launcher is `general.launcherShortcut`.
 
@@ -141,13 +141,13 @@ in `commands.builtIn` — by their ID after `command:`. App Launcher is `general
 
 - **A record left out has no shortcut, no alias, and is shown.**
 - **An invalid launcher record keeps its current values** and is reported; it is never a deletion.
-- **An app or pane Settings doesn't list waits** — not installed here, or outside the search scopes.
+- **An app Settings doesn't list waits** — not installed here, or outside the search scopes.
   Its record is not applied, is written back as read so a dotfile shared between Macs keeps it, and
   applies after the scan that finds it.
 - Partial edits to a waiting record keep its other fields. An applied record stays in the mirror
   after its last shortcut is cleared, even outside the search scopes.
-- `applications.enabled`, `systemSettings.enabled`, `systemActions.enabled` and
-  `commands.builtInEnabled` are each pane's category switch; `commands.enabled` stays custom commands'.
+- `applications.enabled`, `systemActions.enabled` and `commands.builtInEnabled` are each pane's
+  category switch; `commands.enabled` stays custom commands'.
 
 ## Window management
 

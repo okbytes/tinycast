@@ -48,7 +48,6 @@ final class HotKeyManager {
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
     private let boundKey = "boundAppBundleIDs"
-    private let boundPaneKey = "boundPaneBundleIDs"
     private let boundCustomCommandKey = "boundCustomCommandIDs"
     private let boundQuicklinkKey = "boundQuicklinkIDs"
     private let boundAppleShortcutKey = "boundAppleShortcutIDs"
@@ -75,11 +74,6 @@ final class HotKeyManager {
     /// Bundle IDs holding a per-app hotkey, so `start()` knows which records to load.
     var boundBundleIDs: [String] {
         UserDefaults.standard.stringArray(forKey: boundKey) ?? []
-    }
-
-    /// Settings-pane bundle IDs with a hotkey — same role as `boundBundleIDs`, own namespace.
-    var boundPaneBundleIDs: [String] {
-        UserDefaults.standard.stringArray(forKey: boundPaneKey) ?? []
     }
 
     /// Custom-command UUIDs with a binding, indexed separately so startup can re-register them.
@@ -146,8 +140,6 @@ final class HotKeyManager {
         switch action {
         case .app(let bundleID):
             index(bundleID, bound: binding != nil, key: boundKey)
-        case .settingsPane(let bundleID):
-            index(bundleID, bound: binding != nil, key: boundPaneKey)
         case .customCommand(let id):
             index(id, bound: binding != nil, key: boundCustomCommandKey)
         case .quicklink(let id):
@@ -193,7 +185,6 @@ final class HotKeyManager {
         if let candidateActionsCache { return candidateActionsCache }
         var actions = HotKeyAction.builtInActions
         actions += boundBundleIDs.map { .app(bundleID: $0) }
-        actions += boundPaneBundleIDs.map { .settingsPane(bundleID: $0) }
         actions += boundCustomCommandIDs.map { .customCommand(id: $0) }
         actions += boundQuicklinkIDs.map { .quicklink(id: $0) }
         actions += boundAppleShortcutIDs.map { .appleShortcut(id: $0) }
@@ -210,7 +201,7 @@ final class HotKeyManager {
             return "App Launcher"
         case .command(let id):
             return id.name
-        case .app(let bundleID), .settingsPane(let bundleID):
+        case .app(let bundleID):
             return displayName?(action) ?? bundleID
         case .customCommand:
             return displayName?(action) ?? "Custom Command"
@@ -252,7 +243,6 @@ final class HotKeyManager {
         case .togglePalette: onTogglePalette?()
         case .command(let id): onRunCommand?(id)
         case .app(let bundleID): AppLauncher.toggle(bundleID: bundleID)
-        case .settingsPane(let bundleID): AppLauncher.openSettingsPane(bundleID: bundleID)
         case .customCommand(let id): onRunCustomCommand?(id)
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)

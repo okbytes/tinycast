@@ -3,7 +3,6 @@ import AppKit
 struct AppEntry: Identifiable, Hashable, Sendable {
     enum Kind: String, CaseIterable, Sendable {
         case application
-        case systemSettings
         case command
         case customCommand
         case snippet
@@ -19,11 +18,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                     label: "Application", sectionTitle: "Applications",
                     openVerb: "Open Application", canHideFromSearch: true,
                     canRevealInFinder: true, canDragOut: true, isSymbolIcon: false, rankPriority: 4)
-            case .systemSettings:
-                return KindDescriptor(
-                    label: "System Setting", sectionTitle: "System Settings",
-                    openVerb: "Open System Setting", canHideFromSearch: true,
-                    canRevealInFinder: true, canDragOut: false, isSymbolIcon: false, rankPriority: 1)
             case .command:
                 return KindDescriptor(
                     label: "Command", sectionTitle: "Commands",
@@ -72,7 +66,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         /// Only where Settings lists a per-item checkbox to put it back: a hide is never one-way.
         let canHideFromSearch: Bool
         let canRevealInFinder: Bool
-        /// Only an application: a pane or a shortcut dropped on another app opens nothing there.
+        /// Only an application: a shortcut dropped on another app opens nothing there.
         let canDragOut: Bool
         let isSymbolIcon: Bool
         /// Breaks a full tie, apps first: Calculator over Calculator History.
@@ -96,8 +90,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     var keywords: [String] = []
     /// Moves when the bundle's icon changes on disk, retiring the cached bitmap. Applications only.
     var iconStamp: Int = 0
-    /// Set by the feature that produced the entry when its glyph isn't derivable from `kind`.
-    var iconOverride: EntryIcon?
     /// When it landed on disk, so a fresh install can be suggested before its first open.
     var installedAt: Date?
     /// The searchable form of every field above, built at publish by `buildSearchProfile`.
@@ -138,8 +130,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return CommandCatalog.command(for: self)?.hotKeyAction
         case .application:
             return bundleID.map { .app(bundleID: $0) }
-        case .systemSettings:
-            return bundleID.map { .settingsPane(bundleID: $0) }
         case .customCommand:
             return CustomCommand.id(fromEntryID: id).map { .customCommand(id: $0) }
         case .systemAction:
@@ -163,7 +153,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     var canDragOut: Bool { kind.descriptor.canDragOut }
 
     /// What this row draws, and the only thing any icon path needs to ask.
-    var iconSource: EntryIcon { iconOverride ?? defaultIcon }
+    var iconSource: EntryIcon { defaultIcon }
 
     /// Derived from the kind alone: synthetic entries get a symbol tile, everything else its file.
     private var defaultIcon: EntryIcon {
@@ -180,7 +170,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case .systemAction: return SystemActionCatalog.action(forEntryID: id)?.sfSymbol ?? "questionmark"
         case .windowCommand:
             return WindowCommandCatalog.command(forEntryID: id)?.sfSymbol ?? "questionmark"
-        case .application, .systemSettings, .appleShortcut: return "questionmark"
+        case .application, .appleShortcut: return "questionmark"
         }
     }
 
@@ -314,7 +304,6 @@ final class AppIndex {
     /// Kept out of launcher search by a "Show in launcher" switch, yet still runnable by shortcut.
     private var unlistedCommands: Set<CommandID> = []
     private var nameCache = BundleNameCache()
-    private var paneCache: SettingsPaneScanner.Cache?
     private var isRefreshing = false
     /// Set when a refresh lands mid-scan, so a scope edit is never silently dropped.
     private var refreshPending = false
@@ -447,15 +436,12 @@ final class AppIndex {
         repeat {
             refreshPending = false
             let scopes = settings?.searchScopes ?? SearchScopes.defaults
-            let reusingPanes = paneCache
             let languages = BundleLocalization.indexedLanguages(Locale.preferredLanguages)
             let reusing = BundleNameCache(reusing: nameCache, languages: languages)
-            let (found, cache, panes) = await Task.detached(priority: .utility) {
-                AppIndex.scan(
-                    scopes: scopes, languages: languages, cache: reusing, paneCache: reusingPanes)
+            let (found, cache) = await Task.detached(priority: .utility) {
+                AppIndex.scan(scopes: scopes, cache: reusing)
             }.value
             nameCache = cache
-            paneCache = panes
             guard found != discoveredEntries else { continue }
             discoveredEntries = found
             publishEntries()
@@ -470,9 +456,8 @@ final class AppIndex {
     }
 
     nonisolated private static func scan(
-        scopes: [String], languages: [String], cache: BundleNameCache,
-        paneCache: SettingsPaneScanner.Cache?
-    ) -> ([AppEntry], BundleNameCache, SettingsPaneScanner.Cache?) {
+        scopes: [String], cache: BundleNameCache
+    ) -> ([AppEntry], BundleNameCache) {
         Signposts.interval("AppIndex.scan") {
             var cache = cache
             var indexByBundleID: [String: Int] = [:]
@@ -508,10 +493,8 @@ final class AppIndex {
             let apps = result.sorted {
                 $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
             }
-            // Settings panes are `.appex` bundles, which carry no Spotlight alternate names.
-            let (panes, panesCache) = SettingsPaneScanner.scan(languages: languages, cache: paneCache)
             // Named here, not at publish: romanizing a CJK index is ~50 ms of main-actor time.
-            return (AppIndex.named(apps + panes), cache, panesCache)
+            return (AppIndex.named(apps), cache)
         }
     }
 

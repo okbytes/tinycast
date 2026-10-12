@@ -1,5 +1,5 @@
 enum SettingsTab: CaseIterable, Identifiable {
-    case general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
+    case general, applications, systemActions, commands, quicklinks, appleShortcuts,
         clipboard, snippets, windowManagement, calendar, emoji,
         permissions, backup
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
@@ -9,7 +9,6 @@ enum SettingsTab: CaseIterable, Identifiable {
         switch self {
         case .general: return "General"
         case .applications: return "Applications"
-        case .systemSettings: return "System Settings"
         case .systemActions: return "System Actions"
         case .commands: return "Commands"
         case .quicklinks: return "Quicklinks"
@@ -28,7 +27,6 @@ enum SettingsTab: CaseIterable, Identifiable {
         switch self {
         case .general: return "switch.2"
         case .applications: return "square.grid.2x2"
-        case .systemSettings: return "gearshape"
         case .systemActions: return "bolt"
         case .commands: return "terminal"
         case .quicklinks: return "link"
@@ -64,7 +62,7 @@ enum SettingsSection: CaseIterable, Identifiable {
         case .general: return [.general, .permissions]
         case .launcher:
             return [
-                .applications, .systemSettings, .systemActions, .commands, .quicklinks,
+                .applications, .systemActions, .commands, .quicklinks,
                 .appleShortcuts
             ]
         case .features:

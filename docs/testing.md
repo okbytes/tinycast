@@ -240,7 +240,6 @@ Measured at the end of the 2026 refactor, on `main`. Useful as orders of magnitu
 | --- | --- |
 | Release binary | 3,655,736 B (from 3,471,592 B at the start of the refactor) |
 | Resident memory | 40–80 MB in normal use; the hard ceiling is 100 MB |
-| `SettingsPaneScanner` warm scan | 0.014 ms (16.5 ms cold), 52 panes |
 | Largest view / owner | `RootPaletteView` 662 lines, `AppCore` 284 lines |
 | Comment density | 1,653 of 27,289 source lines (6.1%) |
 | The harness suite | ~15 s wall clock, 11-way parallel (~98 s serial, ~140 s before either) |
@@ -290,8 +289,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - With macOS set to a decimal-comma region (Italian), `2,3 + 1,5` answers `3,8`, `max(2,5; 3)`
   answers `3`, and ↵ pastes `3,8`; General ▸ Calculator ▸ Number format `English` restores `2.3 + 1.5`
   and re-renders past Calculator History in the chosen format
-- Section headers appear in order: Favorites, Applications, System Settings, Quicklinks, Snippets,
-  System Actions, Window Management, Custom Commands, Commands
+- Section headers appear in order: Favorites, Applications, Quicklinks, Snippets, System Actions,
+  Window Management, Custom Commands, Commands
 - With a non-ASCII input source active, ⌘K opens Actions; ↑/↓ move it, ↵ activates, Escape closes it
 - In either ⌘K Actions panel, typing filters immediately in the bottom search band without changing
   the palette query; sections survive filtering, **No Results** is centred, and no dissolve covers the
@@ -351,7 +350,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 ### Launcher and icons
 
-- Every installed app appears; Settings panes appear under System Settings; running apps show the dot
+- Every installed app appears; running apps show the dot
 - Icons render with no placeholder flash on reopen, and Settings ▸ Applications scrolls without hitching,
   even with the scrollbar thumb dragged from end to end in under a second
 - An app removed since the last open drops out after a reopen

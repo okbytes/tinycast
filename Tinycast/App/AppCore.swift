@@ -206,7 +206,7 @@ final class AppCore {
             appIndex.onScan = { [weak self] in
                 guard let self else { return }
                 hotKeys.removeAppBindings(where: appIndex.isUninstalled)
-                // After the first scan, so the file's apps and panes have entries to match.
+                // After the first scan, so the file's apps have entries to match.
                 if settings.settingsFileEnabled, settingsFile == nil {
                     startSettingsFile(importing: true)
                 } else if let launcherSettingsFile {
@@ -269,9 +269,6 @@ final class AppCore {
         switch action {
         case .app(let bundleID):
             return appIndex.apps.first { $0.kind == .application && $0.bundleID == bundleID }?.name
-        case .settingsPane(let bundleID):
-            return appIndex.apps.first { $0.kind == .systemSettings && $0.bundleID == bundleID }?
-                .name
         case .customCommand(let id):
             return customCommands.command(id: id)?.name
         case .quicklink(let id):

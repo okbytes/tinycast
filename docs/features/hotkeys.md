@@ -58,10 +58,9 @@ Shortcuts are also spelled as typeable chords (`ctrl+option+left`) in the opt-in
 `HotKeySpelling` is that grammar; `HotKeySettingsFile` applies through `setBinding`, so `UserDefaults`
 stays the one store either way.
 
-System Settings panes use `boundPaneBundleIDs`; custom commands and quicklinks use their stable
-UUIDs in `boundCustomCommandIDs` and `boundQuicklinkIDs`. Those two are the per-item case — unlike a
-fixed catalog, there is no `allCases` to walk — so each needs an index for `start()`
-to re-register from
+Custom commands and quicklinks use their stable UUIDs in `boundCustomCommandIDs` and
+`boundQuicklinkIDs`. Those two are the per-item case — unlike a fixed catalog, there is no
+`allCases` to walk — so each needs an index for `start()` to re-register from
 and to prune bindings whose record was deleted while Tinycast wasn't running. That prune is why
 `QuicklinkStore` loads at launch even when the feature is off
 (see [quicklinks.md](quicklinks.md#hotkeys)).

@@ -73,7 +73,6 @@ struct SettingsBackup: Codable {
         var togglePalette: HotKeyBinding?
         var commands: [String: HotKeyBinding]?
         var apps: [String: HotKeyBinding]?
-        var panes: [String: HotKeyBinding]?
         var customCommands: [String: HotKeyBinding]?
         var systemActions: [String: HotKeyBinding]?
         var windowCommands: [String: HotKeyBinding]?
@@ -155,10 +154,6 @@ extension SettingsBackup {
         hotkeys.apps = Dictionary(
             uniqueKeysWithValues: hk.boundBundleIDs.compactMap { id in
                 hk.binding(for: .app(bundleID: id)).map { (id, $0) }
-            })
-        hotkeys.panes = Dictionary(
-            uniqueKeysWithValues: hk.boundPaneBundleIDs.compactMap { id in
-                hk.binding(for: .settingsPane(bundleID: id)).map { (id, $0) }
             })
         hotkeys.customCommands = Dictionary(
             uniqueKeysWithValues: hk.boundCustomCommandIDs.compactMap { id in
@@ -420,7 +415,6 @@ extension SettingsBackup {
             apply(b, action)
         }
         for (id, b) in hotkeys.apps ?? [:] { apply(b, .app(bundleID: id)) }
-        for (id, b) in hotkeys.panes ?? [:] { apply(b, .settingsPane(bundleID: id)) }
         for (rawID, b) in hotkeys.customCommands ?? [:] {
             guard let id = UUID(uuidString: rawID), core.customCommands.command(id: id) != nil else {
                 continue

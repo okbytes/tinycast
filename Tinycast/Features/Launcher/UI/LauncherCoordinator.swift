@@ -94,9 +94,6 @@ final class LauncherCoordinator {
         switch app.kind {
         case .application:
             AppLauncher.launch(app.url)
-        case .systemSettings:
-            guard let bundleID = app.bundleID else { return }
-            AppLauncher.openSettingsPane(bundleID: bundleID)
         case .snippet:
             guard let snippetID = StoredSnippet.id(fromEntryID: app.id) else { return }
             snippetCoordinator.expandSnippet(id: snippetID, target: previous)

@@ -1,6 +1,5 @@
 import AppKit
 import Synchronization
-import UniformTypeIdentifiers
 
 struct IconCacheGeneration {
     private(set) var value = 0
@@ -58,8 +57,6 @@ enum EntryIcon: Hashable, Sendable {
     case file(stamp: Int)
     case symbol(String)
     case tintedSymbol(name: String, tint: SymbolTint)
-    /// A declared type's icon, for a bundle whose own file icon is a placeholder.
-    case contentType(String)
 }
 
 struct IconSize: Hashable, Sendable {
@@ -310,29 +307,6 @@ enum IconCache {
         return rasterized(source, into: NSRect(x: inset, y: inset, width: side, height: side))
     }
 
-    static func contentTypeIcon(_ identifier: String) -> NSImage {
-        let key = contentTypeKey(identifier)
-        if let cached = cache.object(forKey: key) { return cached }
-        let (icon, cost) = downsampled(NSWorkspace.shared.icon(for: UTType(identifier) ?? .item))
-        cache.setObject(icon, forKey: key, cost: cost)
-        return icon
-    }
-
-    static func cachedContentTypeIcon(_ identifier: String) -> NSImage? {
-        cache.object(forKey: contentTypeKey(identifier))
-    }
-
-    static func loadContentTypeIconAsync(_ identifier: String) async -> NSImage? {
-        if let cached = cachedContentTypeIcon(identifier) { return cached }
-        return await Task.detached(priority: .userInitiated) {
-            Decoded(image: contentTypeIcon(identifier))
-        }.value.image
-    }
-
-    private static func contentTypeKey(_ identifier: String) -> NSString {
-        key("type:\(identifier)")
-    }
-
     // MARK: - Drawing an `EntryIcon`
 
     /// One switch, so a row never has to know which of these paths its entry wants.
@@ -341,7 +315,6 @@ enum IconCache {
         case .file(let stamp): return icon(forFile: fileURL.path, stamp: stamp)
         case .symbol(let name): return symbolIcon(named: name)
         case .tintedSymbol(let name, let tint): return symbolIcon(named: name, tint: tint)
-        case .contentType(let identifier): return contentTypeIcon(identifier)
         }
     }
 
@@ -350,7 +323,6 @@ enum IconCache {
         case .file(let stamp): return cached(forFile: fileURL.path, stamp: stamp, size: size)
         case .symbol(let name): return cachedSymbol(named: name)
         case .tintedSymbol(let name, let tint): return cachedSymbol(named: name, tint: tint)
-        case .contentType(let identifier): return cachedContentTypeIcon(identifier)
         }
     }
 
@@ -359,7 +331,6 @@ enum IconCache {
         case .file(let stamp): return await loadAsync(forFile: fileURL.path, stamp: stamp, size: size)
         case .symbol(let name): return await loadSymbolAsync(named: name)
         case .tintedSymbol(let name, let tint): return await loadSymbolAsync(named: name, tint: tint)
-        case .contentType(let identifier): return await loadContentTypeIconAsync(identifier)
         }
     }
 

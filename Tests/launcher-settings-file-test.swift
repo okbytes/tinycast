@@ -150,20 +150,20 @@ struct LauncherSettingsFileTest {
 
     private static func testDeletedWaitingRecord() {
         let fixture = Fixture()
-        let binding = fixture.file.panesBinding(for: .systemSettings)
+        let binding = fixture.file.appsBinding(for: .applications)
         check(
-            "a waiting pane's record is accepted",
+            "a waiting app's record is accepted",
             binding.write(
                 .object([
-                    bundleID: .object(["shortcut": chordText.settingsJSON, "alias": "pane"])
+                    bundleID: .object(["shortcut": chordText.settingsJSON, "alias": "gone"])
                 ])
             ).isEmpty)
         check("deleting a waiting record applies", binding.write(.object([])).isEmpty)
-        fixture.index.apps = [entry(bundleID, kind: .systemSettings)]
+        fixture.index.apps = [entry(bundleID, kind: .application)]
         check("a deleted waiting record is not applied", fixture.file.applyInstalled().isEmpty)
         check(
-            "the pane stays unbound", fixture.hotKeys.binding(for: .settingsPane(bundleID: bundleID)) == nil)
-        check("the pane has no stale alias", fixture.aliases.alias(for: bundleID) == nil)
+            "the app stays unbound", fixture.hotKeys.binding(for: .app(bundleID: bundleID)) == nil)
+        check("the app has no stale alias", fixture.aliases.alias(for: bundleID) == nil)
     }
 
     private static func testMovedShortcut() {
@@ -221,7 +221,7 @@ struct LauncherSettingsFileTest {
 
 // In-memory scanning and Carbon keep the shipped bindings and stores safe to test.
 struct AppEntry: Sendable {
-    enum Kind: String, Sendable { case application, systemSettings, systemAction, command }
+    enum Kind: String, Sendable { case application, systemAction, command }
     let id: String
     let name: String
     let url: URL
@@ -244,9 +244,6 @@ final class HotKeyManager {
     private var bindings: [HotKeyAction: HotKeyBinding] = [:]
     var boundBundleIDs: [String] {
         bindings.keys.compactMap { if case .app(let id) = $0 { id } else { nil } }
-    }
-    var boundPaneBundleIDs: [String] {
-        bindings.keys.compactMap { if case .settingsPane(let id) = $0 { id } else { nil } }
     }
     func binding(for action: HotKeyAction) -> HotKeyBinding? { bindings[action] }
     func setBinding(_ binding: HotKeyBinding?, for action: HotKeyAction) { bindings[action] = binding }

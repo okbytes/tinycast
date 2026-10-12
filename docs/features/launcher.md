@@ -153,8 +153,8 @@ name. Rule 4 applies at any length: rule 2 only protects an exact title past thr
 ### Kind priority
 
 - **Apps win the ties.** `KindDescriptor.rankPriority` puts applications (4) above command-like kinds
-  (3), quicklinks (2), and System Settings panes (1), so a first-party app is never
-  shadowed by the Tinycast command named after it: Calculator over Calculator History.
+  (3) and quicklinks (2), so a first-party app is never shadowed by the Tinycast command named after
+  it: Calculator over Calculator History.
 - **Two entries with the same alias** fall through to the next rule.
 
 `settings` is the case these were measured against. Apple declares `Settings` in System Settings'
@@ -187,15 +187,14 @@ The user's own language wins the **display name**, so a row reads the way Finder
 English included, ride along as alternate titles, matched as typed and never transliterated.
 
 **A bundle ships no table for the language it is already written in, so `CFBundleDevelopmentRegion`
-places its untranslated name — an app's file name, a pane's `Info.plist` — in the walk at that
-language's own position.** Apple omits a loctable's `en` key exactly when the base name already says
-it in English: `Tips.app`, `Calculator.app` and `AppleIDSettings.appex` all do, and without this the
-walk fell straight past English into whatever *second* language the Mac listed, so an English Mac
-with Russian under it labelled them `Советы` and `Аккаунт Apple`. A real table for that same language
-replaces the base name outright — `VoiceMemos.app` does ship `en`, so `Voice Memos` is its English
-name, and a pane's `TrackpadExtension` is never indexed for `text` to find. The app scan still adds
-every file name as an alternate title. Reading the `en_GB` those bundles *do* carry is the wrong
-repair: it relabels `Print Center` as `Print Centre`. Below the development region the walk carries on,
+places its untranslated name — the app's file name — in the walk at that language's own position.**
+Apple omits a loctable's `en` key exactly when the base name already says it in English: `Tips.app`
+and `Calculator.app` both do, and without this the walk fell straight past English into whatever
+*second* language the Mac listed, so an English Mac with Russian under it labelled Tips `Советы`. A
+real table for that same language replaces the base name outright — `VoiceMemos.app` does ship `en`,
+so `Voice Memos` is its English name. The app scan still adds every file name as an alternate title.
+Reading the `en_GB` those bundles *do* carry is the wrong repair: it relabels `Print Center` as
+`Print Centre`. Below the development region the walk carries on,
 so every language under it stays indexed as an alternate title. The region is canonicalized before it is
 matched, because `CFBundleDevelopmentRegion` still ships its pre-BCP-47 spelling — Safari's and
 Terminal's read `English`. Norwegian development regions resolve as Bokmål, and both `nb` and `no`
@@ -246,8 +245,7 @@ not name the entry, so a title scoring the same wins rule 10.
 A query that *equals* a category's name lists that whole category under its section header, in the
 order the section shows when the field is empty. The section title and singular label,
 `Snippets`/`Snippet` or `Window Management`/`Window Command`, come straight from `KindDescriptor`.
-An entry whose display name equals the query joins the listing: `System Settings` still shows the
-installed application above its panes.
+An entry whose display name equals the query joins the listing.
 
 At three characters or more, a prefix at the start of either name or one of its words also includes
 the category. `win`, `window man` and `management` all include Window Management. Exact names
@@ -345,10 +343,7 @@ A loctable read costs ~0.2 ms per bundle and the scan reruns on every launcher o
 `BundleNameCache` memoizes the names per bundle path and re-reads only when the bundle's modification
 date moves. Each pass is seeded from the last and keeps only what it looked at, so uninstalled apps
 fall out instead of accumulating; a changed system language drops the whole table, because the names
-in it are in the old one. `SettingsPaneScanner` runs the same `BundleLocalization` walk for the
-`.appex` panes, and retires its cache when either the extensions folder or the language list moves.
-Headphones and Battery are named junk or nothing in every table, so their `nameOverrides` entry
-replaces the walk.
+in it are in the old one.
 
 ## Learned ranking
 
@@ -414,8 +409,8 @@ permission-aware failures. With the palette closed it targets the frontmost app,
 Quit All act on the same window a palette launch would have.
 
 System actions occupy their own launcher section and their own Settings pane. The empty-query publication
-order is applications, System Settings, quicklinks, snippets, system actions, window commands, custom
-commands, then built-in commands; the sectioned view filters in that same order so the visible rows remain
+order is applications, quicklinks, snippets, system actions, window commands, custom commands, then
+built-in commands; the sectioned view filters in that same order so the visible rows remain
 identical to the flat selection index.
 Search, favorites, visibility and learned ranking work through the normal `AppEntry` path, and every
 action is bindable to a global shortcut from Settings › System Actions
@@ -623,8 +618,8 @@ favorite, alias and learned ranking survive the round trip, and its shortcut kee
 `allowsHotKey` gates by category and never by item.
 
 The row is offered only where Settings can undo it, and `KindDescriptor.canHideFromSearch` is that
-rule — per kind, and a new `Kind` case has to answer it to compile. Applications, System Settings,
-Commands, System Actions and Window Commands each
+rule — per kind, and a new `Kind` case has to answer it to compile. Applications, Commands,
+System Actions and Window Commands each
 draw a per-row checkbox in their pane, so they carry it. Snippets do not: their pane lists a record
 with its own switches, not a launcher checkbox — a hide nothing in Settings can visibly undo is a
 trap, not a shortcut. Quicklinks and custom commands differ: each editor has its own **Show in root
@@ -642,7 +637,7 @@ no such menu item.
 
 ## Reveal in Finder
 
-Application and System Settings results expose **Show in Finder** in their ⌘K Actions menu and on
+Application results expose **Show in Finder** in their ⌘K Actions menu and on
 **⌘↵**. Synthetic command results have no filesystem location, so neither the menu row nor the
 shortcut is available for them. `AppEntry.canRevealInFinder` is the one rule both the menu row and
 the key handler read, so the advertised chord can't drift from the behavior.
@@ -657,7 +652,7 @@ is unset, so every other reveal is exactly the one system call.
 
 An application row drags its bundle onto the Dock, into a System Settings privacy list, or anywhere
 else that takes an app. `AppEntry.canDragOut` — `KindDescriptor.canDragOut`, true for `.application`
-alone — is the one rule: a Settings pane or a shortcut dropped on another app opens nothing there,
+alone — is the one rule: a shortcut dropped on another app opens nothing there,
 and every new kind has to say so to build.
 
 The row uses `onRowTap(drag:)` from `DesignSystem/Interaction/RowClick.swift`, the tap-shaped sibling

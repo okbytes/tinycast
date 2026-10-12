@@ -50,13 +50,6 @@ enum AppLauncher {
         }.value
     }
 
-    /// Opens System Settings at the pane backed by the given extension bundle ID.
-    @MainActor
-    static func openSettingsPane(bundleID: String) {
-        guard let url = URL(string: "x-apple.systempreferences:" + bundleID) else { return }
-        NSWorkspace.shared.open(url)
-    }
-
     /// Focus the app if it isn't frontmost, hide it if it is, launch it if it isn't running.
     @MainActor
     static func toggle(bundleID: String) {

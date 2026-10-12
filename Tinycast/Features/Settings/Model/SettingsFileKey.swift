@@ -24,8 +24,6 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case applicationsEnabled = "applications.enabled"
     case searchScopes = "applications.searchScopes"
     case applications = "applications.apps"
-    case systemSettingsEnabled = "systemSettings.enabled"
-    case systemSettings = "systemSettings.panes"
     case systemActionsEnabled = "systemActions.enabled"
     case systemActions = "systemActions.actions"
     case builtInCommandsEnabled = "commands.builtInEnabled"

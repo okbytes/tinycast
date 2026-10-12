@@ -86,7 +86,7 @@ struct LauncherList: View {
         }
         // Publication order, so rows match the flat index.
         let kinds: [AppEntry.Kind] = [
-            .application, .systemSettings, .quicklink, .appleShortcut,
+            .application, .quicklink, .appleShortcut,
             .snippet, .systemAction, .windowCommand, .customCommand,
             .command
         ]

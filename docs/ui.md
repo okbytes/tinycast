@@ -275,7 +275,7 @@ All lists share one row grammar so launcher and clipboard look identical:
 The palette lists (App Launcher, Clipboard, Emoji, Calculator History, Uninstall) render category labels
 through one shared **`SectionHeader`** (`.subheadline.medium`, secondary — `Features/Launcher/UI/SectionHeader.swift`).
 The launcher shows a single "Results" header over search matches, and per-kind sections
-(Favorites / Applications / System Settings / Commands) for the empty query; clipboard/history use
+(Favorites / Applications / Commands) for the empty query; clipboard/history use
 date buckets (Today / Yesterday / …), and the clipboard adds a "Pinned" section above them holding
 every pinned entry (filtered searches included).
 

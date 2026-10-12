@@ -43,7 +43,7 @@ executable content.
 
 ## Launcher integration
 
-`AppIndex` owns two slices: applications/System Settings discovered off-main and custom command
+`AppIndex` owns two slices: applications discovered off-main and custom command
 entries supplied on the main actor. It publishes the custom command slice ahead of the alphabetized
 `CommandCatalog` built-ins, each its own launcher section. This keeps the visible row order identical
 to the flat palette selection while allowing edits to invalidate fuzzy results without rescanning disk.

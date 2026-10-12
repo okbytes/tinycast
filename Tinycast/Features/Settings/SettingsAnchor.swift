@@ -18,8 +18,6 @@ extension SettingsAnchor {
     static let applicationsSearchScopes = Self(tab: .applications, title: "Search Scopes")
     static let applicationsApplications = Self(tab: .applications, title: "Applications")
 
-    static let systemSettingsSystemSettings = Self(tab: .systemSettings, title: "System Settings")
-
     static let systemActionsSystemActions = Self(tab: .systemActions, title: "System Actions")
 
     static let commandsCommands = Self(tab: .commands, title: "Commands")
