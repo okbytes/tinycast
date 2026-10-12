@@ -4,12 +4,6 @@ import AppKit
 /// `AVCaptureSession` is not `Sendable`, so the blocking calls go off main behind a box.
 @MainActor
 final class CameraSession {
-    /// What the session is built for; taking a photo costs a larger preset and an extra output.
-    enum Purpose {
-        case preview
-        case capture
-    }
-
     /// Settled before the panel opens, so it never swaps a stage out from under the user.
     enum Feed {
         case live(AVCaptureSession)
@@ -25,15 +19,10 @@ final class CameraSession {
         ).devices
     }
 
-    private let purpose: Purpose
     private var capture: AVCaptureSession?
     private var photoOutput: AVCapturePhotoOutput?
     private var device: AVCaptureDevice?
     private var pendingPhoto: PhotoCapture?
-
-    init(_ purpose: Purpose = .preview) {
-        self.purpose = purpose
-    }
 
     /// Blocking on `startRunning` is the point: the first frame is video, not black.
     func start() async -> Feed {
@@ -108,11 +97,10 @@ final class CameraSession {
         guard let device = preferred, let input = try? AVCaptureDeviceInput(device: device)
         else { return nil }
         let capture = AVCaptureSession()
-        capture.sessionPreset = purpose == .capture ? .photo : .medium
+        capture.sessionPreset = .photo
         guard capture.canAddInput(input) else { return nil }
         capture.addInput(input)
         self.device = device
-        guard purpose == .capture else { return capture }
         let output = AVCapturePhotoOutput()
         guard capture.canAddOutput(output) else { return capture }
         capture.addOutput(output)

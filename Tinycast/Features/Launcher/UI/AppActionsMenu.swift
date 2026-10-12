@@ -106,13 +106,9 @@ enum AppActionsMenu {
         return PopoverMenuContent(header: app.name, items: items)
     }
 
-    /// A meeting row leads with the same actions as the meeting's card.
     private static func leadingItems(
         app: AppEntry, searchQuery: String, core: AppCore
     ) -> [PopoverMenuItem] {
-        if app.kind == .meeting, let meeting = core.calendarCoordinator.meeting(entryID: app.id) {
-            return MeetingActionsMenu.content(meeting: meeting, core: core).items
-        }
         let primarySymbol =
             switch app.kind {
             case .application, .command: "list.dash.header.rectangle"

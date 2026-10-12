@@ -73,20 +73,20 @@ struct PaletteNavigationTests {
         expect(tokens.followToken != follow, "it scrolls the restored row into view instead")
 
         let nested = searchingLauncher()
-        nested.push(mode: .schedule)
-        nested.query = "standup"
-        nested.push(mode: .meetingDetails)
+        nested.push(mode: .quicklinks)
+        nested.query = "github"
+        nested.push(mode: .dictionary)
         expect(
-            nested.pop() && nested.mode == .schedule && nested.query == "standup",
-            "a meeting's details return to the schedule search they were opened over")
+            nested.pop() && nested.mode == .quicklinks && nested.query == "github",
+            "a pushed screen returns to the quicklink search it was opened over")
         expect(
             nested.pop() && nested.mode == .launcher && nested.query == "clipboard",
-            "and the schedule returns to the search that found it")
+            "and quicklinks return to the search that found them")
 
         // `replace` is for a screen swapping its own contents, which is not a step of its own.
         let replaced = searchingLauncher()
-        replaced.push(mode: .schedule)
-        replaced.replace(mode: .schedule)
+        replaced.push(mode: .quicklinks)
+        replaced.replace(mode: .quicklinks)
         expect(replaced.canGoBack, "swapping a screen's contents keeps what it was opened over")
         expect(
             replaced.pop() && replaced.mode == .launcher,
@@ -114,11 +114,11 @@ struct PaletteNavigationTests {
             "and the screen it crossed from is the step back")
 
         let chatted = searchingLauncher()
-        chatted.push(mode: .schedule)
-        chatted.query = "standup"
+        chatted.push(mode: .quicklinks)
+        chatted.query = "github"
         chatted.push(mode: .clipboard)
         expect(
-            chatted.pop() && chatted.mode == .schedule && chatted.query == "standup",
+            chatted.pop() && chatted.mode == .quicklinks && chatted.query == "github",
             "leaving a screen keeps its query to come back to")
         expect(
             chatted.pop() && chatted.mode == .launcher,

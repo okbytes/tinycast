@@ -14,10 +14,6 @@ enum PaletteShortcut: Equatable {
     case copyText
     /// ⇧⌘↵, matched by the Return handler rather than `resolve`.
     case copyCalculation
-    /// ⌘O, the row handed to the app that owns it.
-    case openInApp
-    /// ⌘I.
-    case showDetails
     /// ⇧⌘F.
     case toggleFavorite
     /// ⇧⌘H.
@@ -51,8 +47,6 @@ enum PaletteShortcut: Equatable {
         if isDeleteKey { return command ? .commandDelete : nil }
         if command, control, !shift, !option, matches("c") { return .copyLink }
         if command, shift, matches("t") { return .copyText }
-        if command, !shift, matches("o") { return .openInApp }
-        if command, !shift, matches("i") { return .showDetails }
         if control, matches("x") { return shift ? .deleteAll : .delete }
         if command, matches("f") { return shift ? .toggleFavorite : .showInFinder }
         if command, shift, matches("h") { return .hideFromSearch }
@@ -68,7 +62,7 @@ enum PaletteShortcut: Equatable {
     /// The compact bar shows no selection, so a chord aimed at a highlighted row waits for the list.
     var requiresExpanded: Bool {
         switch self {
-        case .copyLink, .copyText, .openInApp, .showDetails, .toggleFavorite, .hideFromSearch,
+        case .copyLink, .copyText, .toggleFavorite, .hideFromSearch,
             .quit, .forceQuit, .restart, .edit, .duplicate, .showInFinder:
             true
         case .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot, .newItem,
@@ -79,7 +73,7 @@ enum PaletteShortcut: Equatable {
 
     var closesMenu: Bool {
         switch self {
-        case .delete, .deleteAll, .copyLink, .copyText, .copyCalculation, .openInApp, .showDetails,
+        case .delete, .deleteAll, .copyLink, .copyText, .copyCalculation,
             .toggleFavorite, .hideFromSearch, .newItem, .settings, .edit, .duplicate, .showInFinder:
             true
         case .commandDelete, .quit, .forceQuit, .restart, .pin, .favoriteSlot:

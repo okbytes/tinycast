@@ -1,4 +1,4 @@
-// Meeting links, the join and menu-bar windows, auto-join, drafts, day groups and span.
+// Meeting links, the agenda and menu-bar windows, day groups and span.
 import Foundation
 
 @main
@@ -19,13 +19,8 @@ struct CalendarTests {
         rejectsNonMeetingPages()
         fieldPrecedence()
         linkScanning()
-        appURLRewrites()
-        accountPrefill()
         agendaFiltering()
-        cardWindow()
-        chordFallsBackWiderThanTheCard()
         countdownStrings()
-        rowPills()
         dayBuckets()
         dayGroups()
         readSpan()
@@ -34,11 +29,6 @@ struct CalendarTests {
         menuBarFiltering()
         menuBarToday()
         menuBarTitles()
-        autoJoinFiresOnce()
-        autoJoinRespectsArming()
-        autoJoinSkipsBareLinks()
-        eventDrafts()
-        meetingDetails()
 
         print("\(passes)/\(passes + failures) passed")
         if failures > 0 { exit(1) }
@@ -129,79 +119,7 @@ struct CalendarTests {
             "the scheme and host match case-insensitively")
     }
 
-    static func appURLRewrites() {
-        expect(
-            link("https://us02web.zoom.us/j/8901234567")?.appURL?.absoluteString
-                == "zoommtg://zoom.us/join?confno=8901234567",
-            "a Zoom link rewrites to the desktop app")
-        expect(
-            link("https://us02web.zoom.us/j/89?pwd=SeCrEt")?.appURL?.absoluteString
-                == "zoommtg://zoom.us/join?confno=89&pwd=SeCrEt",
-            "the Zoom passcode travels with the rewrite")
-        expect(
-            link("https://teams.microsoft.com/l/meetup-join/19%3ameeting_Zm8?x=1")?.appURL?
-                .absoluteString == "msteams:/l/meetup-join/19%3ameeting_Zm8?x=1",
-            "a Teams link rewrites to msteams:, path and query intact")
-        expect(
-            link("https://meet.google.com/abc-defg-hij")?.appURL == nil,
-            "a provider with no unambiguous scheme opens the web instead")
-        expect(link("https://example.com/room")?.appURL == nil, "a bare link opens the web")
-    }
-
-    static func accountPrefill() {
-        expect(
-            hosted("https://meet.google.com/abc-defg-hij", "user@domain.com")?.webURL.absoluteString
-                == "https://meet.google.com/abc-defg-hij?authuser=user@domain.com",
-            "a Meet link opens as the account whose calendar carried it")
-        expect(
-            hosted("https://meet.google.com/abc?hs=1", "user@domain.com")?.webURL.absoluteString
-                == "https://meet.google.com/abc?hs=1&authuser=user@domain.com",
-            "the account joins a query the invite already had")
-        expect(
-            hosted("https://meet.google.com/abc?authuser=1", "user@domain.com")?.webURL
-                .absoluteString == "https://meet.google.com/abc?authuser=1",
-            "a link naming its own account is left alone")
-        expect(
-            hosted("https://meet.google.com/abc", "a+b@domain.com")?.webURL.absoluteString
-                == "https://meet.google.com/abc?authuser=a%2Bb@domain.com",
-            "a plus in the address is encoded, so it cannot be read as a space")
-        expect(
-            hosted("https://us02web.zoom.us/j/89", "user@domain.com")?.webURL.absoluteString
-                == "https://us02web.zoom.us/j/89",
-            "no other provider takes an account in the URL")
-        expect(
-            hosted("https://meet.google.com/abc-defg-hij", nil)?.webURL.absoluteString
-                == "https://meet.google.com/abc-defg-hij",
-            "a calendar with no address of its own leaves the link as written")
-        expect(
-            hosted("https://meet.google.com/abc-defg-hij", "user@domain.com")?.url.absoluteString
-                == "https://meet.google.com/abc-defg-hij",
-            "the link as written is what Copy Meeting Link keeps")
-        expect(
-            hosted("https://meet.google.com/abc", participant("mailto:user@domain.com"))?.webURL
-                .absoluteString == "https://meet.google.com/abc?authuser=user@domain.com",
-            "the current user's mailto address reaches the Meet link as its account")
-        expect(
-            hosted(
-                "https://meet.google.com/abc",
-                participant("mailto:user@domain.com", isCurrentUser: false))?.webURL
-                .absoluteString == "https://meet.google.com/abc",
-            "another participant's address is never used as ours")
-        expect(
-            participant("mailto:user%40domain.com") == "user@domain.com",
-            "a percent-encoded address is decoded once, here")
-        expect(
-            participant("mailto:a+b@domain.com") == "a+b@domain.com",
-            "a plus survives the decode, so accountURL can encode it again")
-        expect(
-            participant("urn:uuid:1F2A") == nil,
-            "a non-mailto participant URL yields no address")
-        expect(
-            participant("mailto:unknownorganizer@calendar.google.com") != nil,
-            "a placeholder organizer address is still an address, left for isCurrentUser to refuse")
-    }
-
-    // MARK: - The join window
+    // MARK: - The agenda
 
     static func agendaFiltering() {
         let events = [
@@ -219,96 +137,6 @@ struct CalendarTests {
         expect(
             UpcomingWindow.agenda(from: [over], now: at(29)).map(\.id) == ["over"],
             "one still running stays, however long ago it started")
-    }
-
-    static func cardWindow() {
-        let window = UpcomingWindow(leadMinutes: 5)
-        let meeting = event(id: "standup", start: 60, minutes: 30)
-        let start = at(60)
-        expect(
-            window.carded(from: [meeting], now: start.addingTimeInterval(-300))?.id == "standup",
-            "the card appears exactly five minutes out")
-        expect(
-            window.carded(from: [meeting], now: start.addingTimeInterval(-301)) == nil,
-            "one second earlier it is not there yet")
-        expect(
-            window.carded(from: [meeting], now: start.addingTimeInterval(299))?.id == "standup",
-            "it survives almost five minutes past the start, because everyone joins late")
-        expect(
-            window.carded(from: [meeting], now: start.addingTimeInterval(300)) == nil,
-            "the grace period ends five minutes past the start")
-
-        let brief = event(id: "brief", start: 60, minutes: 3)
-        expect(
-            window.carded(from: [brief], now: at(60).addingTimeInterval(179))?.id == "brief",
-            "a three-minute meeting is carded until it ends")
-        expect(
-            window.carded(from: [brief], now: at(60).addingTimeInterval(180)) == nil,
-            "the grace period never outlives the meeting")
-
-        let linkless = event(id: "linkless", start: 60, link: nil)
-        expect(
-            window.carded(from: [linkless], now: start) == nil,
-            "a meeting with no link is never carded")
-        expect(
-            UpcomingWindow.agenda(from: [linkless], now: start).map(\.id) == ["linkless"],
-            "but it stays on the agenda, so it is still listed and searchable")
-    }
-
-    static func chordFallsBackWiderThanTheCard() {
-        let window = UpcomingWindow(leadMinutes: 5)
-        let running = event(id: "running", start: 0, minutes: 60)
-        let next = event(id: "next", start: 120)
-        let now = at(0).addingTimeInterval(1800)
-
-        expect(window.carded(from: [running], now: now) == nil, "half an hour in, the card is gone")
-        expect(
-            window.joinable(from: [running], now: now)?.id == "running",
-            "the chord still joins the call that is running")
-        expect(
-            window.joinable(from: [next], now: now)?.id == "next",
-            "with nothing running it offers the next one")
-        expect(
-            window.joinable(from: [running, next], now: at(120).addingTimeInterval(-120))?.id
-                == "next",
-            "inside the card window the chord joins what is on screen")
-        expect(
-            window.joinable(from: [], now: now) == nil, "an empty day offers nothing to join")
-        expect(
-            window.joinable(from: [event(id: "past", start: -120)], now: now) == nil,
-            "a meeting that is over is not offered")
-    }
-
-    static func rowPills() {
-        var calendar = Self.calendar
-        calendar.locale = Locale(identifier: "en_US")
-        let start = date(year: 2026, month: 9, day: 23, hour: 17)
-        let meeting = event(id: "review", starting: start, minutes: 30)
-        func pill(_ offset: TimeInterval) -> UpcomingWindow.RowPill? {
-            UpcomingWindow.rowPill(
-                for: meeting, now: start.addingTimeInterval(offset), calendar: calendar)
-        }
-        expect(
-            pill(-60 * 60) == .init(text: "in 60 min", isImminent: true),
-            "exactly an hour out is imminent")
-        expect(
-            pill(-3 * 60 * 60) == .init(text: "in 3 hr", isImminent: false),
-            "later today counts down in hours")
-        expect(
-            pill(-18 * 60 * 60) == .init(text: "Wed, Sep 23", isImminent: false),
-            "a meeting tomorrow names its date")
-        expect(
-            pill(-40 * 60)?.text == "in 40 min", "inside the hour a countdown beats the date")
-        expect(pill(0)?.text == "Now", "the start reads as Now")
-        expect(pill(29 * 60) == .init(text: "Now", isImminent: true), "a meeting under way stays Now")
-        expect(pill(30 * 60) == nil, "a finished meeting earns no pill")
-
-        let lateNight = date(year: 2026, month: 9, day: 23, hour: 23, minute: 30)
-        let pastMidnight = event(id: "late", starting: lateNight.addingTimeInterval(40 * 60))
-        expect(
-            UpcomingWindow.rowPill(for: pastMidnight, now: lateNight, calendar: calendar)?.text
-                == "in 40 min",
-            "a meeting just past midnight still counts down")
     }
 
     static func countdownStrings() {
@@ -473,136 +301,6 @@ struct CalendarTests {
             "a title exactly at the cap keeps every character")
     }
 
-    // MARK: - Auto join
-
-    static func autoJoinFiresOnce() {
-        let window = UpcomingWindow(leadMinutes: 5)
-        let policy = AutoJoinPolicy(armedAt: at(0), namedProvidersOnly: false)
-        let meeting = event(id: "standup", start: 60, minutes: 30)
-        let start = at(60)
-
-        expect(
-            policy.meeting(
-                from: [meeting], now: start.addingTimeInterval(-60), window: window,
-                joined: []) == nil,
-            "auto join never fires early, however close the card is")
-        expect(
-            policy.meeting(from: [meeting], now: start, window: window, joined: [])?.id == "standup",
-            "it fires at the start")
-        expect(
-            policy.meeting(from: [meeting], now: start, window: window, joined: ["standup"]) == nil,
-            "and never twice for the same meeting")
-        expect(
-            policy.meeting(
-                from: [meeting], now: start.addingTimeInterval(299), window: window,
-                joined: [])?.id == "standup",
-            "a Mac waking inside the window still joins")
-        expect(
-            policy.meeting(
-                from: [meeting], now: start.addingTimeInterval(300), window: window,
-                joined: []) == nil,
-            "past the window it stays out of the way")
-        expect(
-            policy.meeting(
-                from: [event(id: "linkless", start: 60, link: nil)], now: start,
-                window: window, joined: []) == nil,
-            "a meeting with no link is never auto joined")
-    }
-
-    static func autoJoinRespectsArming() {
-        let window = UpcomingWindow(leadMinutes: 5)
-        let running = event(id: "running", start: 60, minutes: 60)
-        // Armed a minute into a meeting that was already under way.
-        let policy = AutoJoinPolicy(armedAt: at(61), namedProvidersOnly: false)
-        expect(
-            policy.meeting(from: [running], now: at(61), window: window, joined: []) == nil,
-            "arming the switch mid-call does not yank you into the call")
-        let later = event(id: "later", start: 90)
-        expect(
-            policy.meeting(from: [running, later], now: at(90), window: window, joined: [])?.id
-                == "later",
-            "but the next meeting after arming is fair game")
-    }
-
-    static func autoJoinSkipsBareLinks() {
-        let window = UpcomingWindow(leadMinutes: 5)
-        let placeholder = event(id: "placeholder", start: 60)
-        let call = event(id: "call", start: 60, link: link("https://zoom.us/j/8901234567"))
-        let start = at(60)
-
-        expect(
-            AutoJoinPolicy(armedAt: at(0), namedProvidersOnly: false)
-                .meeting(from: [placeholder], now: start, window: window, joined: [])?.id
-                == "placeholder",
-            "a bare link still auto joins by default")
-        let namedOnly = AutoJoinPolicy(armedAt: at(0), namedProvidersOnly: true)
-        expect(
-            namedOnly.meeting(from: [placeholder], now: start, window: window, joined: []) == nil,
-            "named providers only leaves a bare link to the card")
-        let earlier = event(id: "earlier", start: 58)
-        expect(
-            namedOnly.meeting(from: [earlier, call], now: start, window: window, joined: [])?.id
-                == "call",
-            "and a bare link the card would pick first does not shadow a call beside it")
-    }
-
-    // MARK: - The event draft
-
-    static func eventDrafts() {
-        var draft = EventDraft()
-        expect(!draft.isValid, "a blank draft cannot be written")
-        draft.title = "   "
-        expect(!draft.isValid, "nor one that is only whitespace")
-        draft.title = "  Standup  "
-        expect(draft.isValid, "a real title is enough")
-        expect(draft.trimmedTitle == "Standup", "the title is trimmed on the way out")
-
-        let now = at(0)
-        expect(draft.start(from: now) == now, "an offset of zero starts now")
-        expect(
-            draft.end(from: now) == now.addingTimeInterval(1800), "the default runs thirty minutes")
-        draft.startOffsetMinutes = 30
-        draft.durationMinutes = 60
-        expect(draft.start(from: now) == at(30), "an offset pushes the start out")
-        expect(draft.end(from: now) == at(90), "and the duration runs from there")
-
-        expect(EventDraft.label(startOffset: 0) == "Now", "a zero offset reads as Now")
-        expect(EventDraft.label(startOffset: 15) == "15 min", "a smaller offset reads in minutes")
-        expect(EventDraft.label(duration: 45) == "45 min", "so does a sub-hour duration")
-        expect(EventDraft.label(duration: 60) == "1 hr", "an hour reads as an hour")
-    }
-
-    // MARK: - Meeting details
-
-    static func meetingDetails() {
-        let notes = MeetingDetails.plainText(fromNotes:)
-        expect(notes("  Agenda\n\nBring numbers  ") == "Agenda\n\nBring numbers", "plain text is trimmed")
-        expect(notes(" \n ") == nil, "blank notes are none at all")
-        expect(
-            notes("Join <https://teams.microsoft.com/l/meetup-join/1> now")
-                == "Join <https://teams.microsoft.com/l/meetup-join/1> now",
-            "an angle-bracketed link in plain text survives")
-        expect(notes("a < b and c > d") == "a < b and c > d", "bare angle brackets are not markup")
-        expect(
-            notes("<b>Agenda</b><br>Q&amp;A<br/><br><br>Wrap&nbsp;up") == "Agenda\nQ&A\n\nWrap up",
-            "HTML notes lose their tags, keep their breaks and decode entities")
-        expect(
-            notes("<ul><li>One</li><li>Two</li></ul>") == "• One\n• Two", "list items become bullets")
-        expect(
-            notes("<p>See <a href=\"https://example.com\">https://example.com</a></p>")
-                == "See https://example.com",
-            "a link keeps its text")
-        expect(notes("&amp;lt;b&amp;gt; <br>") == "&lt;b&gt;", "entities decode exactly once")
-
-        let organizer = MeetingDetails.Attendee(name: "Ana", response: .accepted, isOrganizer: true)
-        let guest = MeetingDetails.Attendee(name: "Ben", response: .pending, isOrganizer: false)
-        let other = MeetingDetails.Attendee(name: "Cy", response: .declined, isOrganizer: false)
-        let details = MeetingDetails(
-            meetingID: "m", location: "  \n", notes: nil, attendees: [guest, organizer, other])
-        expect(details.attendees == [organizer, guest, other], "the organizer leads, the rest keep order")
-        expect(details.location == nil, "a blank location is none at all")
-    }
-
     // MARK: - Day buckets
 
     static func dayBuckets() {
@@ -662,9 +360,7 @@ struct CalendarTests {
             "the week runs seven days from the same start, today included")
         expect(
             MeetingSpan.today.possessivePhrase == "today's"
-                && MeetingSpan.todayAndTomorrow.orPhrase == "today or tomorrow"
-                && MeetingSpan.nextSevenDays.possessivePhrase == "the next 7 days'"
-                && MeetingSpan.nextSevenDays.orPhrase == "in the next 7 days",
+                && MeetingSpan.nextSevenDays.possessivePhrase == "the next 7 days'",
             "the wording follows the span")
     }
 
@@ -683,14 +379,6 @@ struct CalendarTests {
 
     static func link(_ text: String) -> MeetingLink? { MeetingLink.detect(in: text) }
 
-    static func hosted(_ text: String, _ account: String?) -> MeetingLink? {
-        MeetingLink.detect(fields: [text], account: account)
-    }
-
-    static func participant(_ url: String, isCurrentUser: Bool = true) -> String? {
-        MeetingLink.accountAddress(of: URL(string: url)!, isCurrentUser: isCurrentUser)
-    }
-
     static func provider(_ text: String) -> MeetingLink.Provider? { link(text)?.provider }
 
     static func event(
@@ -700,8 +388,8 @@ struct CalendarTests {
         MeetingEvent(
             id: id, title: id, start: at(minutes),
             end: at(minutes).addingTimeInterval(TimeInterval(duration * 60)),
-            isAllDay: isAllDay, isDeclined: isDeclined, calendarID: "cal", calendarName: "Work",
-            calendarColor: nil, calendarItemID: id, link: link)
+            isAllDay: isAllDay, isDeclined: isDeclined, calendarColor: nil, calendarItemID: id,
+            link: link)
     }
 
     static func event(
@@ -711,8 +399,7 @@ struct CalendarTests {
         MeetingEvent(
             id: id, title: id, start: start,
             end: start.addingTimeInterval(TimeInterval(duration * 60)),
-            isAllDay: false, isDeclined: false, calendarID: "cal", calendarName: "Work",
-            calendarColor: nil, calendarItemID: id, link: link)
+            isAllDay: false, isDeclined: false, calendarColor: nil, calendarItemID: id, link: link)
     }
 
     static func expect(_ condition: Bool, _ label: String) {

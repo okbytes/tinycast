@@ -51,10 +51,7 @@ struct SettingsBackupTest {
             mirrored["emojiGridColumns"] == .emojiGridColumns)
 
         // Named one by one: a backup now carries content, so it is far likelier to be sent on.
-        for key: AppSettingsKey in [
-            .snippetsEnabled, .calendarEnabled, .autoJoinMeetings,
-            .cameraPreview
-        ] {
+        for key: AppSettingsKey in [.snippetsEnabled, .calendarEnabled] {
             check(
                 "\(key.rawValue) stays out of a backup",
                 excluded[key.rawValue] != nil && mirrored.values.allSatisfy { $0 != key })

@@ -1,6 +1,6 @@
 import Foundation
 
-/// The day a meeting falls on, counted from today, so My Schedule and the menu bar head it alike.
+/// The day a meeting falls on, counted from today.
 struct MeetingDay: Hashable, Sendable {
     /// The midnight that starts the day.
     let start: Date

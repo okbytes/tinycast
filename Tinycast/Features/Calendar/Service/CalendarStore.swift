@@ -9,8 +9,6 @@ final class CalendarStore {
     private(set) var events: [MeetingEvent] = []
     private(set) var calendars: [MeetingCalendar] = []
     private(set) var access: CalendarAccess = Permissions.calendarAccess()
-    /// The details page's meeting, re-read with every reload so an edit never shows stale.
-    private(set) var details: MeetingDetails?
 
     /// Changing it re-reads: nothing may filter a snapshot into a span it never fetched.
     var span: MeetingSpan = .todayAndTomorrow {
@@ -20,7 +18,7 @@ final class CalendarStore {
         }
     }
 
-    /// Fired whenever `events` changes, so the launcher's meeting slice is republished.
+    /// Fired whenever `events` changes, so the menu bar re-checks the event it carries.
     @ObservationIgnored var onChange: (() -> Void)?
 
     private let defaults = UserDefaults.standard
@@ -63,7 +61,6 @@ final class CalendarStore {
         lastReloadAt = nil
         publish([])
         calendars = []
-        details = nil
     }
 
     /// Tinycast's own consent dialog has already been accepted by the time this runs.
@@ -78,7 +75,7 @@ final class CalendarStore {
         return true
     }
 
-    /// EventKit says when to reload; the palette adds one refresh per summon.
+    /// EventKit says when to reload; the minute tick covers what it never announces.
     private func observeStoreChanges() {
         guard changeObserver == nil, let eventStore else { return }
         let center = NotificationCenter.default
@@ -119,7 +116,6 @@ final class CalendarStore {
 
     /// `EKEventStore` is not `Sendable`, so this stays on main; only pure values leave.
     func reload() {
-        defer { refreshDetails() }
         refreshAccess()
         guard access == .granted else {
             publish([])
@@ -171,13 +167,10 @@ final class CalendarStore {
             end: end,
             isAllDay: event.isAllDay,
             isDeclined: me?.participantStatus == .declined,
-            calendarID: calendar.calendarIdentifier,
-            calendarName: calendar.title,
             calendarColor: color(of: calendar),
             calendarItemID: event.calendarItemIdentifier,
             link: MeetingLink.detect(
-                fields: [event.url?.absoluteString, event.location, event.notes],
-                account: accountEmail(of: me ?? event.organizer)))
+                fields: [event.url?.absoluteString, event.location, event.notes]))
     }
 
     private static func occurrenceID(of event: EKEvent, start: Date) -> MeetingEvent.ID {
@@ -193,90 +186,6 @@ final class CalendarStore {
         else { return nil }
         return MeetingEvent.CalendarColor(
             red: components[0], green: components[1], blue: components[2])
-    }
-
-    /// The organizer covers an event booked with no guests and so no attendee list.
-    private static func accountEmail(of participant: EKParticipant?) -> String? {
-        guard let participant else { return nil }
-        return MeetingLink.accountAddress(
-            of: participant.url, isCurrentUser: participant.isCurrentUser)
-    }
-
-    func event(id: String) -> MeetingEvent? {
-        events.first { $0.id == id }
-    }
-
-    // MARK: - Details
-
-    func loadDetails(of meeting: MeetingEvent) {
-        let next = fetchDetails(of: meeting)
-        if next != details { details = next }
-    }
-
-    func clearDetails() {
-        if details != nil { details = nil }
-    }
-
-    private func refreshDetails() {
-        guard let shown = details?.meetingID else { return }
-        let next = event(id: shown).flatMap(fetchDetails(of:))
-        if next != details { details = next }
-    }
-
-    /// Only this occurrence's window is queried, so an open page costs one tiny fetch per reload.
-    private func fetchDetails(of meeting: MeetingEvent) -> MeetingDetails? {
-        guard let eventStore, let calendar = eventStore.calendar(withIdentifier: meeting.calendarID)
-        else { return nil }
-        // Padded, or a zero-length event would fall outside its own window.
-        let predicate = eventStore.predicateForEvents(
-            withStart: meeting.start, end: meeting.end.addingTimeInterval(1), calendars: [calendar])
-        let match = eventStore.events(matching: predicate).first { event in
-            event.startDate.map { Self.occurrenceID(of: event, start: $0) } == meeting.id
-        }
-        guard let match else { return nil }
-        return MeetingDetails(
-            meetingID: meeting.id, location: match.location, notes: match.notes,
-            attendees: Self.attendees(of: match))
-    }
-
-    private static func attendees(of event: EKEvent) -> [MeetingDetails.Attendee] {
-        let organizer = event.organizer?.url
-        return (event.attendees ?? []).compactMap { participant in
-            guard let name = participant.name ?? MeetingLink.address(of: participant.url) else {
-                return nil
-            }
-            return MeetingDetails.Attendee(
-                name: name, response: response(to: participant.participantStatus),
-                isOrganizer: participant.url == organizer)
-        }
-    }
-
-    private static func response(
-        to status: EKParticipantStatus
-    ) -> MeetingDetails.Attendee.Response {
-        switch status {
-        case .accepted: .accepted
-        case .tentative: .tentative
-        case .declined: .declined
-        default: .pending
-        }
-    }
-
-    /// False means there is no such calendar, which is a report, not a silent no-op.
-    func createEvent(_ draft: EventDraft, now: Date) -> Bool {
-        let store = eventStore ?? EKEventStore()
-        eventStore = store
-        guard access == .granted, let calendar = store.defaultCalendarForNewEvents else {
-            return false
-        }
-        let event = EKEvent(eventStore: store)
-        event.calendar = calendar
-        event.title = draft.trimmedTitle
-        event.startDate = draft.start(from: now)
-        event.endDate = draft.end(from: now)
-        guard (try? store.save(event, span: .thisEvent, commit: true)) != nil else { return false }
-        reload()
-        return true
     }
 
     // MARK: - Per-calendar switches

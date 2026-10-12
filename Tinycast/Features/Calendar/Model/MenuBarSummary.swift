@@ -4,7 +4,7 @@ import Foundation
 struct MenuBarSummary: Sendable {
     /// Nil means to keep the next event visible for the rest of today.
     let leadMinutes: Int?
-    /// Only events Tinycast could actually join; the rest are appointments, not meetings.
+    /// Only events carrying a meeting link; the rest are appointments, not meetings.
     let linkedOnly: Bool
     private let hideCurrentAtStart: Bool
     private let hideAfterMinutes: Int?

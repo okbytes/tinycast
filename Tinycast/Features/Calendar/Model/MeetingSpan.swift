@@ -32,13 +32,4 @@ enum MeetingSpan: Int, CaseIterable, Identifiable, Sendable {
         case .nextSevenDays: return "the next 7 days'"
         }
     }
-
-    /// "today or tomorrow", for a sentence where "and" would read wrong.
-    var orPhrase: String {
-        switch self {
-        case .today: return "today"
-        case .todayAndTomorrow: return "today or tomorrow"
-        case .nextSevenDays: return "in the next 7 days"
-        }
-    }
 }

@@ -10,7 +10,7 @@ final class CameraCoordinator {
     /// Remembered for the launch, so reopening the command keeps the framing you were happy with.
     var mirrored = true
 
-    @ObservationIgnored private let session = CameraSession(.capture)
+    @ObservationIgnored private let session = CameraSession()
     @ObservationIgnored private unowned let core: AppCore
     @ObservationIgnored private var panel: CameraPanel?
     /// Held across the camera warm-up too, so a chord repeating into it cannot stack panels.

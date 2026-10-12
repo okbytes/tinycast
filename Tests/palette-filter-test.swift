@@ -32,7 +32,7 @@ struct PaletteFilterTests {
         // Every other mode was untouched by ⌘P before and has to stay that way.
         for mode in [
             PaletteMode.launcher, .calculatorHistory,
-            .quicklinks, .snippets, .schedule, .uninstall
+            .quicklinks, .snippets, .uninstall
         ] {
             expect(
                 resolve(mode: mode), .ignored,

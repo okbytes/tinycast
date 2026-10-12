@@ -350,31 +350,10 @@ enum SettingsSearchCatalog {
     private static let calendar: [SettingsSearchEntry] = [
         .init(
             pane: .calendar,
-            keywords: ["meetings", "events", "zoom", "join", "schedule"]),
+            keywords: ["meetings", "events", "menubar", "agenda", "schedule"]),
         .init(
-            .calendarCalendar, "Join meetings from Tinycast",
-            keywords: ["zoom", "meet", "teams", "permission"]),
-        .init(
-            .calendarCalendar, "Upcoming meetings in launcher",
-            keywords: ["count", "limit", "events"]),
-        .init(
-            .calendarJoining, "Show the join card",
-            keywords: ["hud", "timing", "early", "reminder"]),
-        .init(
-            .calendarJoining, "Auto Join Meetings",
-            keywords: ["automatic", "start"]),
-        .init(
-            .calendarJoining, "Only join known meeting services",
-            keywords: ["zoom", "meet", "teams", "links", "placeholder", "skip"]),
-        .init(
-            .calendarJoining, "Confirm before joining",
-            keywords: ["ask", "prompt"]),
-        .init(
-            .calendarJoining, "Camera Preview",
-            keywords: ["webcam", "mirror", "video", "check"]),
-        .init(
-            .calendarJoining, "Open Meeting Links In",
-            keywords: ["browser", "chrome", "safari", "firefox", "meet", "web"]),
+            .calendarCalendar, "Enable calendar",
+            keywords: ["events", "access", "permission"]),
         .init(
             .calendarMenuBar, "Calendar in Menu Bar",
             keywords: ["status item", "menubar", "date"]),
@@ -393,9 +372,6 @@ enum SettingsSearchCatalog {
         .init(
             .calendarMenuBar, "Hide Current Event",
             keywords: ["started", "time left", "menubar"]),
-        .init(
-            group: .calendarCommands, "Calendar commands",
-            keywords: ["shortcut", "launcher", "join", "schedule", "create event"]),
         .init(
             group: .calendarCalendars, "Calendars",
             keywords: ["accounts", "sources", "choose", "icloud", "google"])

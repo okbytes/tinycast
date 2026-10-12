@@ -7,7 +7,6 @@ struct LauncherList: View {
     /// The flat row id the screen has selected, not an entry id: a fallback can repeat a result.
     let selectedRowID: String?
     let favoriteCount: Int
-    let meetingCount: Int
     let suggestionCount: Int
     let matchCount: Int
     /// Changes only when the list should scroll, so mouse selection never yanks it.
@@ -33,16 +32,14 @@ struct LauncherList: View {
         let onConfigure: () -> Void
     }
 
-    /// Calc answers a typed query and the card an empty one, so only one ever leads.
+    /// The colour card answers only a query the calculator could not, so the two never compete.
     enum LeadCard: Equatable {
         case calc(CalcResult)
-        case meeting(MeetingEvent, now: Date)
         case color(ColorValue)
 
         var sectionTitle: String {
             switch self {
             case .calc: return "Calculator"
-            case .meeting: return "Meeting"
             case .color: return "Color"
             }
         }
@@ -50,7 +47,6 @@ struct LauncherList: View {
         var rowID: String {
             switch self {
             case .calc: return "calc-card"
-            case .meeting: return "meeting-card"
             case .color: return "color-card"
             }
         }
@@ -91,9 +87,8 @@ struct LauncherList: View {
         var rows: [Row] = []
         if let card { rows = [.header(card.sectionTitle), .card(card)] }
         let favorites = results.prefix(favoriteCount)
-        let meetings = results.dropFirst(favoriteCount).prefix(meetingCount)
-        let suggestions = results.dropFirst(favoriteCount + meetingCount).prefix(suggestionCount)
-        let pinnedCount = favoriteCount + meetingCount + suggestionCount
+        let suggestions = results.dropFirst(favoriteCount).prefix(suggestionCount)
+        let pinnedCount = favoriteCount + suggestionCount
         let matches = results.dropFirst(pinnedCount).prefix(matchCount)
         let rest = results.dropFirst(pinnedCount + matchCount)
         var grouped: [AppEntry.Kind: [AppEntry]] = [:]
@@ -105,10 +100,6 @@ struct LauncherList: View {
                     .app($1, slot: FavoriteSlots.digit(at: $0))
                 })
         }
-        if !meetings.isEmpty {
-            rows.append(.header(AppEntry.Kind.meeting.descriptor.sectionTitle))
-            rows.append(contentsOf: meetings.map { .app($0, slot: nil) })
-        }
         if !suggestions.isEmpty {
             rows.append(.header("Suggestions"))
             rows.append(contentsOf: suggestions.map { .app($0, slot: nil) })
@@ -119,7 +110,7 @@ struct LauncherList: View {
         }
         // Publication order, so rows match the flat index.
         let kinds: [AppEntry.Kind] = [
-            .meeting, .application, .systemSettings, .quicklink, .appleShortcut,
+            .application, .systemSettings, .quicklink, .appleShortcut,
             .snippet, .systemAction, .windowCommand, .customCommand,
             .command
         ]
@@ -218,8 +209,6 @@ private struct LeadCardView: View {
         switch card {
         case .calc(let result):
             CalculatorCard(result: result, selected: selected)
-        case .meeting(let meeting, let now):
-            MeetingCard(meeting: meeting, now: now, selected: selected)
         case .color(let color):
             ColorCard(color: color, selected: selected)
         }
@@ -267,11 +256,6 @@ private struct AppRow: View {
                             .offset(y: 3)
                     }
                 }
-            if app.kind == .meeting {
-                MeetingEntryContent(entryID: app.id) { meeting, _ in
-                    CalendarBar(color: meeting.calendarColor)
-                }
-            }
             Text(app.name)
                 .font(metrics.typography.rowTitle)
                 .lineLimit(1)
@@ -306,8 +290,6 @@ private struct AppRow: View {
                     KeyCapChip(text: "⌘", style: .outline)
                     KeyCapChip(text: String(slot), style: .outline)
                 }
-            } else if app.kind == .meeting {
-                MeetingEntryContent(entryID: app.id) { MeetingTiming(meeting: $0, now: $1) }
             } else {
                 Text(app.kindLabel)
                     .font(metrics.typography.rowTrailing)

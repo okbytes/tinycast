@@ -40,12 +40,7 @@ enum SettingsBackupCoverage {
         "quicklinkSelectionFallback": .quicklinkSelectionFallback,
         "quicklinkConfirmsBeforeDelete": .quicklinkConfirmsBeforeDelete,
         "appleShortcutsEnabled": .appleShortcutsEnabled,
-        "calendarShowInLauncher": .calendarShowInLauncher,
-        "calendarLauncherLimit": .calendarLauncherLimit,
         "calendarSpan": .calendarSpan,
-        "joinWindowMinutes": .joinWindowMinutes,
-        "autoJoinConfirms": .autoJoinConfirms,
-        "autoJoinNamedProvidersOnly": .autoJoinNamedProvidersOnly,
         "menuBarEvents": .menuBarEvents,
         "calendarMenuBarDisplay": .calendarMenuBarDisplay,
         "menuBarLinkedEventsOnly": .menuBarLinkedEventsOnly,
@@ -70,14 +65,8 @@ enum SettingsBackupCoverage {
             "Machine-local geometry: every entry names a display this Mac has, and no other one.",
         AppSettingsKey.autoSwitchInputSource.rawValue:
             "Names a keyboard input source installed on this Mac; another Mac may not have it.",
-        AppSettingsKey.meetingBrowser.rawValue:
-            "Names a browser installed on this Mac; another Mac may not have it.",
         AppSettingsKey.calendarEnabled.rawValue:
             "Doubles as consent to read your calendar; an import must not grant calendar access.",
-        AppSettingsKey.autoJoinMeetings.rawValue:
-            "Arms the app to open meeting links unattended; an import must not switch that on.",
-        AppSettingsKey.cameraPreview.rawValue:
-            "Turns the camera on before a meeting; an import must not grant that.",
         AppSettingsKey.snippetsFolder.rawValue:
             "Names a folder on this Mac; the one a backup lands on may not have it.",
         AppSettingsKey.settingsFileEnabled.rawValue:

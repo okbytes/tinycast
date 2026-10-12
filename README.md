@@ -44,8 +44,8 @@ source, and staying that way.
   display moves, fullscreen and Spaces.
 - **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, mute, hidden
   files, and more.
-- **Calendar and meetings** — your next meeting on the empty palette and in the menu bar, one key to
-  join it, or let it join itself.
+- **Calendar** — what's coming up next in the menu bar, the schedule on click, and one click to open
+  any event in Calendar.
 - **Emoji picker** — a searchable emoji grid, one keystroke away.
 - **Backup and import** — export your setup to a file, and import it on another Mac.
 

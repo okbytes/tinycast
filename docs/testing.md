@@ -82,7 +82,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `scopes-test` | `Launcher/Model/SearchScopes.swift` |
 | `app-name-test` | `Platform/AppDisplayName.swift` — every path that names a scanned bundle |
 | `calc-test` | all of `Calculator/Model/` |
-| `calendar-test` | all of `Calendar/Model/` — link detection, the join window, the day buckets |
+| `calendar-test` | all of `Calendar/Model/` — link detection, the agenda and menu-bar windows, the day buckets |
 | `clipboard-search-test` | Ordinary and OCR result ordering, opt-in lifecycle, cancellation, pins and type filters |
 | `clipboard-text-test` | Apple Vision/PDF extraction, scheduling, retry backoff and recovery |
 | `paste-sequence-test` | `Clipboard/Model/PasteSequence.swift` — the walk's order, its end, and what starts it over |
@@ -359,6 +359,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Learned ranking still surfaces your habitual result for a short query
 - An application row drags onto the Dock and into a Finder window as a copy, never a move, and a
   landed drop hides the palette; a click still launches; no other kind of row drags
+- With Open Camera up, changing a video effect in Control Center leaves the preview live; the next
+  click outside both the panel and system UI then closes it, and Esc does once the panel is clicked
 
 ### Hotkeys
 
@@ -368,7 +370,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - A double-tap binding fires; Hyper Key remaps and its status dot is green
 - Every binding survives quit and relaunch
 - `Enable Commands` off leaves every pane-owned command listed, searchable and firing —
-  Clipboard, Emoji, Snippets, Quicklinks and Calendar
+  Clipboard, Emoji, Snippets and Quicklinks
 
 ### Uninstall
 
@@ -421,63 +423,36 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   System Settings ▸ General ▸ Language & Region without a relaunch — and nothing prompts for location
 - A crypto query (`1 btc`, `0.5 sol to eur`) answers, and `1 usd to btc` stays in plain notation
 
-### Calendar and meetings
+### Calendar
 
-- With Calendar **off**: no launcher entries, no card, no permission prompt at launch
+- With Calendar **off**: no permission prompt at launch
 - Enabling shows the consent dialog **before** the macOS prompt; declining prompts for nothing
 - After Calendar permission is reset, Settings ▸ Calendar offers `Allow Calendar Access…` and asks
   again; after denial it offers System Settings instead
-- With a meeting four minutes out, an empty palette shows the card on top, provider glyph and all
-- The countdown steps on the minute boundary rather than on a keystroke
-- ↵ joins: a Zoom link opens the Zoom app, and the browser where no app claims the scheme
-- Typing a character swaps the card for the calculator's; ↑/↓ never lands on a phantom row
-- Unchecking a calendar drops its events from the launcher and My Schedule, and survives a relaunch
-- `Show in launcher` off drops the meeting entries from the launcher, yet typing `My Schedule`
-  still finds the command, and it still lists the meetings
-- Adding or deleting an event in Calendar.app updates an open palette without a reopen
-- A meeting with no link is listed and searchable, and answers Open in Calendar rather than Join
-- Two upcoming meetings with titles in reverse alphabetical order appear earliest first in the
-  launcher's Meetings section and the `Meetings` category listing, even after opening the later one
-- Import a backup taken with Calendar on: it comes back **off**, and no calendar toggle travels
+- Unchecking a calendar drops its events from the menu bar's agenda, and survives a relaunch
+- Adding or deleting an event in Calendar.app updates the menu bar without a reopen
+- Import a backup taken with Calendar on: it comes back **off**, no calendar toggle travels, and the
+  menu-bar settings carry over
 - Calendar in Menu Bar on Disabled: the calendar item is gone and Tinycast's own item is unaffected;
   turning `Show in menu bar` off leaves an enabled calendar item in place, and both off leaves neither
 - On Meeting Title with Show Upcoming Events at 5 minutes, the title and countdown appear at T-5 and
-  step on the minute boundary, not on a keystroke
+  step on the minute boundary
 - `Only show events with meetings` hides a linkless event and shows it again when unchecked
 - `Hide when there are no upcoming events` removes the item whenever it would show only the glyph or
   `No upcoming events`: on Today after the last event, on 5 minutes between meetings too. It returns
   with the next event and never moves the `Calendar in Menu Bar` picker off its choice
 - Hide Current Event on Automatically clears the entry at the start and hands the space to the next
   event inside its lead time; on 5 minutes it lingers counting up, then clears
-- Clicking the calendar item opens `Join <title>`, `Open in Calendar...`, `My Schedule` and
-  `Calendar Settings...` and nothing else; the second opens that event in Calendar.app, while a bare
-  click never joins
-- Camera Preview on: ↵ on the join card opens the panel **already showing live video** — no black
-  frame, no blank mid-preview; ↵ joins, Esc drops the join; the camera light goes out with the
-  panel, and the first run prompts once, before any panel appears
-- With Open Camera or the join card up, changing a video effect in Control Center leaves the preview
-  live; the next click outside both the panel and system UI then closes it, and Esc does once the
-  panel is clicked
-- A meeting that ends leaves the launcher results and `My Schedule` on the same minute boundary it
-  leaves the menu bar, with the palette open or closed over the end
-- Auto Join on: the meeting opens itself at its start, **once** — dismiss it and it does not return.
-  With confirm on and camera preview off, the dialog asks first
-- Arming Auto Join during a meeting already under way joins nothing
-- `Only join known meeting services` on: an event whose only link is a booking page or document
-  neither asks nor opens at its start, while a Zoom or Meet event beside it still joins; the join
-  card still offers both
-- Sleeping over a meeting's start and waking past it reloads the events; one still inside the window
-  joins, one long past does not
-- Create Event writes to the default calendar and shows up on the card, the schedule and the launcher
-  without a relaunch; a blank title leaves the dialog up on ↵ and on a click
-- Arrow keys move the caret in the New Event title field, and still step the Set Volume slider
-- Every command row of Settings ▸ Calendar has Add Alias, Record Hotkey and a checkbox, and none of
-  the five appears in Settings ▸ Commands
-- Export with auto join and camera preview on, import onto a clean profile: both come back **off**,
-  while the menu-bar settings carry over
+- Clicking the calendar item lists `Open in Calendar` and `Dismiss Event` for the displayed event,
+  the agenda by day, and `Calendar Settings…`, and nothing else; nothing in it joins a call
+- `Open in Calendar` and a click on any agenda row open that event in Calendar.app
+- A meeting that ends leaves the agenda on the same minute boundary it leaves the title
+- Sleeping over a meeting's start and waking past it reloads the events, and the item moves on to
+  what is current
 
 ### System actions and window management
 
+- Arrow keys step the Set Volume slider
 - A confirmation-gated action (Restart, Quit All) confirms, showing the subject's own glyph
 - Restart and Shut Down follow "Reopen windows when logging back in": after logging back in,
   apps and windows reopen with it on and stay closed with it off. Check both actions and settings

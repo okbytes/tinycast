@@ -86,9 +86,6 @@ enum Theme {
         static let resultRowIcon: CGFloat = 26
         /// Colour-codes a secondary label, as Calendar.app marks an event's calendar.
         static let colorDot: CGFloat = 8
-        /// The calendar-colour bar between a meeting row's icon and its title.
-        static let calendarBarWidth: CGFloat = 3
-        static let calendarBarHeight: CGFloat = 18
         static let keyCap: CGFloat = 18
         /// Settings shortcut-recorder keycap — smaller than the palette's `keyCap` chip.
         static let recorderKeyCap: CGFloat = 16
@@ -176,9 +173,7 @@ enum Theme {
         static let dialogSymbolContainer: CGFloat = 52
         /// Shared measurement for dialog accessories and the volume-HUD glyph.
         static let dialogIcon: CGFloat = 32
-        /// 16:9 at the dialog's own width, so the two surfaces read as siblings.
-        static let cameraPreview = CGSize(width: 420, height: 236)
-        /// 16:9 again, wider: the standalone camera is the surface, not a confirmation on one.
+        /// 16:9 and wider than a dialog: the camera is the surface itself.
         static let cameraStage = CGSize(width: 560, height: 315)
         /// Transient volume HUD shown after any volume or mute command.
         static let hudWidth: CGFloat = 200
@@ -334,8 +329,6 @@ enum Theme {
         /// The two squares of a checkerboard, behind a colour with alpha to show.
         static let checkerLight = Color(nsColor: .srgbInk(1, alpha: 0.22))
         static let checkerDark = Color(nsColor: .srgbInk(0, alpha: 0.22))
-        /// The violet of the app mark.
-        static let brand = Color(red: 0.525, green: 0.231, blue: 1.0)
         /// The palette's drop guides while dragging, and once a release would snap it home.
         static let dropGuide = ramp(dark: 0.35, light: 0.35)
         static let dropGuideArmed = Color.blue
@@ -345,8 +338,6 @@ enum Theme {
         static let destructive = Color.red
         /// Success tint: the leading glyph of a `.success` dialog.
         static let success = Color.green
-        /// Caution tint, short of destructive: a meeting answered Maybe.
-        static let warning = Color.orange
         /// Progress tint: the message pill's spinner while the work behind it is still running.
         static let progress = Color.blue
         /// The command output window's page: a flat surface the log sits directly on.

@@ -13,8 +13,8 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
   deleting it, or updating the app never loses a setting, so there is nothing to migrate.
 - **Off by default, and only the pane turns it on.** `settingsFileEnabled` has no key in the file and is
   excluded from backups: a file or an import must never switch on something that reads a file.
-- **A capability grant never has a key.** Snippets, Calendar access, Auto Join, Camera
-  Preview and clipboard text recognition are switched on only in the app, which asks first. `settings-file-test` checks those paths stay absent.
+- **A capability grant never has a key.** Snippets, Calendar access and clipboard text recognition
+  are switched on only in the app, which asks first. `settings-file-test` checks those paths stay absent.
 - **`SettingsFileSchema`'s switch is exhaustive.** A new `SettingsFileKey` case fails to build until it
   is bound to a property.
 - **A bad edit never costs a setting.** A key the file leaves out keeps its value; a value Tinycast
@@ -106,7 +106,6 @@ Where a number has a special case, the case is a word:
 | Key | Values |
 | --- | --- |
 | `clipboard.retentionDays` | 1, 7, 30, 90, 180, 365, `"forever"` |
-| `calendar.launcherLimit` | 1, 3, 5, `"all"` |
 | `calendar.span` | `"today"`, `"todayAndTomorrow"`, `"nextSevenDays"` |
 | `calendar.menuBar` | `"disabled"`, `"meetingIcon"`, `"meetingTitle"` |
 | `calendar.menuBarUpcomingEvents` | `"today"`, or 2, 5, 10, 30 minutes before |

@@ -56,19 +56,12 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case emojiSkinTone = "emoji.skinTone"
     case emojiGridColumns = "emoji.gridColumns"
     case emojiCommands = "emoji.commands"
-    case calendarShowInLauncher = "calendar.showInLauncher"
-    case calendarLauncherLimit = "calendar.launcherLimit"
     case calendarSpan = "calendar.span"
-    case joinWindowMinutes = "calendar.joinWindowMinutes"
-    case autoJoinConfirms = "calendar.autoJoinConfirms"
-    case autoJoinNamedProvidersOnly = "calendar.autoJoinNamedProvidersOnly"
-    case meetingBrowser = "calendar.meetingBrowser"
     case calendarMenuBarDisplay = "calendar.menuBar"
     case menuBarEvents = "calendar.menuBarUpcomingEvents"
     case menuBarLinkedEventsOnly = "calendar.menuBarLinkedEventsOnly"
     case calendarMenuBarHidesWhenEmpty = "calendar.menuBarHidesWhenEmpty"
     case hideCurrentEvent = "calendar.hideCurrentEventAfterMinutes"
-    case calendarCommands = "calendar.commands"
 
     /// The top-level object the key sits in.
     var section: String { String(rawValue.prefix { $0 != "." }) }

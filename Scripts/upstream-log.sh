@@ -39,6 +39,14 @@ cut=(
     Tinycast/Features/Settings/Model/SettingsFileIdentity.swift NOTICE.md
     Tests/window-layout-test.swift Tests/window-room-test.swift docs/features/window-layouts.md
     docs/features/window-rooms.md
+    Tinycast/Features/Calendar/Model/AutoJoinPolicy.swift
+    Tinycast/Features/Calendar/Model/EventDraft.swift
+    Tinycast/Features/Calendar/Model/MeetingDetails.swift
+    Tinycast/Features/Calendar/Service/MeetingLauncher.swift
+    'Tinycast/Features/Calendar/UI/CameraPreview*' 'Tinycast/Features/Calendar/UI/MeetingDetails*'
+    'Tinycast/Features/Calendar/UI/Schedule*' Tinycast/Features/Calendar/UI/EventDraftFields.swift
+    Tinycast/Features/Calendar/UI/MeetingCardView.swift Tinycast/DesignSystem/ColorDot.swift
+    Tinycast/Features/Calendar/UI/MeetingRowParts.swift
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

@@ -68,7 +68,7 @@ struct PermissionsSettingsView: View {
                             path: "/System/Applications/Calendar.app")
                         VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                             SettingsRowTitle(.permissionsCalendars, "Calendars")
-                            Text("Finds the join link for your next meeting.")
+                            Text("Shows your next event in the menu bar.")
                                 .foregroundStyle(.secondary)
                         }
                     }

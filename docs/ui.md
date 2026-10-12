@@ -196,8 +196,7 @@ shipped. Light is the same stop with the ink inverted, and is the only column op
 
 `panelScrim` is the ramp's inverse — it darkens the dark surface and lightens the light one — so it
 is an `adaptive` pair, not a `ramp`.
-`brand`, `primaryAction`, `destructive`, `success`, `warning` and `dropGuideArmed` are fixed hues and adapt on
-their own.
+`primaryAction`, `destructive`, `success` and `dropGuideArmed` are fixed hues and adapt on their own.
 
 Beyond these, `.secondary`/`.tertiary` foreground styles are fine for SF Symbols (they resolve against
 the environment's appearance). **Selection always beats hover** when a row is both.
@@ -361,8 +360,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   `onChoose(index)` still dispatches against `DialogRequest.actions`' original order, so a caller
   never has to think about layout position when it builds a request. Every role uses the regular
   callout face; semantic roles change colour, never weight. `dialogButtonHeight 34` is shared by the
-  actions, dialog text fields and New Event segmented choices. The fields and segmented choices use
-  the non-pill `row 10` radius.
+  actions and dialog text fields. The fields use the non-pill `row 10` radius.
 - **Keys.** `DialogPanel.sendEvent` intercepts Esc and ↵ directly instead of relying on SwiftUI
   `onKeyPress`, so the keys work without anything inside the dialog holding focus. Buttons don't print
   a key cap; after `tooltipDelay` of deliberate hover, `.tooltip(keyCap:)` fades in the shared
@@ -465,31 +463,26 @@ per-scroll-view shim: chasing that flip after the fact is what caused the flash.
 
 ---
 
-## The camera preview panel
+## The camera panel
 
-`CameraPreviewPanel` is the third borderless surface, beside the palette and the dialog. It takes
+`CameraPanel` is the third borderless surface, beside the palette and the dialog. `CameraView` takes
 the same recipe — `panelScrim`, then `GlassEffectView`, then the clip — and the same optical lift a
-dialog takes, but sits at `.floating` rather than `.dialog` so a failure report still lands on
-top of it.
+dialog takes, but the panel sits at `.floating` rather than `.dialog` so a failure report still lands
+on top of it.
 
-`AVCaptureVideoPreviewLayer` is hosted in one `NSViewRepresentable` and nothing else; the title,
-countdown and buttons around it are Tinycast's own. Its buttons are a **deliberate copy** of
-`DialogButton` rather than a share: the dialog owns its button, and a preview that had to move with
-it would couple two unrelated surfaces.
+`AVCaptureVideoPreviewLayer` is hosted in one `NSViewRepresentable` and nothing else; the buttons
+around it are Tinycast's own, `CameraButton` over `ModalActionButtonStyle`.
 
 ## Dialog accessories
 
 A dialog carries at most one control beyond its buttons, and `DialogAccessory` makes that structural
-rather than a convention — `.volume` for the Set Volume prompt, `.eventDraft` for New Event,
-`.snippetArguments` for a snippet's `{argument}` values. Text fields take `dialogTextField()`;
-New Event groups its fixed start and duration values into two local segmented bars, while a snippet's
-inline enumerated arguments remain `DialogChip`s. Two things follow from the enum:
+rather than a convention — `.volume` for the Set Volume prompt, `.snippetArguments` for a snippet's
+`{argument}` values. Text fields take `dialogTextField()`, and a snippet's inline enumerated
+arguments are `DialogChip`s.
 
-- **Arrow keys belong to the accessory, not the panel.** `DialogPanel.handlesArrowKeys` is set from
-  `DialogAccessory.claimsArrowKeys`, so the slider still steps on ←/→ while the New Event title field
-  keeps its caret.
-- **An accessory can refuse its own primary action.** An invalid draft leaves the dialog up on ↵ and
-  on a click alike, which is what a greyed-out button would say if `DialogAction` could carry one.
+**Arrow keys belong to the accessory, not the panel.** `DialogPanel.handlesArrowKeys` is set from
+`DialogAccessory.claimsArrowKeys`, so the slider still steps on ←/→ while a snippet's argument field
+keeps its caret.
 
 The first text field takes focus from `DialogController.windowDidBecomeKey`, never from the view.
 When the panel turns key AppKit picks its own first responder — the Cancel button with Keyboard
@@ -559,7 +552,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   **`FeatureSwitchSection`** (a feature's master switch plus its launcher-visibility companion),
   **`SettingsFilterField`** (the filter row above a long list), **`launcherVisibilityHelp()`**, and the
   Settings editor header, fields and surface. `ModalActionButtonStyle.swift` keeps every borderless surface's actions on one
-  implementation — dialogs, Settings editors and the camera footers. `Onboarding/OnboardingCard.swift` keeps the older hand-drawn card,
+  implementation — dialogs, Settings editors and the camera footer. `Onboarding/OnboardingCard.swift` keeps the older hand-drawn card,
   which that window still uses.
 - **A Settings editor borrows the dialog language, not its job.** `SettingsEditorPresenter` hosts the
   existing form in an activating, transparent child `NSPanel`, with the same `panel 26` Liquid Glass

@@ -51,11 +51,6 @@ struct CalendarMenuBarMenu: View {
             let coordinator = AppCore.shared.calendarCoordinator
             if let meeting = coordinator.menuBarEvent {
                 Section {
-                    if let link = meeting.link {
-                        Button("Join \(meeting.title)", systemImage: link.provider.sfSymbol) {
-                            coordinator.join(meeting)
-                        }
-                    }
                     Button("Open in Calendar", systemImage: "calendar") {
                         coordinator.openInCalendar(meeting)
                     }
@@ -66,10 +61,6 @@ struct CalendarMenuBarMenu: View {
             }
             MenuBarAgenda()
             Section {
-                Button("My Schedule", systemImage: "calendar.day.timeline.left") {
-                    coordinator.showSchedule()
-                }
-                .keyboardShortcut("o")
                 Button("Calendar Settings…", systemImage: "gearshape") {
                     AppCore.shared.settingsCoordinator.showSettings(tab: .calendar)
                 }
@@ -80,7 +71,7 @@ struct CalendarMenuBarMenu: View {
     }
 }
 
-/// The span's remaining meetings by day; a click joins, or opens a linkless one in Calendar.
+/// The span's remaining meetings by day; a click opens one in Calendar.
 private struct MenuBarAgenda: View {
     var body: some View {
         let now = AppCore.shared.meetingClock.now
@@ -88,7 +79,7 @@ private struct MenuBarAgenda: View {
             Section(group.day.title(calendar: .current)) {
                 ForEach(group.meetings) { meeting in
                     Button {
-                        AppCore.shared.calendarCoordinator.join(meeting)
+                        AppCore.shared.calendarCoordinator.openInCalendar(meeting)
                     } label: {
                         Label {
                             Text("\(MeetingTimeFormat.range(of: meeting)) \(meeting.title)")
@@ -120,6 +111,8 @@ private struct CalendarSymbol: View {
 
 /// Neither image is a template, so the status bar and its menu keep the colour rather than ink it.
 extension MeetingEvent.CalendarColor {
+    fileprivate var nsColor: NSColor { NSColor(srgbRed: red, green: green, blue: blue, alpha: 1) }
+
     fileprivate var menuBarDot: NSImage {
         let size = NSSize(width: Theme.Size.colorDot, height: Theme.Size.colorDot)
         let image = NSImage(size: size, flipped: false) { rect in
@@ -139,5 +132,17 @@ extension MeetingEvent.CalendarColor {
             .withSymbolConfiguration(configuration)
         image?.isTemplate = false
         return image
+    }
+}
+
+@MainActor
+private enum MeetingTimeFormat {
+    private static let formatter: Date.FormatStyle = .dateTime.hour().minute()
+
+    static func clock(_ date: Date) -> String { date.formatted(formatter) }
+
+    /// Two clocks rather than the interval style, which drops a shared AM/PM and dates midnight.
+    static func range(of meeting: MeetingEvent) -> String {
+        "\(clock(meeting.start)) – \(clock(meeting.end))"
     }
 }

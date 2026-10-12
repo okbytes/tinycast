@@ -16,7 +16,7 @@ enum LauncherSuggestions {
         var priority: Int?
     }
 
-    /// `items` holds only what may be suggested: no favorites, meetings or Tinycast itself.
+    /// `items` holds only what may be suggested: no favorites or Tinycast itself.
     static func select<Item>(from items: [Item], now: Date, traits: (Item) -> Traits) -> [Item] {
         let all = items.map(traits)
         let signals: (Int) -> LauncherOrder.Signals = { all[$0].signals }

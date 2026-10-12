@@ -10,11 +10,6 @@ enum CommandID: String, CaseIterable, Sendable {
     case openInBrowser = "command:open-in-browser"
     case runShellCommand = "command:run-shell-command"
     case define = "command:define"
-    case joinNextMeeting = "command:join-next-meeting"
-    case mySchedule = "command:my-schedule"
-    case createEvent = "command:create-event"
-    case copyMeetingLink = "command:copy-meeting-link"
-    case openInCalendar = "command:open-in-calendar"
     case createQuicklink = "command:create-quicklink"
     case searchQuicklinks = "command:search-quicklinks"
     case importQuicklinks = "command:import-quicklinks"
@@ -36,11 +31,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .openInBrowser: return "Open in Browser"
         case .runShellCommand: return "Run Shell Command"
         case .define: return "Define Word"
-        case .joinNextMeeting: return "Join Next Meeting"
-        case .mySchedule: return "My Schedule"
-        case .createEvent: return "Create Event"
-        case .copyMeetingLink: return "Copy Meeting Link"
-        case .openInCalendar: return "Open in Calendar"
         case .createQuicklink: return "Create Quicklink"
         case .searchQuicklinks: return "Search Quicklinks"
         case .importQuicklinks: return "Import Quicklinks"
@@ -64,11 +54,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .openInBrowser: return "globe"
         case .runShellCommand: return "terminal"
         case .define: return "book.closed"
-        case .joinNextMeeting: return "video.fill"
-        case .mySchedule: return "calendar"
-        case .createEvent: return "calendar.badge.plus"
-        case .copyMeetingLink: return "link"
-        case .openInCalendar: return "calendar.badge.clock"
         case .createQuicklink: return "link.badge.plus"
         case .searchQuicklinks: return Quicklink.sfSymbol
         case .importQuicklinks: return "square.and.arrow.down"
@@ -86,7 +71,6 @@ enum CommandID: String, CaseIterable, Sendable {
     var suggestionPriority: Int? {
         switch self {
         case .clipboardHistory: 80
-        case .mySchedule: 60
         case .searchEmoji: 50
         case .createQuicklink, .createSnippet: 30
         default: nil

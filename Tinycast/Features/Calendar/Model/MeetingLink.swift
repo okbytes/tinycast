@@ -4,22 +4,14 @@ import Foundation
 struct MeetingLink: Hashable, Sendable {
     let provider: Provider
     let url: URL
-    /// The account whose calendar carried this link, for a provider that preselects it.
-    let account: String?
-
-    /// The desktop app's own URL, where one can be formed without guessing. Nil means open the web.
-    var appURL: URL? { provider.appURL(for: url) }
-
-    /// The link as written, naming the account where the provider takes one.
-    var webURL: URL { provider.accountURL(for: url, account: account) ?? url }
 
     /// Fields in precedence order; a named provider anywhere beats a bare link found earlier.
-    static func detect(fields: [String?], account: String? = nil) -> MeetingLink? {
+    static func detect(fields: [String?]) -> MeetingLink? {
         var fallback: MeetingLink?
         for field in fields.compactMap({ $0 }) {
             for url in webURLs(in: field) {
                 guard let provider = classify(url) else { continue }
-                let link = MeetingLink(provider: provider, url: url, account: account)
+                let link = MeetingLink(provider: provider, url: url)
                 if provider != .generic { return link }
                 if fallback == nil { fallback = link }
             }
@@ -29,20 +21,6 @@ struct MeetingLink: Hashable, Sendable {
 
     static func detect(in text: String) -> MeetingLink? {
         detect(fields: [text])
-    }
-
-    static func accountAddress(of participantURL: URL, isCurrentUser: Bool) -> String? {
-        isCurrentUser ? address(of: participantURL) : nil
-    }
-
-    /// EventKit's `mailto:` participant URLs are opaque: `path` sees nothing, only the string does.
-    static func address(of participantURL: URL) -> String? {
-        let string = participantURL.absoluteString
-        guard string.lowercased().hasPrefix("mailto:") else { return nil }
-        let raw = string.dropFirst("mailto:".count)
-        let address = raw.removingPercentEncoding ?? String(raw)
-        guard address.contains("@") else { return nil }
-        return address
     }
 
     /// A known host failing its path rule is rejected, never demoted to `.generic`.
@@ -99,22 +77,6 @@ extension MeetingLink {
         /// Any other http(s) link the event carries — joinable, just not identifiable.
         case generic
 
-        var title: String {
-            switch self {
-            case .zoom: return "Zoom"
-            case .googleMeet: return "Google Meet"
-            case .teams: return "Microsoft Teams"
-            case .webex: return "Webex"
-            case .jitsi: return "Jitsi"
-            case .whereby: return "Whereby"
-            case .chime: return "Amazon Chime"
-            case .gotoMeeting: return "GoTo Meeting"
-            case .blueJeans: return "BlueJeans"
-            case .skype: return "Skype"
-            case .generic: return "Meeting Link"
-            }
-        }
-
         /// No brand artwork ships, so the glyph says only what kind of thing this is.
         var sfSymbol: String { self == .generic ? "link" : "video.fill" }
 
@@ -153,59 +115,6 @@ extension MeetingLink {
             case .webex, .jitsi, .whereby, .chime, .gotoMeeting, .blueJeans, .skype, .generic:
                 return !segments.isEmpty
             }
-        }
-
-        private static let accountQuery = "authuser"
-        /// Meet's own links keep `@` readable; `+` cannot stay, as a server may read it as a space.
-        private static let accountAllowed = CharacterSet.urlQueryAllowed.subtracting(
-            CharacterSet(charactersIn: "+&="))
-
-        /// Only Google Meet takes an account; `authuser` picks between signed-in identities.
-        func accountURL(for url: URL, account: String?) -> URL? {
-            guard self == .googleMeet, let account,
-                let encoded = account.addingPercentEncoding(withAllowedCharacters: Self.accountAllowed),
-                var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            else { return nil }
-            let items = components.percentEncodedQueryItems ?? []
-            // A link naming its own account was written deliberately, and outranks the calendar's.
-            guard !items.contains(where: { $0.name == Self.accountQuery }) else { return nil }
-            components.percentEncodedQueryItems =
-                items + [URLQueryItem(name: Self.accountQuery, value: encoded)]
-            return components.url
-        }
-
-        /// Only the two rewrites Apple's handlers make unambiguous; anything else opens the web.
-        func appURL(for url: URL) -> URL? {
-            switch self {
-            case .zoom: return zoomAppURL(for: url)
-            case .teams: return teamsAppURL(for: url)
-            default: return nil
-            }
-        }
-
-        private func zoomAppURL(for url: URL) -> URL? {
-            let segments = url.path().split(separator: "/")
-            guard let marker = segments.firstIndex(where: { ["j", "w", "s"].contains($0.lowercased()) }),
-                let conference = segments.dropFirst(marker + 1).first
-            else { return nil }
-            var components = URLComponents()
-            components.scheme = "zoommtg"
-            components.host = "zoom.us"
-            components.path = "/join"
-            var query = [URLQueryItem(name: "confno", value: String(conference))]
-            if let password = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-                .queryItems?.first(where: { $0.name == "pwd" })?.value
-            {
-                query.append(URLQueryItem(name: "pwd", value: password))
-            }
-            components.queryItems = query
-            return components.url
-        }
-
-        private func teamsAppURL(for url: URL) -> URL? {
-            guard url.host()?.lowercased().hasSuffix("teams.microsoft.com") == true else { return nil }
-            let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.query
-            return URL(string: "msteams:" + url.path() + (query.map { "?" + $0 } ?? ""))
         }
     }
 }

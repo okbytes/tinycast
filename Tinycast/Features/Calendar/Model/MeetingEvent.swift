@@ -9,21 +9,10 @@ struct MeetingEvent: Identifiable, Hashable, Sendable {
     let end: Date
     let isAllDay: Bool
     let isDeclined: Bool
-    let calendarID: String
-    let calendarName: String
     let calendarColor: CalendarColor?
     /// EventKit's `calendarItemIdentifier` — the only handle Calendar.app's `ical://` URL accepts.
     let calendarItemID: String
     let link: MeetingLink?
-
-    private static let entryPrefix = "meeting:"
-
-    var entryID: String { Self.entryPrefix + id }
-
-    static func id(fromEntryID entryID: String) -> String? {
-        guard entryID.hasPrefix(entryPrefix) else { return nil }
-        return String(entryID.dropFirst(entryPrefix.count))
-    }
 
     func isInProgress(now: Date) -> Bool { start <= now && now < end }
 }

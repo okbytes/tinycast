@@ -25,7 +25,6 @@ private struct LeadCardChrome: ViewModifier {
 }
 
 extension View {
-    /// Padding stays each card's own: a meeting card is deliberately shorter than an answer.
     func leadCard(selected: Bool) -> some View {
         modifier(LeadCardChrome(selected: selected))
     }
