@@ -3,14 +3,15 @@
 #
 # Team-signed because the keyboard helper's XPC check requires a team ID (docs/features/key-remap.md).
 # A fixed install path keeps the Accessibility and Input Monitoring grants across updates, and the
-# running helper exits by itself once its executable is replaced. TINYCAST_TEAM overrides the team
-# read from the first Apple Development certificate; --no-pull builds the checkout as it is.
+# running helper exits by itself once its executable is replaced. The build folder ends in .noindex
+# so Spotlight, and every launcher reading it, lists only the installed copy. TINYCAST_TEAM overrides
+# the team read from the first Apple Development certificate; --no-pull builds the checkout as it is.
 set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 IDENTITY="Apple Development"
-DERIVED="build/DevDerivedData"
+DERIVED="build/DevDerivedData.noindex"
 APP_NAME="Tinycast Dev.app"
 DEST="$HOME/Applications/$APP_NAME"
 BUNDLE_ID="com.tinycast.app.dev"
