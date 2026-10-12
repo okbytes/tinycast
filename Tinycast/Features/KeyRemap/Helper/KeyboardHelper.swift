@@ -7,7 +7,7 @@ import os
 @main
 enum KeyboardHelper {
     static let subsystem = "com.tinycast.keyboard-helper"
-    /// Run with this, the helper only reports Input Monitoring in its exit status; see `RemapWorker`.
+    /// With this argument the helper only reports Input Monitoring, in its exit status.
     static let accessCheckArgument = "--check-input-monitoring"
 
     static func main() {
