@@ -43,6 +43,7 @@ Findings from the initial survey that still shape the plan:
 - Removed the Raycast import (`.rayconfig` and script folders); `.tinycast` backups are the one import.
 - Removed About: its Settings pane, the About command and both menu items.
 - Removed Navigation, the window switcher.
+- Removed Notes.
 - Merged upstream through #1410 (`71279c8`), leaving out Dictation and the update-check toggle.
 - Cherry-picked upstream through #1481 (`da2c4e4`): 14 of 24 taken; the rest were for removed
   features, plus #1451, whose posture rewrite would loosen latest-only.
@@ -62,20 +63,6 @@ Findings from the initial survey that still shape the plan:
 - Per-emoji skin-tone picker, and tone support for ZWJ sequences (only 133 single-scalar emoji
   take tones today).
 - Persist the grid zoom.
-
-## Notes — a global capture surface
-
-Used to capture details mid-meeting or mid-interview with a video call and other windows up, so the
-window must never fight the call for focus. The TextKit editor stays; the panel and coordinator
-change.
-
-- One hotkey that summons and dismisses from anywhere without stealing focus from the call.
-- Stays above the meeting window, follows Spaces, optional hide-on-focus-loss.
-- Zero friction to start typing into a fresh or recent note; auto-height until resized; remembered
-  position.
-- A quick note list beyond the ⌘P switcher; external-edit detection so another editor is never
-  clobbered.
-- Reference implementation: Pane (ColeMei/pane).
 
 ## Clipboard
 

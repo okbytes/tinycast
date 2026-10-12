@@ -277,7 +277,7 @@ final class WindowMover {
     private func toggleFullScreen(_ surface: Surface) -> Bool {
         switch surface {
         case .own(let window):
-            // AppKit fullscreens any resizable window unless it opts out, as the Notes panel does.
+            // AppKit fullscreens any resizable window unless it opts out of fullscreen.
             guard window.styleMask.contains(.resizable),
                 window.collectionBehavior.isDisjoint(with: [.fullScreenAuxiliary, .fullScreenNone])
             else { return false }

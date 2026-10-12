@@ -1,8 +1,6 @@
 import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var terminationRequestInFlight = false
-
     /// Must land before the first scroll view exists, or the scroller switch shows as a flash.
     func applicationWillFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.set("WhenScrolling", forKey: "AppleShowScrollBars")
@@ -23,15 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             activation.closeAll()
             return .terminateCancel
         }
-        guard !terminationRequestInFlight else { return .terminateLater }
-        terminationRequestInFlight = true
-        Task { @MainActor [weak self] in
-            // A 300 ms-debounced draft still has to reach disk, but it can no longer veto the quit.
-            await AppCore.shared.flushNotesForTermination()
-            self?.terminationRequestInFlight = false
-            sender.reply(toApplicationShouldTerminate: true)
-        }
-        return .terminateLater
+        return .terminateNow
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

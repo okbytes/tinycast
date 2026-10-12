@@ -63,7 +63,7 @@ struct OverflowFadeMask: ViewModifier {
         ]
     }
 
-    /// The original Settings and Notes curve stays unchanged when no popup opts into its top edge.
+    /// The original Settings curve stays unchanged when no popup opts into its top edge.
     private func bottomStops(height: CGFloat) -> [Gradient.Stop] {
         let strength = min(overflow.bottom / band, 1)
         guard strength > 0, height > band else { return [.init(color: .black, location: 0)] }

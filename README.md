@@ -46,8 +46,6 @@ source, and staying that way.
   files, and more.
 - **Calendar and meetings** — your next meeting on the empty palette and in the menu bar, one key to
   join it, or let it join itself.
-- **Notes** — an unlimited collection of plain Markdown files in one floating editor, searchable from
-  the palette and rendered as you write.
 - **Emoji picker** — a searchable emoji grid, one keystroke away.
 - **Backup and import** — export your setup to a file, and import it on another Mac.
 

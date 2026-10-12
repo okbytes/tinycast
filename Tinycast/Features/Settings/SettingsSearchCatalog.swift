@@ -110,7 +110,7 @@ enum SettingsSearchCatalog {
     static let entries: [SettingsSearchEntry] =
         general + applications + systemSettings + systemActions + commands + quicklinks
         + appleShortcuts + fallbacks + clipboard + snippets + windowManagement
-        + notes + calendar + emoji + permissions + backup
+        + calendar + emoji + permissions + backup
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),
@@ -264,25 +264,6 @@ enum SettingsSearchCatalog {
         .init(
             pane: .fallbacks,
             keywords: ["no results", "empty", "search web", "order"])
-    ]
-
-    private static let notes: [SettingsSearchEntry] = [
-        .init(pane: .notes, keywords: ["markdown", "scratchpad", "floating"]),
-        .init(
-            .notesNotes, "Enable Notes",
-            keywords: ["markdown", "scratchpad"]),
-        .init(
-            .notesOptions, "Render Markdown",
-            keywords: ["markdown", "formatting", "preview", "raw", "source"]),
-        .init(
-            .notesOptions, "Show Formatting Bar",
-            keywords: ["toolbar", "format bar", "buttons", "bold", "heading", "markdown"]),
-        .init(
-            .notesOptions, "Notes Folder",
-            keywords: ["location", "path", "dotfiles", "files", "markdown"]),
-        .init(
-            group: .notesCommands, "Notes commands",
-            keywords: ["shortcut", "new note", "search notes"])
     ]
 
     private static let snippets: [SettingsSearchEntry] = [

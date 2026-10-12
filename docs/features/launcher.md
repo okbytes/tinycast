@@ -20,7 +20,7 @@ earliest scope wins; within one folder, the newest `CFBundleShortVersionString` 
 - **One command, one pane, one switch.** `SettingsTab.ownedCommands` is the whole table of which pane
   lists a command's shortcut, alias and launcher checkbox. A feature that names its commands there
   already decides whether they exist, so `Enable Commands` neither lists nor gates them — two switches
-  over one row is how somebody ends up with Notes on and its shortcut dead. Everything the table does
+  over one row is how somebody ends up with a feature on and its shortcut dead. Everything the table does
   not name belongs to Settings › Commands and answers to that switch.
 - **The ranking lives in pure files.** `Model/LauncherMatch.swift` (the scorer),
   `Model/LauncherOrder.swift` (the comparator) and `Model/LauncherSuggestions.swift` are
@@ -588,18 +588,6 @@ Only the display name is indexed. Activation resolves the stable UUID through th
 to `ShellCommandRunner`; see [custom-commands.md](custom-commands.md) for persistence, hotkeys and
 execution semantics.
 
-## Notes commands
-
-`CommandID.showNotes`, `.createNote`, and `.searchNotes` publish the three Notes entry points while the
-feature is enabled. Activation hides the palette without restoring focus and calls the matching
-`NotesCoordinator` action; each `HotKeyAction` reaches that same boundary and rechecks enablement.
-
-`AppIndex` projects the three commands together from `notesEnabled`, independently of
-Quicklinks. They represent collection actions rather than individual notes, so Notes adds no
-`AppEntry.Kind` or launcher section — it owns them through `SettingsTab.ownedCommands` instead, which
-is what keeps them out of Settings › Commands while they stay in the launcher's Commands section. See
-[notes.md](notes.md).
-
 ## Pane-owned commands
 
 `SettingsTab.ownedCommands` names, per pane, the commands that pane lists itself. `CommandID.owner`
@@ -609,8 +597,8 @@ and three places read it: `FeatureCommandsSection` draws the pane's rows from it
 category gate for it in both `isVisible` and `allowsHotKey`. Stamping the entry rather than sniffing its
 id is what keeps "which pane owns this" out of the entry-ID namespace.
 
-Seven panes own commands today — Notes, Snippets, Window Management, Clipboard,
-Emoji, Calendar and Quicklinks. What is left in Settings › Commands is the set no feature
+Six panes own commands today — Snippets, Window Management, Clipboard, Emoji,
+Calendar and Quicklinks. What is left in Settings › Commands is the set no feature
 switch governs: Calculator History, Open Camera, the three backup commands, Tinycast Settings and
 Quit.
 

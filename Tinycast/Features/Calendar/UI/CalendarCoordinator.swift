@@ -12,7 +12,6 @@ final class CalendarCoordinator {
     /// Dialogs and the HUD, so both stay owned by `AppCore`.
     private unowned let core: AppCore
 
-    /// Its own surface, the way `NotesCoordinator` owns the notes window.
     @ObservationIgnored private lazy var cameraPreview = CameraPreviewController()
 
     @ObservationIgnored private var paletteVisible = false

@@ -64,7 +64,7 @@ Add a token rather than a magic number when introducing a new value.
 ### Interface Size (`InterfaceMetrics`)
 
 `AppSettings.interfaceSize` scales the palette and the surfaces that float with it — the ⌘K menu,
-dialogs and HUDs. Settings, Onboarding and Notes never scale.
+dialogs and HUDs. Settings and Onboarding never scale.
 
 `DesignSystem/InterfaceMetrics.swift` stores **only a scale** and derives every value from the `Theme`
 literal, so `Theme` stays the one place a number is written down. **In any view a scaled surface can
@@ -107,8 +107,6 @@ action, and the pill is the affordance saying so; squaring it off reads as a too
 also keeps the pair concentric for free — a capsule's radius is half its height, so the inner
 buttons land exactly `Spacing.xs` inside the wrapper without either radius being written down.
 
-Notes has no corner of its own: it clips to `panel`, so the two floating surfaces read as siblings.
-
 `dialog` sits between `menuPanel` and `panel` so a dialog reads as a smaller sibling of the palette, not a second palette.
 
 `menu` is the shared small-control corner (sidebar tiles); `menuRow` is the slightly rounder hover highlight behind popover-menu rows.
@@ -141,8 +139,8 @@ round every row to 18 for no reason.
 
 If a pair ever does need closing, **move the gap, not the curve** — but only once you have checked
 what else is anchored to that gap. A radius is shared by surfaces across several features, a
-placement constant is not: `Radius.menuPanel` alone dresses the ⌘K menu, the
-shortcut-recorder callout and the Notes switcher, and `menuRow` is deliberately equal to
+placement constant is not: `Radius.menuPanel` alone dresses the ⌘K menu and the
+shortcut-recorder callout, and `menuRow` is deliberately equal to
 `row` so a row pill is one shape everywhere.
 
 ### Size (`Theme.Size`)
@@ -156,10 +154,6 @@ shortcut-recorder callout and the Notes switcher, and `menuRow` is deliberately 
 `dialogWidth 420` · `dialogButtonHeight 34` · `dialogSymbol 28` · `dialogSymbolContainer 52` ·
 `dialogIcon 32` · `hudWidth 200` ·
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeReadout 38`
-
-Notes adds `noteWindow 440×180` (opening size on a first run, and the floor), `noteWindowMaxHeight 860`,
-`noteTitlebar 44`, `noteTitleInset 120`, `noteEditorInset 16`, `noteSearchHeight 34`,
-`noteFooterHeight 28`, `noteGlyph 16`, `noteEmptyGlyph 28`, and `noteHeadingMenu 220×159`.
 
 `keyCap` sizes the palette's keycap chips; `recorderKeyCap` (both size and radius) is the intentionally-smaller Settings shortcut-recorder chip.
 
@@ -198,7 +192,6 @@ shipped. Light is the same stop with the ink inverted, and is the only column op
 | `sheen`           | white 0.04     | black 0.04     | the wash behind the Onboarding header            |
 | `cardFill`        | white 0.05     | black 0.04     | settings/calc card fill                          |
 | `cardStroke`      | white 0.10     | black 0.10     | settings/calc card border + inset dividers       |
-| `noteText`        | white 0.90     | black 0.85     | Notes body text                                  |
 | `dropGuide`       | white 0.35     | black 0.35     | the palette's drop guides while dragging         |
 
 `panelScrim` is the ramp's inverse — it darkens the dark surface and lightens the light one — so it
@@ -220,88 +213,7 @@ Source: `Palette/PalettePanel.swift`, `Palette/RootPaletteView.swift`.
 - **Header** (`headerHeight 44`): a back-chevron _or_ mode glyph, then the plain `TextField` (no border/background). Sub-screens (Clipboard, Calculator History) show the back chevron; the launcher shows a magnifying glass. The search icon aligns horizontally with row content, and the query with the row titles.
 - **Compact keyboard entry:** pressing `↓` in the collapsed launcher expands the results and selects the first row without replacing or defocusing the shared search field.
 - **Bottom bar** (`bottomBarHeight 52`): a menu circle on the left, the action group on the right — both floating glass, no bar background. The action group is one glass `Capsule` holding the primary-action pill (label + `↵`) and the Actions toggle (`⌘K`).
-- **`BarButton`** is the shared bar control: bare label at rest, a `rowHover` capsule on hover, `barButtonHeight 28`. Set `isSelected` and it fills with `selection` instead, which beats hover; the Notes formatting bar lights its buttons this way. Set `isCompact` for `sm` padding instead of `md`: around a 16-point glyph frame that makes a 28-point square. It carries the footer's two buttons and the clipboard header's type filter, so those hover identically. Hover state lives inside it, so sweeping one never re-renders the palette body.
-
----
-
-## Notes panel
-
-Source: `Features/Notes/UI/`.
-
-Notes is a sibling surface, not a palette mode. `NotesPanel` is a **titled**, resizable,
-non-activating panel — AppKit draws the traffic lights, the drag and the resize — but it keeps the
-palette's transparent recipe and deliberately does not dismiss on resign-key. `NotesView`'s root
-applies `panelScrim` → `GlassEffectView()` → one continuous **`panel`** corner clip, so
-Notes and the palette round identically. The clip is larger than the theme frame's own corner, so it
-is what shows; `invalidateShadow()` on every show recuts the shadow to match.
-
-The title bar is a 44-point band, and both halves of it are deliberate. `titleVisibility` is
-`.hidden` and `NotesView` draws the title itself, centred on the **window**: a titlebar accessory
-drops `NSThemeFrame` off its centred-title layout, so the native title would sit beside the traffic
-lights. The drawn title is not hit-testable, so clicks fall through to the real title bar and drag
-the window. The three actions cannot do that, so they live in an `NSTitlebarAccessoryViewController`
-at `.trailing` — `NoteTitlebarActions`, the launcher's footer capsule (`BarButton` in a
-`frosted(in: Capsule())`) with glyphs in place of pills. Its 44-point height is what sizes the band.
-
-`NotesWindowController` fits the height to the editor on every edit and AppKit autosaves the frame
-under `"Notes Window"`; only a title-bar double-click computes a top-right target. The window shows exactly
-one surface at a time — editor, switcher, or the "No Notes" empty state — and the character count is
-part of the editor surface, so it never appears without a note.
-
-The header keeps a fixed slot for status so Saving, Saved, failure, and conflict symbols cannot move
-the controls. Failure and conflict symbols can be clicked to reopen their recovery report after a
-dismissal. A title click opens the in-window note switcher; dragging the title, note icon, or otherwise
-empty header moves the panel after a three-point threshold. Create, Reveal, Hide, and actionable status
-remain click-only controls. Escape closes the switcher before hiding, while Command-W and the hide
-control order the panel out. Show Notes only shows or focuses; focus loss leaves the panel visible.
-
-The editor is one native TextKit 2 surface. Its string is the canonical Markdown source, and Render
-Markdown styles it in place with no new tokens. Notes type sits one system text style above the rest
-of the app, because a note is for reading: body text is the title3 size in `noteText`, and headings 1
-to 3 use the largeTitle, title1 and title2 sizes (bold, bold, semibold). Interface Size does not scale
-it. Inline code is monospaced on `controlSurface`, and links use the system link colour. Quotes and
-checked tasks dim to `textSecondary`, and a checked task is struck through. Most markers show in
-`textTertiary` on the caret's line and are hidden elsewhere. Bullets keep their rendered dot even under
-the caret; revealed list markers stay `textSecondary`. Revealed non-bullet list and quote markers hang
-left of their text, so the text does not move when the caret arrives, unless the marker is wider than
-the slot. Empty list items keep body-sized invisible markers so their rows match filled items' height.
-
-A layout fragment draws the block chrome. A code band fills `cardFill` with `menu` corners at its ends
-and a `textTertiary` language label, inset by `lg`. A quote bar is `markdownQuoteBar` wide in `border`,
-stepping `markdownQuoteBar + lg` per depth. A rule is a `hairline` of `separator`. List markers sit in
-a slot per level, `markdownListMarker` grown in proportion to the body size. Bullets, numbers and
-checkboxes are `textSecondary`; a done box is filled with the check cut out. Headings 1 and 2 get `xl`
-space above, the rest `md`, and `xs` below; every list item gets `md` below. A table stays literal
-source in the code-block font, and a wrapped row hangs `lg` under its first line. AppKit owns editing,
-undo, selection, Find, and marked text.
-
-Under the editor, the formatting bar takes a `bottomBarHeight` band while Render Markdown and Show
-Formatting Bar are on, in place of the 28-point count footer. It is one row, not a capsule hugging the
-window: the count is plain text at the leading edge and the buttons sit in glass at the trailing edge,
-the same split as the palette's own bottom bar. The capsule is the title bar's recipe (`BarButton`s in
-`frosted(in: Capsule())`), inset `md` from the trailing edge as the title capsule is, with `xxs`
-between buttons and `sm` between groups. Each button is a compact 28-point square
-around a `noteGlyph` frame, so the capsule is 36 points wide collapsed and 397 expanded, and the count
-gives way from 524 points down. Collapsing and expanding grows the buttons out of the round button on
-`MenuMotion.chevronAnimation`, wrapped in an explicit `withAnimation` in the coordinator because the
-chord changes that state outside any view's transaction, and skips the animation under Reduce Motion. The band takes only the width it is offered, so the bar can never widen the note; past that,
-only the capsule's leading end clips. Lit buttons
-use `BarButton.isSelected`; hovering shows a `Tooltip` with the name and shortcut, because an AppKit
-tooltip does not appear while the app is inactive behind this non-activating panel. The glass is a
-`background`, never a wrapper, and nothing clips the row, because either one swallows that tooltip. The
-round button aligns its tooltip trailing and the heading button leading, so neither runs past the
-window edge. The heading menu is a borderless child window like the switcher, `noteHeadingMenu` in
-size, hung off the heading button's own reported frame and `xs` above it, drawn with
-`PopoverMenuRow`'s metrics on `menuPanel` glass.
-
-The switcher is its own glass panel over the editor, sized to its list up to a 240-point ceiling and
-never resizing the note window. Its plain search field and
-keyboard-navigable rows use the shared selection/hover ramp; rename and Trash remain row actions rather
-than adding another toolbar or window.
-
-The switcher exposes activation, Rename, and Move to Trash as VoiceOver actions with the actual note
-title. Its hover buttons are hidden from accessibility so those actions are announced once. See
-[features/notes.md](features/notes.md).
+- **`BarButton`** is the shared bar control: bare label at rest, a `rowHover` capsule on hover, `barButtonHeight 28`. It carries the footer's two buttons and the clipboard header's type filter, so those hover identically. Hover state lives inside it, so sweeping one never re-renders the palette body.
 
 ---
 
@@ -319,8 +231,7 @@ the `ScrollView`, **before `.thinScrollbar()`** (so the scrollbar overlay stays 
 - The mask spans the scroll view's **full** frame (`.ignoresSafeArea()`) — otherwise the bars' safe-area insets shift the gradient onto at-rest rows.
 
 **Palette only.** Every one of its call sites is a palette screen, and the bands above are measured
-against the palette's bars. A Settings list underlaps nothing, so it uses `.overflowFade()` instead —
-and so does the Notes switcher, whose search row is a sibling in a `VStack`, not a floating bar.
+against the palette's bars. A Settings list underlaps nothing, so it uses `.overflowFade()` instead.
 
 ---
 
@@ -328,12 +239,12 @@ and so does the Notes switcher, whose search row is a sibling in a `VStack`, not
 
 Source: `DesignSystem/Scrolling/OverflowFade.swift`.
 
-The counterpart for any list with no bars over it — the Settings lists and the Notes switcher — and
+The counterpart for any list with no bars over it — the Settings lists and bounded popups — and
 deliberately a separate type: sharing one modifier would tie such a list to geometry that only means
 something under a bar. Attach with `.overflowFade()` on the `ScrollView`, before `.thinScrollbar()`,
 or pass `includingTop: true` for a bounded popup whose title and rows scroll together.
 
-- **Bottom by default.** Settings and Notes have nothing above their lists; popups opt into the top
+- **Bottom by default.** Settings has nothing above its lists; popups opt into the top
   edge because their content, including the title, can scroll past it.
 - Fade band: **24px** with the original single-stop curve by default; popups opt into the progressive
   top-and-bottom curve and their own 30pt band.
@@ -573,7 +484,7 @@ leaves, and `fadeIn`/`fadeOut` for the panels; Reduce Motion removes all of it. 
 
 ## The camera preview panel
 
-`CameraPreviewPanel` is the third borderless surface, beside the dialog and the notes panel. It takes
+`CameraPreviewPanel` is the third borderless surface, beside the palette and the dialog. It takes
 the same recipe — `panelScrim`, then `GlassEffectView`, then the clip — and the same optical lift a
 dialog takes, but sits at `.floating` rather than `.dialog` so a failure report still lands on
 top of it.
@@ -691,7 +602,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
 - **`SettingsSearchCatalog` is hand-written, and that is the only option.** A `Form` cannot be asked
   what rows it holds, so a new row is searchable only once it is listed there — with its anchor, its
   title and the keywords the title doesn't contain ("caps lock" for Hyper Key).
-  Matching reuses `FuzzyMatch` (`Launcher/Model/SearchRelevance.swift`), multi-term like `NoteSearch`:
+  Matching reuses `FuzzyMatch` (`Launcher/Model/SearchRelevance.swift`), multi-term:
   every term must hit the title, the breadcrumb or a keyword, a title hit outranks the rest, and a
   pane outranks its own rows so a bare "clipboard" lands on the pane. `Tests/settings-history-test.swift`
   pins that every pane is covered and that identities are unique; row-level drift is caught in review.

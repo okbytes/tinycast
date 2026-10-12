@@ -5,8 +5,8 @@ between Macs, or from Tinycast into Tinycast Dev, whose files each channel reads
 **Settings → Backup**, the **Import Backup** command, and onboarding's import step. The feature lives
 in `Features/Backup/`.
 
-A backup carries five independently selectable categories, ticked on export and again on import:
-**Settings & Shortcuts**, **Clipboard History**, **Snippets**, **Notes** and **Launcher Learning**.
+A backup carries four independently selectable categories, ticked on export and again on import:
+**Settings & Shortcuts**, **Clipboard History**, **Snippets** and **Launcher Learning**.
 
 ## Invariants
 
@@ -126,8 +126,6 @@ Per category:
   `imagesDir` is one retention can ever reclaim, which is why the blob moves there before the row lands.
 - **Snippets** merge through `importSnippets`, deduped on name and body so importing the same file
   twice doesn't leave a second copy of everything. Importing snippets does not enable snippets.
-- **Notes** land as new files through `NotesRepository.importNotes`, which suffixes a title that is
-  already taken rather than overwriting it.
 - **Learning** replaces. Merging two Macs' frecency tables produces a table describing neither.
 
 An `id` never travels with a clip: `items.id` is `UNIQUE`, so a re-import minting fresh identities is

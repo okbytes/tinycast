@@ -23,7 +23,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ WindowLayout/* · CustomWindowSize{,Store} · Room/* ·                       │
 │ PaletteRowIndex ·                                                          │
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
-│ Quicklink{,Destination,Store,Archive} · AppleShortcut · Notes/Model/* ·    │
+│ Quicklink{,Destination,Store,Archive} · AppleShortcut ·                    │
 │ Snippets/Model/* ·                                                         │
 │ ShellCommandRunner · DoubleTap{Modifier,Detector} · ClipboardStore ·       │
 │ AppSettingsKey · SettingsBackupCoverage · KeyRemapEngine · TopRowMap ·     │
@@ -40,7 +40,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ RoomWindowSweep · RoomRunner ·                                             │
 │ IconCache · WindowMover · UninstallScanner · UninstallRunner ·             │
 │ SystemActionRunner · QuicklinkLauncher · TextInjector ·                    │
-│ SnippetKeywordListener · NotesRepository · CurrencyRateStore · Paster ·    │
+│ SnippetKeywordListener · CurrencyRateStore · Paster ·                      │
 │ HotKeyCenter · KeyRemapManager · ModifierTapMonitor · RunningAppsMonitor · │
 │ CalendarStore · MeetingLauncher · MeetingClock · CameraSession ·           │
 │ AppleShortcutRunner · SettingsFileRepository · SettingsFileMonitor ·       │
@@ -48,7 +48,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 49 @MainActor @Observable stores, sessions, indices and State types        │
+│ 47 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -91,7 +91,7 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 (`ClipboardManager`, the opt-in `ClipboardTextIndexer`, the opt-in `SettingsFileRepository`,
 `HotKeyManager`, `KeyRemapManager`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
 (`AppSettings`, `PaletteState`, `UninstallSession`,
-`MeetingClock`), `NotesStore`, the twenty feature coordinators, and the
+`MeetingClock`), the nineteen feature coordinators, and the
 window controllers.
 
 `AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
@@ -137,11 +137,6 @@ driven imperatively from AppKit.
   by `SettingsCoordinator` and `OnboardingCoordinator`. SwiftUI `Settings` and `Window` scenes are
   unreliable for accessory apps, so this is deliberate. Their lifecycles are independent of the
   palette's in both directions.
-- **Notes** — a persistent, titled, non-activating `NotesPanel` managed by `NotesWindowController`.
-  Its height fits the note up to 860pt and AppKit autosaves the frame; its TextKit 2 editor renders
-  Markdown over the literal source, switches among local Markdown files and stays visible on focus
-  loss. The displayed string is the canonical file source; there is no source/display mapping.
-  See [features/notes.md](features/notes.md).
 - **The main menu** — shaped by `TinycastApp`'s `.commands`, which rebinds ⌘Q to Close Window for
   Settings. It is only ever on screen while a titled window is open, so it is those windows' menu
   bar. It must stay declarative.
@@ -164,7 +159,7 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-49 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+47 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:
@@ -220,7 +215,7 @@ Tinycast/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Calculator/ Calendar/ Emoji/ Notes/
+    Launcher/ Calculator/ Calendar/ Emoji/
     Quicklinks/ Snippets/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/
     WindowManagement/ Onboarding/ Settings/
     Clipboard/

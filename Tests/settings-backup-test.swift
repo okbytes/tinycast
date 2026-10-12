@@ -43,13 +43,6 @@ struct SettingsBackupTest {
         check(
             naming("no two backup fields claim the same key", Array(doubleClaimed)),
             doubleClaimed.isEmpty)
-        check("notes enablement rides the settings backup", mirrored["notesEnabled"] == .notesEnabled)
-        check(
-            "Markdown rendering rides the settings backup",
-            mirrored["notesRendersMarkdown"] == .notesRendersMarkdown)
-        check(
-            "the formatting bar rides the settings backup",
-            mirrored["notesShowsFormattingBar"] == .notesShowsFormattingBar)
         check(
             "clipboard enablement rides the settings backup",
             mirrored["clipboardEnabled"] == .clipboardEnabled)

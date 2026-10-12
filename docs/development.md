@@ -66,9 +66,9 @@ by itself once its executable is replaced. Updating another Mac is the same one 
 
 Debug builds are a separate channel: **`Tinycast Dev.app`**, bundle id `com.tinycast.app.dev`. Every
 persisted thing is keyed by bundle id — `~/Library/Preferences/<id>.plist` (settings and hotkey
-bindings), `~/Library/Application Support/<id>/` (the onboarding marker, Notes, snippets, quicklinks,
-clipboard history, calculator history, launch ranking and frequent emoji; Notes and snippets unless
-a folder is chosen),
+bindings), `~/Library/Application Support/<id>/` (the onboarding marker, snippets, quicklinks,
+clipboard history, calculator history, launch ranking and frequent emoji; snippets unless a folder
+is chosen),
 `~/Library/Caches/<id>/` (exchange rates, backup staging), the opt-in
 `~/.config/tinycast-dev/settings.json` (`tinycast` on stable), the `SMAppService`
 login item, and the Accessibility / Input Monitoring (TCC) grants — so a local build can neither read

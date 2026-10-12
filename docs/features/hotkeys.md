@@ -94,9 +94,8 @@ own pane when `SettingsTab.ownedCommands` names it. `hotkey.togglePalette` is th
 no command row. `HotKeyManager` names them all through `CommandID`, so a conflict callout spells an
 action exactly as its command row does.
 
-Like a window command, the chord registers regardless of the launcher row. Notes re-checks its feature
-switch before opening; see [notes.md](notes.md#ownership-and-enablement). A hidden launcher row does not disable its shortcut, but
-disabling the feature does. `SettingsBackup.HotkeyBackup` carries them as one `commands` map keyed by
+Like a window command, the chord registers regardless of the launcher row. A hidden launcher row does
+not disable its shortcut, but disabling the feature does. `SettingsBackup.HotkeyBackup` carries them as one `commands` map keyed by
 `CommandID` raw value.
 
 System actions and window commands are the fixed-catalog case: they persist under

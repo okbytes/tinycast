@@ -53,7 +53,6 @@ final class AppCore {
     let dictionary = DictionarySession()
     let activationPolicy = ActivationPolicy()
     let uninstall = UninstallSession()
-    let notesStore: NotesStore
 
     /// Set when a quicklink editor should open with Settings; the pane consumes it.
     var pendingQuicklinkEdit: QuicklinkEditRequest?
@@ -119,17 +118,6 @@ final class AppCore {
         settings: settings, appIndex: appIndex, hotKeys: hotKeys, favorites: favorites,
         visibility: visibility, ranking: launcherRanking, aliases: aliases,
         paletteCoordinator: paletteCoordinator, core: self)
-    /// Window state, not a preference: it rides `UserDefaults` like the active note's filename.
-    private nonisolated static let noteFormattingBarKey = "notesFormattingBarExpanded"
-    @ObservationIgnored private(set) lazy var notesCoordinator = NotesCoordinator(
-        store: notesStore,
-        settings: settings,
-        appIndex: appIndex,
-        core: self,
-        isFormattingBarExpanded: UserDefaults.standard.bool(forKey: Self.noteFormattingBarKey),
-        saveFormattingBarExpanded: {
-            UserDefaults.standard.set($0, forKey: Self.noteFormattingBarKey)
-        })
 
     @ObservationIgnored private(set) lazy var launcherCoordinator = LauncherCoordinator(
         ranking: launcherRanking, windowController: windowController,
@@ -141,7 +129,7 @@ final class AppCore {
         windowCommandCoordinator: windowCommandCoordinator,
         windowLayoutCoordinator: windowLayoutCoordinator,
         snippetCoordinator: snippetCoordinator,
-        notesCoordinator: notesCoordinator, calendarCoordinator: calendarCoordinator,
+        calendarCoordinator: calendarCoordinator,
         core: self)
     @ObservationIgnored private(set) lazy var fallbackCoordinator = FallbackCoordinator(
         store: fallbacks, quicklinks: quicklinks, settings: settings, visibility: visibility,
@@ -187,13 +175,6 @@ final class AppCore {
         textInjector = TextInjector(
             clipboardManager: clipboardManager,
             settings: settings)
-        let noteSelectionKey = "notesActiveFileName"
-        notesStore = NotesStore(
-            repository: Self.notesRepository(for: settings),
-            loadSelection: {
-                UserDefaults.standard.string(forKey: noteSelectionKey).map(NoteID.init(rawValue:))
-            },
-            saveSelection: { UserDefaults.standard.set($0?.rawValue, forKey: noteSelectionKey) })
     }
 
     func start() {
@@ -209,7 +190,6 @@ final class AppCore {
 
             appIndex.start(settings: settings)
             clipboardCoordinator.applyEnabled()
-            notesCoordinator.applyEnabled()
             customCommands.onChange = { [weak self] _ in
                 self?.customCommandCoordinator.applyCustomCommandsPresence()
             }
@@ -370,10 +350,6 @@ final class AppCore {
         }
     }
 
-    func flushNotesForTermination() async {
-        await notesCoordinator.prepareForTermination()
-    }
-
     /// Idempotent: both switches are tracked, and either one flipping re-runs the whole decision.
     func applyClipboardTextSearch() {
         guard settings.clipboardEnabled, settings.clipboardTextSearchEnabled else {
@@ -451,7 +427,6 @@ final class AppCore {
             { _ = $0.clipboardEnabled }, reproject: { $0.clipboardCoordinator.applyEnabled() })
         track(
             { _ = $0.clipboardTextSearchEnabled }, reproject: { $0.applyClipboardTextSearch() })
-        track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
         track({ _ = $0.calendarEnabled }, reproject: { $0.calendarCoordinator.applyEnabled() })
         track(
             {
@@ -482,7 +457,6 @@ final class AppCore {
             { _ = $0.clipboardRetention },
             reproject: { $0.clipboardCoordinator.applyRetention($0.settings.clipboardRetention) })
         track({ _ = $0.snippetsFolder }, reproject: { $0.applySnippetsFolder() })
-        track({ _ = $0.notesFolder }, reproject: { $0.applyNotesFolder() })
     }
 
     /// `.system` resolves to `nil`, so AppKit follows macOS with nothing polling.
@@ -525,18 +499,9 @@ final class AppCore {
         Task { await snippetsStore.relocate(to: repository) }
     }
 
-    private func applyNotesFolder() {
-        let repository = Self.notesRepository(for: settings)
-        Task { await notesStore.relocate(to: repository) }
-    }
-
     private static func snippetsRepository(for settings: AppSettings) -> SnippetRepository {
         SnippetRepository(
             snippetsDirectory: AppPaths.contentFolder(settings.snippetsFolder, named: "Snippets"))
-    }
-
-    private static func notesRepository(for settings: AppSettings) -> NotesRepository {
-        NotesRepository(notesDirectory: AppPaths.contentFolder(settings.notesFolder, named: "Notes"))
     }
 
     private func applyWindowCommandsPresence() {

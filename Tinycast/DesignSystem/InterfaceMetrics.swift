@@ -96,8 +96,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var emojiGridInset: CGFloat { scaledPoints(Theme.Size.emojiGridInset, scale) }
         var emojiCell: CGFloat { scaledPoints(Theme.Size.emojiCell, scale) }
 
-        var markdownListMarker: CGFloat { scaledPoints(Theme.Size.markdownListMarker, scale) }
-        var markdownQuoteBar: CGFloat { scaledPoints(Theme.Size.markdownQuoteBar, scale) }
         var dialogCompactWidth: CGFloat { scaledPoints(Theme.Size.dialogCompactWidth, scale) }
         var dialogWidth: CGFloat { scaledPoints(Theme.Size.dialogWidth, scale) }
         var dialogButtonHeight: CGFloat {

@@ -30,6 +30,7 @@ cut=(
     'Tinycast/Windows/About/*'
     'Tinycast/Features/WindowSwitcher/*' Tinycast/Features/Settings/Panes/NavigationSettingsView.swift
     Tests/window-switch-test.swift docs/features/navigation.md
+    'Tinycast/Features/Notes/*' 'Tests/notes-*' docs/features/notes.md
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

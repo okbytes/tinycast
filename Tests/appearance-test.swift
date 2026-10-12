@@ -56,7 +56,6 @@ struct AppearanceTests {
         dark("border", c.border, is: Color.white.opacity(0.20))
         dark("textSecondary", c.textSecondary, is: Color.white.opacity(0.60))
         dark("textTertiary", c.textTertiary, is: Color.white.opacity(0.40))
-        dark("noteText", c.noteText, is: Color.white.opacity(0.90))
         dark("cardFill", c.cardFill, is: Color.white.opacity(0.05))
         dark("cardStroke", c.cardStroke, is: Color.white.opacity(0.10))
         dark("dropGuide", c.dropGuide, is: Color.white.opacity(0.35))
@@ -75,7 +74,7 @@ struct AppearanceTests {
             ("menuHover", c.menuHover), ("separator", c.separator),
             ("controlSurface", c.controlSurface), ("border", c.border),
             ("textPrimary", c.textPrimary), ("textSecondary", c.textSecondary),
-            ("textTertiary", c.textTertiary), ("noteText", c.noteText), ("cardFill", c.cardFill),
+            ("textTertiary", c.textTertiary), ("cardFill", c.cardFill),
             ("cardStroke", c.cardStroke), ("dropGuide", c.dropGuide),
             ("iconPlaceholder", c.iconPlaceholder), ("sheen", c.sheen)
         ] {
