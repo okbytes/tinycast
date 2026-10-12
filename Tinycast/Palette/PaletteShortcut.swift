@@ -22,12 +22,6 @@ enum PaletteShortcut: Equatable {
     case forceQuit
     /// ⌘R.
     case restart
-    /// ⌘N, a new one of whatever the screen holds.
-    case newItem
-    /// ⌘E, the row opened in its editor.
-    case edit
-    /// ⌥⌘,, the screen's own settings; ⌘, alone stays the app's.
-    case settings
     /// ⌘., which AppKit binds to `cancelOperation:`, so it arrives as a token instead of a key.
     case pin
     /// ⌘1…⌘0, matched by key code in the panel and handed over as a slot.
@@ -45,9 +39,6 @@ enum PaletteShortcut: Equatable {
         if command, shift, matches("h") { return .hideFromSearch }
         if control, shift, matches("q") { return option ? .forceQuit : .quit }
         if command, matches("r") { return .restart }
-        if command, !shift, matches("n") { return .newItem }
-        if command, !shift, matches("e") { return .edit }
-        if command, option, matches(",") { return .settings }
         return nil
     }
 
@@ -55,10 +46,9 @@ enum PaletteShortcut: Equatable {
     var requiresExpanded: Bool {
         switch self {
         case .copyText, .toggleFavorite, .hideFromSearch,
-            .quit, .forceQuit, .restart, .edit:
+            .quit, .forceQuit, .restart:
             true
-        case .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot, .newItem,
-            .settings, .copyCalculation:
+        case .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot, .copyCalculation:
             false
         }
     }
@@ -66,7 +56,7 @@ enum PaletteShortcut: Equatable {
     var closesMenu: Bool {
         switch self {
         case .delete, .deleteAll, .copyText, .copyCalculation,
-            .toggleFavorite, .hideFromSearch, .newItem, .settings, .edit:
+            .toggleFavorite, .hideFromSearch:
             true
         case .commandDelete, .quit, .forceQuit, .restart, .pin, .favoriteSlot:
             false
