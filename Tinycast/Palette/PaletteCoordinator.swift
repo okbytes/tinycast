@@ -6,7 +6,6 @@ final class PaletteCoordinator {
     private let palette: PaletteState
     private let settings: AppSettings
     private let appIndex: AppIndex
-    private let windowSwitch: WindowSwitchSession
     private let windowController: PaletteWindowController
     /// Features whose launcher rows are read from outside Tinycast re-read them on each open.
     var onLauncherShown: (() -> Void)?
@@ -17,13 +16,11 @@ final class PaletteCoordinator {
         palette: PaletteState,
         settings: AppSettings,
         appIndex: AppIndex,
-        windowSwitch: WindowSwitchSession,
         windowController: PaletteWindowController
     ) {
         self.palette = palette
         self.settings = settings
         self.appIndex = appIndex
-        self.windowSwitch = windowSwitch
         self.windowController = windowController
     }
 
@@ -92,7 +89,6 @@ final class PaletteCoordinator {
         // Before the show: `targetApp` must still name the app in front, and no row may pop in.
         onScreenOpening?(palette.mode)
         windowController.show()
-        if palette.mode == .switchWindows { windowSwitch.filter(palette.query) }
         // Re-scan on open so an app uninstalled since the last scan drops out of the launcher.
         if palette.mode == .launcher {
             Task { await appIndex.refresh() }
@@ -112,7 +108,6 @@ final class PaletteCoordinator {
     }
 
     func hidePalette(restoreFocus: Bool = true) {
-        windowSwitch.reset()
         windowController.hide(restoreFocus: restoreFocus)
     }
 

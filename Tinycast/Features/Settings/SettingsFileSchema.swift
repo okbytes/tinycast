@@ -71,8 +71,6 @@ enum SettingsFileSchema {
         case .snippetsShowInLauncher: return bind(settings, \.snippetsShowInLauncher)
         case .snippetsFolder: return bind(settings, \.snippetsFolder, accept: folder)
         case .snippetsCommands: return launcher.commandsBinding(for: key, owner: .snippets)
-        case .navigationEnabled: return bind(settings, \.navigationEnabled)
-        case .navigationCommands: return launcher.commandsBinding(for: key, owner: .navigation)
         case .windowManagementEnabled: return bind(settings, \.windowManagementEnabled)
         case .windowManagementShowInLauncher:
             return bind(settings, \.windowManagementShowInLauncher)

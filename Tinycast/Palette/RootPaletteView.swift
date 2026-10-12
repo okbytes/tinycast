@@ -13,7 +13,6 @@ struct RootPaletteView: View {
     @Environment(EmojiIndex.self) private var emojiIndex
     @Environment(FrequentEmojiStore.self) private var frequentEmoji
     @Environment(DictionarySession.self) private var dictionary
-    @Environment(WindowSwitchSession.self) private var windowSwitch
     @Environment(CalendarStore.self) private var calendarStore
     /// Observed so the join card's countdown redraws on the minute boundary.
     @Environment(MeetingClock.self) private var meetingClock
@@ -68,8 +67,6 @@ struct RootPaletteView: View {
                 index: emojiIndex, frequent: frequentEmoji, pinned: core.pinnedEmoji, core: core, vm: vm,
                 tone: settings.emojiSkinTone, defaultColumns: settings.emojiGridColumns,
                 openActions: openActions)
-        case .switchWindows:
-            return WindowSwitchScreen(session: windowSwitch, core: core)
         case .rooms:
             return RoomsScreen(coordinator: core.roomCoordinator, session: core.roomSession, vm: vm)
         case .roomWindows:
@@ -284,7 +281,6 @@ struct RootPaletteView: View {
                 if vm.collapseQueryLineBreaks() { return }
                 land()
                 if vm.mode == .dictionary { dictionary.lookUp(vm.query) }
-                if vm.mode == .switchWindows { windowSwitch.filter(vm.query) }
             }
             // A narrower list means the old index points at a different row, or at none.
             .onChange(of: vm.clipboardFilter) { land() }
@@ -302,7 +298,6 @@ struct RootPaletteView: View {
                 } else {
                     dictionary.reset()
                 }
-                if vm.mode != .switchWindows { windowSwitch.reset() }
                 if vm.mode != .meetingDetails { calendarStore.clearDetails() }
                 if vm.mode != .rooms, vm.mode != .roomWindows { core.roomCoordinator.screensDidClose() }
             }

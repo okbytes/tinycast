@@ -609,21 +609,14 @@ and three places read it: `FeatureCommandsSection` draws the pane's rows from it
 category gate for it in both `isVisible` and `allowsHotKey`. Stamping the entry rather than sniffing its
 id is what keeps "which pane owns this" out of the entry-ID namespace.
 
-Eight panes own commands today — Notes, Snippets, Navigation, Window Management,
-Clipboard, Emoji, Calendar and Quicklinks. What is left in Settings › Commands is the set no feature
+Seven panes own commands today — Notes, Snippets, Window Management, Clipboard,
+Emoji, Calendar and Quicklinks. What is left in Settings › Commands is the set no feature
 switch governs: Calculator History, Open Camera, the three backup commands, Tinycast Settings and
 Quit.
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw
 value — so a command may be moved between owners without migrating anything.
-
-## Navigation commands
-
-`CommandID.switchWindows` opens every running app's windows as a palette screen. It is a plain command
-entry — no new `AppEntry.Kind` and no `VisibilityStore` category — owned by Settings › Navigation
-through `SettingsTab.ownedCommands`, so `navigationEnabled` is its switch. Its invariants and
-internals live in [navigation.md](navigation.md).
 
 > **Invariant:** `Tests/fuzz-test.swift` compiles the real `Launcher/Model/LauncherMatch.swift` and
 > `LauncherOrder.swift`, so both must stay Foundation-only and pure. There is no copy of the ranking

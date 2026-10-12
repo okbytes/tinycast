@@ -116,7 +116,7 @@ lets a later launch take the front back; focusing each app in turn would flicker
 and Spaces. The cost is that a layout waiting on a slow launch focuses only when that wait ends,
 up to the deadline below. A cancelled run focuses nothing, and neither does a run whose frontmost
 app, when the wait ends, is neither the one it started with nor one it opened — the user has moved
-on. `AXWindowAccess.focus` is the same raise-and-activate sequence Switch Windows uses.
+on. `AXWindowAccess.focus` raises the window and activates its app.
 
 ### The launch wait
 

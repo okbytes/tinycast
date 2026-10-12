@@ -47,8 +47,6 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case snippetsShowInLauncher = "snippets.showInLauncher"
     case snippetsFolder = "snippets.folder"
     case snippetsCommands = "snippets.commands"
-    case navigationEnabled = "navigation.enabled"
-    case navigationCommands = "navigation.commands"
     case windowManagementEnabled = "windowManagement.enabled"
     case windowManagementShowInLauncher = "windowManagement.showInLauncher"
     case windowGap = "windowManagement.gap"

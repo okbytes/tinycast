@@ -42,6 +42,7 @@ Findings from the initial survey that still shape the plan:
 - Removed File Search, Raycast extensions and Menu Search.
 - Removed the Raycast import (`.rayconfig` and script folders); `.tinycast` backups are the one import.
 - Removed About: its Settings pane, the About command and both menu items.
+- Removed Navigation, the window switcher.
 - Merged upstream through #1410 (`71279c8`), leaving out Dictation and the update-check toggle.
 - Cherry-picked upstream through #1481 (`da2c4e4`): 14 of 24 taken; the rest were for removed
   features, plus #1451, whose posture rewrite would loosen latest-only.
@@ -114,7 +115,6 @@ keyboard instead of an event tap ([key-remap.md](docs/features/key-remap.md)). T
 
 - Multi-level undo; action memory that survives a relaunch.
 - Re-apply layouts when displays change.
-- Window switcher thumbnails.
 - Decide whether the synthesized trackpad-swipe Space switching stays or the Space commands go.
 
 ## Cross-cutting

@@ -28,7 +28,6 @@ extension View {
             .environment(core.emojiIndex)
             .environment(core.frequentEmoji)
             .environment(core.dictionary)
-            .environment(core.windowSwitch)
             .environment(core.runningApps)
             .environment(core.hotKeys)
             .environment(core.uninstall)

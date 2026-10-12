@@ -28,6 +28,8 @@ cut=(
     Tinycast/Platform/Compression/Zlib.swift Tinycast/DesignSystem/RevealableSecureField.swift
     Tests/raycast-test.swift docs/features/raycast-import.md
     'Tinycast/Windows/About/*'
+    'Tinycast/Features/WindowSwitcher/*' Tinycast/Features/Settings/Panes/NavigationSettingsView.swift
+    Tests/window-switch-test.swift docs/features/navigation.md
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

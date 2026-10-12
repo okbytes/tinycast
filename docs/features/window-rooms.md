@@ -25,8 +25,7 @@ under its MIT licence; [NOTICE.md](../../NOTICE.md) lists the adapted files.
   window whose app it hides.
 - **Parking needs the window-server number.** `AXWindowAccess.windowID(of:)` resolves the private
   `_AXUIElementGetWindow` at run time; without it the room still lays out and hides other apps,
-  but no window parks. This reverses [Navigation](navigation.md#recency-without-a-private-symbol)'s
-  call for rooms only, because a ledger entry must outlive every `AXUIElement`.
+  but no window parks. Rooms need it because a ledger entry must outlive every `AXUIElement`.
 - **`RoomPlan` decides everything before the first write, and is pure.** Matching, frames, what
   parks and which apps stay visible come out of one call the harness pins; `RoomRunner` only
   carries the plan out.

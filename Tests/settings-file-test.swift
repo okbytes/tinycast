@@ -48,7 +48,7 @@ struct SettingsFileTest {
             SettingsFileKey.sections == [
                 "general", "appearance", "hyperKey", "calculator", "search", "applications",
                 "systemSettings", "systemActions", "commands", "quicklinks", "appleShortcuts",
-                "notes", "snippets", "navigation", "windowManagement", "clipboard", "emoji",
+                "notes", "snippets", "windowManagement", "clipboard", "emoji",
                 "calendar"
             ])
 
