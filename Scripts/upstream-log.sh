@@ -47,6 +47,7 @@ cut=(
     'Tinycast/Features/Calendar/UI/Schedule*' Tinycast/Features/Calendar/UI/EventDraftFields.swift
     Tinycast/Features/Calendar/UI/MeetingCardView.swift Tinycast/DesignSystem/ColorDot.swift
     Tinycast/Features/Calendar/UI/MeetingRowParts.swift
+    'Tinycast/Features/Launcher/*/Fallback*' Tests/fallback-test.swift
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

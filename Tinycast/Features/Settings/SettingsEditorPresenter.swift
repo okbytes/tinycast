@@ -413,7 +413,6 @@ extension View {
             .environment(core.hotKeys)
             .environment(core.visibility)
             .environment(core.aliases)
-            .environment(core.fallbacks)
             .environment(core.customCommands)
             .environment(core.snippetsStore)
             .environment(core.quicklinks)

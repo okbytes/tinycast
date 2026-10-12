@@ -29,8 +29,7 @@ source, and staying that way.
   or every app at once.
 - **Global hotkey** — one shortcut summons the palette from anywhere.
 - **Per-app hotkeys** — bind a key to an app; press it to toggle (focus/hide).
-- **Dictionary** — look a word up with the Define Word command, or define whatever you typed from the
-  launcher's fallbacks, read from the Mac's own dictionaries.
+- **Dictionary** — look a word up with the Define Word command, read from the Mac's own dictionaries.
 - **Clipboard history** — text and images, searchable, pasted back into the app you were using.
 - **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
 - **Quicklinks** — turn a URL, search, file or deeplink into a command, with placeholders for typed

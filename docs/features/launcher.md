@@ -288,57 +288,6 @@ would then carry.
 The row prints `AppEntry.subtitle` beside its name — the one field for an entry whose name alone
 can't say what it acts on.
 
-### Fallbacks
-
-A **fallback** is the other half of the query-driven idea: a command the query is the input for,
-offered under a `Use “…” with…` header **below every result**, whatever the query says. A contextual
-row leads because it recognised the query; a fallback trails because nothing did.
-
-`Fallback` (`Launcher/Model/`) is the whole vocabulary — `.builtin(Builtin)` for the two shipped
-destinations and `.quicklink(UUID)` for a user's own. `Builtin` exists rather than a bare `CommandID`
-so `FallbackCoordinator.run` is **exhaustive**: a third built-in cannot compile without saying where
-its query goes. `Fallback.id` is deliberately the row's own `AppEntry.id`, which is what lets a stored
-order name a live row across a rename or a reinstall.
-
-| Fallback | Where the query goes | Offered when |
-| --- | --- | --- |
-| Run Shell Command | `/bin/zsh`, streamed into the Command Output window | always |
-| Define Word | the dictionary screen, already showing the entry (see [dictionary.md](dictionary.md)) | the Define Word command is visible in Settings › Commands |
-| a quicklink | its first `{argument}` | `quicklinksEnabled`, and the link has a placeholder |
-
-**A quicklink earns a fallback row by declaring a placeholder**, nothing else —
-`QuicklinkDestination.containsPlaceholder`. `openQuicklink(id:filling:)` assigns the query to the
-first declared argument and opens at once when that was the only one owed; anything still missing
-sends the row to Search Quicklinks with its header fields pre-filled (see
-[quicklinks.md](quicklinks.md#arguments)). The seed never fills the **selection** field: that one is
-not an `{argument}` and is resolved by replacing the context, so seeding it through `userArguments`
-would silently do nothing.
-
-**Run Shell Command carries its own switch, not the custom-command library's.** Turning off Custom
-Commands hides a library of saved commands; it says nothing about a shell line someone types
-deliberately. The fallback's checkbox is the switch. The run is an ad-hoc `CustomCommand` that is
-never stored — same streaming window, same Stop button — so `CustomCommandCoordinator` keeps
-`lastShellCommand` for the window's Rerun, which has no library entry to look up. It sources the
-shell config (`ll` should mean the reader's own alias) and takes the runner's default home directory.
-
-**The order and the checkboxes are not in a settings backup.** The fallback list is where an import
-could arm shell execution from the launcher, which is the line `snippetsEnabled` already draws:
-a flag that grants a capability is never carried by a backup.
-
-`FallbackStore` is a thin persistence shell over `Fallback.ordered(_:by:)`, which is pure and covered
-by `fallback-test`: stored ids first, then anything the order has never seen, and a stored id with
-nothing behind it — a deleted quicklink — is skipped rather than resurrected. Settings ▸ Fallbacks
-lists exactly `FallbackCoordinator.available`, so a fallback whose feature is off is absent from the
-pane as well as from the launcher, and reorders through ↑/↓ buttons like a favorite rather than
-introducing this codebase's first drag-reorder.
-
-**A fallback row is not a result, and `LauncherScreen.Row` says so.** `.fallback` is its own case
-with a `fallback-` prefixed id, because Define Word can be a ranked hit *and* a fallback in the same
-list, and two rows sharing one id would collapse in `ForEach`. That is also why `LauncherList` takes
-a `selectedRowID` rather than an entry id. Nothing about a fallback row is learned, pinned or
-revealed: `activate` routes to `FallbackCoordinator.run` instead of `LauncherCoordinator.launch`, and
-`FallbackActionsMenu` offers only running it and opening the pane.
-
 ### User aliases
 
 `AliasStore` (`Launcher/Service/`) keeps one user-chosen alias per entry, keyed by `preferenceKey`
@@ -419,7 +368,7 @@ stale habit stop overriding the alignment.
 
 Every pick through `LauncherCoordinator.launch` is a visit, with the query as it was typed: a list
 click, a result, a favorite by ⌘-digit or from the compact bar, the ⌘K Open row. A global shortcut
-is not a visit, and neither is a fallback or a query-driven row. A category listing records the visit
+is not a visit, and neither is a query-driven row. A category listing records the visit
 and not the word. `rank` reads the store once per pass through `snapshot()` — one clock read, not one
 per candidate — and the memos key on the ranking, alias, visibility, favorites and shortcut revisions
 and the sensitivity, so a launch or a reset invalidates them.
@@ -714,7 +663,7 @@ and every new kind has to say so to build.
 The row uses `onRowTap(drag:)` from `DesignSystem/Interaction/RowClick.swift`, the tap-shaped sibling
 of the clipboard's `onRowClick(drag:)`. A launcher click launches rather than
 selects, so the press **activates on the release** — the one moment a press is known not to have
-become a drag. A row that cannot drag gets plain `onTapGesture`, so every other kind, the fallbacks
+become a drag. A row that cannot drag gets plain `onTapGesture`, so every other kind
 and the lead card keep SwiftUI's own gesture. The operation is **copy only**, as
 [clipboard.md](clipboard.md#dragging-out) explains: on the boot volume a file-URL drag would default
 to a move, and moving an app out of `/Applications` is never what a launcher should do. The image is

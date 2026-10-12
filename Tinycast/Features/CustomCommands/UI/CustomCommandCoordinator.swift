@@ -18,14 +18,12 @@ final class CustomCommandCoordinator {
     /// Built on first use; the window inside it waits for a run that actually shows output.
     private lazy var outputPresenter = CommandOutputPresenter(
         activation: activationPolicy,
-        rerun: { [unowned self] in self.rerunOutput(id: $0) },
+        rerun: { [unowned self] in self.runCustomCommand(id: $0) },
         stop: { [unowned self] in self.stopOutputRun(id: $0) },
         openSettings: { [unowned self] in self.settingsCoordinator.showSettings(tab: .commands) })
     private let activationPolicy: ActivationPolicy
     /// Superseding never touches it — only the button ends a command.
     private var liveRun: (id: UUID, stop: @Sendable () -> Void)?
-    /// The last fallback shell line, which has no library entry for the window's Rerun to find.
-    private var lastShellCommand: (id: UUID, text: String)?
 
     init(
         store: CustomCommandStore,
@@ -111,26 +109,6 @@ final class CustomCommandCoordinator {
             return
         }
         perform(command, arguments: arguments)
-    }
-
-    /// The launcher fallback: a one-off shell line, streamed into the window every run uses.
-    func runShellCommand(_ text: String) {
-        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-        if paletteCoordinator.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
-        // Its shell config is sourced: someone typing `ll` in the launcher means their own alias.
-        // No working directory, which the runner reads as home — the only sane cwd for a launcher.
-        let command = CustomCommand(
-            name: CommandID.runShellCommand.name, command: text, loadsShellEnvironment: true,
-            showsOutput: true)
-        lastShellCommand = (command.id, text)
-        Task { await streamOutput(of: command, arguments: []) }
-    }
-
-    /// The window's Rerun. An ad-hoc shell line is not in the store, so it is repeated from here.
-    private func rerunOutput(id: UUID) {
-        guard let last = lastShellCommand, last.id == id else { return runCustomCommand(id: id) }
-        runShellCommand(last.text)
     }
 
     /// A Dock click while a command is running belongs to its window, not to a fresh launcher.

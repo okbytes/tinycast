@@ -133,13 +133,6 @@ top. One argument surface, whether the row is reached from root search, from Sea
 a hotkey. A ⌘↵ "open with default app" override survives that trip on `pendingDefaultAppOverride`,
 keyed by the quicklink it applies to.
 
-**A launcher fallback fills the first argument.** Declaring a placeholder is exactly what puts a
-quicklink in the `Use “…” with…` section (see [launcher.md](launcher.md#fallbacks));
-`openQuicklink(id:filling:)` assigns the query to the first argument still owed — the first declared
-one when every argument has a default — and opens at once when that was the only one owed. It is
-never the "Selected Text" field: that one is not an `{argument}` and is resolved by replacing the
-context, so seeding it there would expand to nothing.
-
 When a template reads the selection and the app in front exposes nothing readable, **Settings →
 Quicklinks** decides what happens: substitute the clipboard, or ask for it through the chip above.
 

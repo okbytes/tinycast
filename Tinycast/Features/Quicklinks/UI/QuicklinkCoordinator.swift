@@ -113,16 +113,6 @@ final class QuicklinkCoordinator {
         performQuicklinkOpen(quicklink, link: expansion.text, forcingDefaultApp: forcesDefault)
     }
 
-    /// The fallback row's query, which fills the first `{argument}` the link still owes.
-    func openQuicklink(id: UUID, filling seed: String) {
-        guard let quicklink = store.quicklink(id: id) else { return }
-        let arguments = SnippetTemplateEngine.declaredArguments(in: quicklink.link)
-        guard let target = arguments.first(where: { !$0.isOptional }) ?? arguments.first else {
-            return openQuicklink(id: id)
-        }
-        openQuicklink(id: id, values: [target.name: seed])
-    }
-
     /// `{selection}` promoted to a field when unreadable; left empty, it still resolves at open.
     static let selectionArgument = SnippetTemplateEngine.DeclaredArgument(
         name: "Selected Text", options: [], isOptional: true)

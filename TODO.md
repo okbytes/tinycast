@@ -47,6 +47,7 @@ Findings from the initial survey that still shape the plan:
 - Trimmed Calendar to the menu-bar item: next event, the agenda on click, Open in Calendar. Joining,
   auto join, the camera preview, launcher rows, My Schedule, event details, Create Event and the
   calendar commands are gone.
+- Removed launcher Fallbacks.
 - Merged upstream through #1410 (`71279c8`), leaving out Dictation and the update-check toggle.
 - Cherry-picked upstream through #1481 (`da2c4e4`): 14 of 24 taken; the rest were for removed
   features, plus #1451, whose posture rewrite would loosen latest-only.

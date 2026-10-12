@@ -1,17 +1,11 @@
 # Dictionary
 
-`Define Word` is a launcher command and a fallback. The command opens the dictionary screen (`.dictionary`)
-empty; the fallback opens it on whatever was typed. The search field stays the term, so a different
-word is one edit away. Everything is read from the dictionaries enabled in Dictionary.app — no network,
-no bundled word list.
+`Define Word` is a launcher command that opens the dictionary screen (`.dictionary`) empty. The
+search field is the term, so a different word is one edit away. Everything is read from the
+dictionaries enabled in Dictionary.app — no network, no bundled word list.
 
 ## Invariants
 
-- **The command gates the fallback, never the reverse.** Define Word has no feature pane, so
-  Settings › Commands is its switch: while the command is hidden there — itself or the whole Commands
-  category — `FallbackCoordinator` offers no Define Word fallback and Settings › Fallbacks does not
-  list it. While it is visible, the fallback's own checkbox hides just the fallback, leaving the
-  command searchable.
 - **The page comes from an undocumented call, resolved at run time.** The public
   `DCSCopyTextDefinition` returns one unbroken line, so `DictionaryService` asks for the record's XHTML
   through `DCSGetActiveDictionaries`, `DCSCopyRecordsForSearchString` and `DCSRecordCopyData` — what

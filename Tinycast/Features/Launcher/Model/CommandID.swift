@@ -8,7 +8,6 @@ enum CommandID: String, CaseIterable, Sendable {
     case searchEmoji = "command:search-emoji"
     case openCamera = "command:open-camera"
     case openInBrowser = "command:open-in-browser"
-    case runShellCommand = "command:run-shell-command"
     case define = "command:define"
     case createQuicklink = "command:create-quicklink"
     case searchQuicklinks = "command:search-quicklinks"
@@ -29,7 +28,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .searchEmoji: return "Search Emoji & Symbols"
         case .openCamera: return "Open Camera"
         case .openInBrowser: return "Open in Browser"
-        case .runShellCommand: return "Run Shell Command"
         case .define: return "Define Word"
         case .createQuicklink: return "Create Quicklink"
         case .searchQuicklinks: return "Search Quicklinks"
@@ -52,7 +50,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .searchEmoji: return "face.smiling"
         case .openCamera: return "camera"
         case .openInBrowser: return "globe"
-        case .runShellCommand: return "terminal"
         case .define: return "book.closed"
         case .createQuicklink: return "link.badge.plus"
         case .searchQuicklinks: return Quicklink.sfSymbol
@@ -79,7 +76,7 @@ enum CommandID: String, CaseIterable, Sendable {
 
     /// Query-driven: the typed text is their input, so they are built where offered, never listed.
     var isQueryDriven: Bool {
-        self == .openInBrowser || self == .runShellCommand
+        self == .openInBrowser
     }
 
     /// A chord carries no query, and none should be able to terminate the app outright.

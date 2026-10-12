@@ -32,7 +32,6 @@ final class AppCore {
     let favorites = FavoritesStore()
     let visibility = VisibilityStore()
     let aliases = AliasStore()
-    let fallbacks = FallbackStore()
     let calcHistory = CalculatorHistoryStore()
     let currencyRates = CurrencyRateStore()
     let regionNumberFormat = RegionNumberFormatMonitor()
@@ -104,9 +103,6 @@ final class AppCore {
         quicklinkCoordinator: quicklinkCoordinator,
         windowCommandCoordinator: windowCommandCoordinator,
         snippetCoordinator: snippetCoordinator,
-        core: self)
-    @ObservationIgnored private(set) lazy var fallbackCoordinator = FallbackCoordinator(
-        store: fallbacks, quicklinks: quicklinks, settings: settings, visibility: visibility,
         core: self)
     @ObservationIgnored private(set) lazy var clipboardCoordinator = ClipboardCoordinator(
         clipboardStore: clipboardStore, clipboardManager: clipboardManager, settings: settings,
