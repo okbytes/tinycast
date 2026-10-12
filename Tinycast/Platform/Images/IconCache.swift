@@ -35,12 +35,6 @@ struct IconRequest<Key: Hashable>: Hashable {
     }
 }
 
-/// A tile's fill and the key naming it, so `IconCache` needn't know who chose the colour.
-struct SymbolTint: Hashable, Sendable {
-    let key: String
-    let color: NSColor
-}
-
 enum SystemSymbolName {
     // This pair renders opposite to its name on the target SF Symbols runtime, in both appearances.
     static func resolve(_ name: String) -> String {
@@ -113,8 +107,8 @@ enum IconCache {
         guard let entry = rowCache.object(forKey: key), entry.size == size else { return nil }
         return entry.image
     }
-    static func cachedSymbol(named name: String, tint: SymbolTint? = nil) -> NSImage? {
-        cache.object(forKey: symbolKey(name, tint))
+    static func cachedSymbol(named name: String) -> NSImage? {
+        cache.object(forKey: symbolKey(name))
     }
 
     /// Tiles rasterize off-main, where a dynamic `NSColor` resolves wrong, so carry the surface.
@@ -173,9 +167,9 @@ enum IconCache {
         "\(styleGeneration.withLock { $0 }):\(body)" as NSString
     }
 
-    private static func symbolKey(_ name: String, _ tint: SymbolTint?) -> NSString {
+    private static func symbolKey(_ name: String) -> NSString {
         let surface = darkSurface.withLock { $0 } ? "dark" : "light"
-        return key("symbol:\(surface):\(tint?.key ?? "plain"):\(name)")
+        return key("symbol:\(surface):\(name)")
     }
 
     /// A freshly-decoded, thereafter-immutable `NSImage` is safe to move across the actor boundary.
@@ -197,10 +191,10 @@ enum IconCache {
             return Decoded(image: icon(forFile: path, stamp: stamp, size: size))
         }.value.image
     }
-    static func loadSymbolAsync(named name: String, tint: SymbolTint? = nil) async -> NSImage? {
-        if let cached = cachedSymbol(named: name, tint: tint) { return cached }
+    static func loadSymbolAsync(named name: String) async -> NSImage? {
+        if let cached = cachedSymbol(named: name) { return cached }
         return await Task.detached(priority: .userInitiated) {
-            Decoded(image: symbolIcon(named: name, tint: tint))
+            Decoded(image: symbolIcon(named: name))
         }.value.image
     }
 
@@ -244,9 +238,9 @@ enum IconCache {
         return (image, rep.bytesPerRow * rep.pixelsHigh)
     }
 
-    /// A symbol on an app-icon-shaped tile; a tint fills it and brightens the glyph to white.
-    static func symbolIcon(named name: String, tint: SymbolTint? = nil) -> NSImage {
-        let key = symbolKey(name, tint)
+    /// A symbol on an app-icon-shaped tile.
+    static func symbolIcon(named name: String) -> NSImage {
+        let key = symbolKey(name)
         if let cached = cache.object(forKey: key) { return cached }
 
         let side = displayPixel
@@ -255,12 +249,10 @@ enum IconCache {
         let image = NSImage(size: NSSize(width: side, height: side), flipped: false) { _ in
             // Tile inset mirrors the margin macOS app icons carry inside their canvas.
             let tile = NSRect(x: 0, y: 0, width: side, height: side).insetBy(dx: 4, dy: 4)
-            (tint?.color ?? .srgbInk(plainInk, alpha: 0.09)).setFill()
+            NSColor.srgbInk(plainInk, alpha: 0.09).setFill()
             NSBezierPath(roundedRect: tile, xRadius: 9, yRadius: 9).fill()
 
-            // A tinted tile keeps white ink in both appearances; the tint carries the contrast.
-            let ink = tint == nil ? NSColor.srgbInk(plainInk, alpha: 0.85) : .white
-            guard let symbol = glyph(named: name, tint: ink)
+            guard let symbol = glyph(named: name, tint: .srgbInk(plainInk, alpha: 0.85))
             else { return true }
             let size = symbol.size
             symbol.draw(
