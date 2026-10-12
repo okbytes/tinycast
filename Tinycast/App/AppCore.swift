@@ -10,13 +10,6 @@ final class AppCore {
     let appIndex: AppIndex
     let customCommands = CustomCommandStore()
     let quicklinks = QuicklinkStore()
-    let windowLayouts = WindowLayoutStore()
-    let customWindowSizes = CustomWindowSizeStore()
-    let rooms = RoomStore()
-    let roomMinimums = RoomMinimumSizeStore()
-    let roomParking = RoomParkingLedger(
-        fileURL: AppPaths.applicationSupport().appendingPathComponent("room-parking.json"))
-    let roomSession = RoomSession()
     let clipboardStore = ClipboardStore()
     @ObservationIgnored private var clipboardTextIndexer: ClipboardTextIndexer?
     let clipboardManager: ClipboardManager
@@ -58,8 +51,6 @@ final class AppCore {
     var pendingQuicklinkEdit: QuicklinkEditRequest?
     /// Set when a snippet editor should open with Settings; the pane consumes it.
     var pendingSnippetEdit: SnippetEditRequest?
-    /// Set when a layout editor should open with Settings; the pane consumes it.
-    var pendingWindowLayoutEdit: WindowLayoutEditRequest?
 
     @ObservationIgnored private(set) lazy var snippetCoordinator = SnippetCoordinator(
         store: snippetsStore, listener: snippetListener, injector: textInjector,
@@ -91,24 +82,9 @@ final class AppCore {
         visibility: visibility, ranking: launcherRanking, aliases: aliases, core: self)
     @ObservationIgnored private(set) lazy var windowCommandCoordinator = WindowCommandCoordinator(
         settings: settings, paletteCoordinator: paletteCoordinator, windowMover: windowMover,
-        spaceSwitcher: spaceSwitcher, customSizes: customWindowSizes)
-    @ObservationIgnored private(set) lazy var customWindowSizeCoordinator =
-        CustomWindowSizeCoordinator(
-            store: customWindowSizes, settings: settings, appIndex: appIndex, hotKeys: hotKeys,
-            favorites: favorites, visibility: visibility, ranking: launcherRanking,
-            aliases: aliases, core: self)
+        spaceSwitcher: spaceSwitcher)
     @ObservationIgnored private(set) lazy var windowShortcutPresetCoordinator =
         WindowShortcutPresetCoordinator(hotKeys: hotKeys, core: self)
-    @ObservationIgnored private(set) lazy var windowLayoutCoordinator = WindowLayoutCoordinator(
-        store: windowLayouts, settings: settings, appIndex: appIndex, hotKeys: hotKeys,
-        favorites: favorites, visibility: visibility, ranking: launcherRanking, aliases: aliases,
-        paletteCoordinator: paletteCoordinator, settingsCoordinator: settingsCoordinator,
-        core: self)
-    @ObservationIgnored private(set) lazy var roomCoordinator = RoomCoordinator(
-        store: rooms, minimums: roomMinimums, ledger: roomParking, session: roomSession,
-        settings: settings, appIndex: appIndex, hotKeys: hotKeys, favorites: favorites,
-        visibility: visibility, ranking: launcherRanking, aliases: aliases, palette: palette,
-        paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var customCommandCoordinator = CustomCommandCoordinator(
         store: customCommands, settings: settings, appIndex: appIndex,
         paletteCoordinator: paletteCoordinator, settingsCoordinator: settingsCoordinator,
@@ -127,7 +103,6 @@ final class AppCore {
         systemActionCoordinator: systemActionCoordinator,
         quicklinkCoordinator: quicklinkCoordinator,
         windowCommandCoordinator: windowCommandCoordinator,
-        windowLayoutCoordinator: windowLayoutCoordinator,
         snippetCoordinator: snippetCoordinator,
         calendarCoordinator: calendarCoordinator,
         core: self)
@@ -195,18 +170,6 @@ final class AppCore {
             }
             customCommandCoordinator.applyCustomCommandsPresence()
             applyWindowCommandsPresence()
-            customWindowSizes.onChange = { [weak self] _ in
-                self?.customWindowSizeCoordinator.applyCustomWindowSizesPresence()
-            }
-            customWindowSizeCoordinator.applyCustomWindowSizesPresence()
-            windowLayouts.onChange = { [weak self] _ in
-                self?.windowLayoutCoordinator.applyWindowLayoutsPresence()
-            }
-            windowLayoutCoordinator.applyWindowLayoutsPresence()
-            rooms.onChange = { [weak self] _ in self?.roomCoordinator.applyRoomsPresence() }
-            roomCoordinator.applyRoomsPresence()
-            // A crash can leave windows parked off-screen; they come home before anything else.
-            roomCoordinator.recoverParkedWindows()
             quicklinks.onChange = { [weak self] _ in
                 self?.quicklinkCoordinator.applyQuicklinksPresence()
             }
@@ -216,12 +179,6 @@ final class AppCore {
             appleShortcutCoordinator.applyPresence()
             paletteCoordinator.onLauncherShown = { [weak self] in
                 self?.appleShortcutCoordinator.refresh()
-            }
-            paletteCoordinator.onScreenOpening = { [weak self] mode in
-                switch mode {
-                case .rooms, .roomWindows: self?.roomCoordinator.load()
-                default: break
-                }
             }
             calendarCoordinator.applyEnabled()
             Task { await appIndex.refresh() }
@@ -242,13 +199,6 @@ final class AppCore {
             }
             hotKeys.onRunWindowCommand = { [weak self] id in
                 self?.windowCommandCoordinator.runWindowCommand(id: id)
-            }
-            hotKeys.onRunWindowLayout = { [weak self] id in
-                self?.windowLayoutCoordinator.runWindowLayout(id: id)
-            }
-            hotKeys.onEnterRoom = { [weak self] id in self?.roomCoordinator.enterRoom(id: id) }
-            hotKeys.onRunCustomWindowSize = { [weak self] id in
-                self?.windowCommandCoordinator.runCustomWindowSize(id: id)
             }
             hotKeys.onOpenQuicklink = { [weak self] id in
                 self?.quicklinkCoordinator.openQuicklink(id: id)
@@ -285,10 +235,7 @@ final class AppCore {
             }
             hotKeys.start(
                 customCommandIDs: Set(customCommands.commands.map(\.id)),
-                quicklinkIDs: Set(quicklinks.quicklinks.map(\.id)),
-                windowLayoutIDs: Set(windowLayouts.layouts.map(\.id)),
-                windowRoomIDs: Set(rooms.rooms.map(\.id)),
-                customWindowSizeIDs: Set(customWindowSizes.sizes.map(\.id)))
+                quicklinkIDs: Set(quicklinks.quicklinks.map(\.id)))
             keyRemap.start(settings: settings)
 
             snippetsStore.onSnapshot = { [weak self] snapshot in
@@ -335,12 +282,6 @@ final class AppCore {
             return customCommands.command(id: id)?.name
         case .quicklink(let id):
             return quicklinks.quicklink(id: id)?.name
-        case .windowLayout(let id):
-            return windowLayouts.layout(id: id)?.name
-        case .windowRoom(let id):
-            return rooms.room(id: id)?.name
-        case .customWindowSize(let id):
-            return customWindowSizes.size(id: id)?.name
         case .appleShortcut(let id):
             return appleShortcutCoordinator.name(of: id)
         case .snippet(let id):
@@ -380,8 +321,6 @@ final class AppCore {
         settingsFile?.flush()
         clipboardTextIndexer?.stop()
         keyRemap.prepareForTermination()
-        windowLayoutCoordinator.prepareForTermination()
-        roomCoordinator.prepareForTermination()
         inputSourceSwitcher.endSession()
         textInjector.prepareForTermination()
         snippetListener.stop()
@@ -395,21 +334,7 @@ final class AppCore {
             {
                 _ = $0.windowManagementEnabled
                 _ = $0.windowManagementShowInLauncher
-            },
-            reproject: {
-                $0.applyWindowCommandsPresence()
-                $0.customWindowSizeCoordinator.applyCustomWindowSizesPresence()
-            })
-        track(
-            {
-                _ = $0.windowManagementEnabled
-                _ = $0.windowLayoutsShowInLauncher
-            }, reproject: { $0.windowLayoutCoordinator.applyWindowLayoutsPresence() })
-        track(
-            {
-                _ = $0.windowManagementEnabled
-                _ = $0.windowRoomsShowInLauncher
-            }, reproject: { $0.roomCoordinator.applyEnabled() })
+            }, reproject: { $0.applyWindowCommandsPresence() })
         track(
             {
                 _ = $0.customCommandsEnabled
@@ -522,8 +447,7 @@ final class AppCore {
             bindings: SettingsFileSchema.bindings(
                 settings: settings, shortcuts: shortcuts, launcher: launcher,
                 windowManagement: WindowManagementSettingsFile(
-                    sizes: customWindowSizes, layouts: windowLayouts, rooms: rooms, aliases: aliases,
-                    shortcuts: shortcuts)),
+                    aliases: aliases, shortcuts: shortcuts)),
             commit: shortcuts.commit)
         file.onIssues = { [weak self] issues in self?.reportSettingsFileIssues(issues) }
         settingsFile = file

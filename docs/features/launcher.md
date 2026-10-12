@@ -250,8 +250,8 @@ An entry whose display name equals the query joins the listing: `System Settings
 installed application above its panes.
 
 At three characters or more, a prefix at the start of either name or one of its words also includes
-the category. `win` and `window` include Window Management and Window Layouts; `window man` and
-`management` include Window Management alone. Exact names select their own category first.
+the category. `win`, `window man` and `management` all include Window Management. Exact names
+select their own category first.
 `LauncherOrder.CategoryQuery` uses the shared fold and collapses whitespace, so case, accents,
 full-width text and pasted whitespace behave alike. Mid-word substrings and fuzzy subsequences
 never expand a category; short queries retain ordinary search ranking.
@@ -362,8 +362,8 @@ beside it; edits store as typed and trim when the field loses focus, and a blank
 list filters by **membership only**, keeping the index's name order — re-ranking it per keystroke
 would move the row being edited out from under its own field editor. A pane with a hand-written row
 hands `AliasField` the key itself: Settings ▸ Quicklinks passes `Quicklink.entryID`, Settings ▸
-Commands passes `CustomCommand.entryID`, Settings ▸ Window Management passes each command, custom
-size, layout and room's `AppEntry`, and each dims the field when the entry is hidden from launcher
+Commands passes `CustomCommand.entryID`, Settings ▸ Window Management passes each command's
+`AppEntry`, and each dims the field when the entry is hidden from launcher
 search, whose entry the ranker never sees.
 
 Aliases ride along in a settings backup (`launcherAliases`), and deleting what an alias points at —
@@ -541,25 +541,8 @@ dismissal matches Accessibility subroles rather than English labels.
 actions they carry dedicated global hotkeys (`AppEntry.hotKeyAction` returns `.windowCommand(id:)`),
 so launcher rows render keycaps for them. Their per-command shortcut and visibility controls live in
 Settings › Window Management rather than a launcher-category pane of their own — the same call already
-made for snippets. The feature ships off. User-defined custom sizes join the same section as their
-own slice, `AppIndex.setCustomWindowSizes(_:)`, published right after the catalog. See
-[window-management.md](window-management.md#custom-sizes).
-
-## Window layouts
-
-`WindowLayoutStore` supplies its slice the way custom commands do, sorted by name, published
-immediately **before** the window commands so the two read as one family. Their per-layout shortcut
-and launcher checkbox live in Settings › Window Management beside the commands', and
-`windowLayoutsShowInLauncher` takes the section and its two commands out together. See
-[window-layouts.md](window-layouts.md).
-
-## Rooms
-
-`RoomStore` supplies the `.windowRoom` slice the same way, sorted by name and published between the
-window layouts and the window commands; `LauncherList.rows` mirrors that position. ↵ on a room
-enters it through `RoomCoordinator.enterRoom(id:)`, which hides the palette itself. The section and
-the two room commands leave together with `windowRoomsShowInLauncher`. See
-[window-rooms.md](window-rooms.md).
+made for snippets. The feature ships off. See
+[window-management.md](window-management.md).
 
 ## Quicklinks
 
@@ -695,7 +678,7 @@ favorite, alias and learned ranking survive the round trip, and its shortcut kee
 
 The row is offered only where Settings can undo it, and `KindDescriptor.canHideFromSearch` is that
 rule — per kind, and a new `Kind` case has to answer it to compile. Applications, System Settings,
-Commands, System Actions, Window Commands, Window Layouts and Rooms each
+Commands, System Actions and Window Commands each
 draw a per-row checkbox in their pane, so they carry it. Snippets do not: their pane lists a record
 with its own switches, not a launcher checkbox — a hide nothing in Settings can visibly undo is a
 trap, not a shortcut. Quicklinks and custom commands differ: each editor has its own **Show in root

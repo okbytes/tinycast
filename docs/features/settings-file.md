@@ -19,14 +19,13 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
   is bound to a property.
 - **A bad edit never costs a setting.** A key the file leaves out keeps its value; a value Tinycast
   can't use keeps the current one and is reported; an unknown key is reported and ignored; invalid JSON
-  applies nothing. An invalid record in a list is skipped and reported, and the rest still apply. A
-  record's field left out or of the wrong type keeps its value, and `null` clears it.
+  applies nothing. A record's field left out or of the wrong type keeps its value, and `null` clears
+  it.
 - **Applying the file never writes it.** Only a change made in the app rewrites the file, so hand
   formatting stays until then.
 - **Content and machine state never enter it.** Snippets, custom commands and quicklinks stay where
   they are — the file can say which folder snippets live in, never what is in them —
-  as do the palette's position, the shortcuts and aliases of content and Apple Shortcuts, and what a
-  room learns by being entered.
+  as do the palette's position and the shortcuts and aliases of content and Apple Shortcuts.
 
 ## Layout
 
@@ -38,7 +37,6 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
 | `Settings/Model/SettingsFileBinding.swift` | One key bound to wherever its value lives |
 | `Settings/Model/SettingsFileFormat.swift` | The printer and the parser |
 | `Settings/Model/SettingsFileIssue.swift` | Every problem the file can have, and the HUD's line for them |
-| `Settings/Model/SettingsFileIdentity.swift` | A stable UUID from a string, for records written without an `id` |
 | `Settings/Service/SettingsFileRepository.swift` | The sync: import or replace, save, reload |
 | `Settings/Service/SettingsFileMonitor.swift` | Watches the folder and the file, a save-by-rename included |
 | `Settings/SettingsFileSchema.swift` | Each key's binding, and the enum conformances |
@@ -46,8 +44,8 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
 | `HotKeys/Service/HotKeySettingsFile.swift` | Applies chords through `HotKeyManager`, conflicts reported |
 | `Launcher/Model/LauncherFileFormat.swift` | A launcher item's shortcut, alias and visibility as JSON |
 | `Launcher/Service/LauncherSettingsFile.swift` | Apps, panes, system actions and built-in commands |
-| `WindowManagement/Model/WindowManagementFileFormat.swift` | Command shortcuts and aliases, custom sizes, layouts and rooms as JSON |
-| `WindowManagement/Service/WindowManagementSettingsFile.swift` | Their five bindings, shortcuts and aliases included |
+| `WindowManagement/Model/WindowManagementFileFormat.swift` | Command shortcuts and aliases as JSON |
+| `WindowManagement/Service/WindowManagementSettingsFile.swift` | Their two bindings |
 
 ## Location
 
@@ -156,13 +154,6 @@ in `commands.builtIn` — by their ID after `command:`. App Launcher is `general
 
 - **`shortcuts`** lists all 35 commands by ID, `null` when unbound; one left out is unbound too.
 - **`aliases`** lists only the commands that have one.
-- **`customSizes`, `layouts` and `rooms`** each carry their record's `shortcut` and `alias`. A record
-  keeps its `id`, because favorites, aliases, ranking and visibility key on it; one written without an
-  `id` gets a stable one derived from its name.
-- A custom size's `width` and `height` are `"60%"` or `"900pt"`, a bare number read as points. A layout
-  app's `width` and `height` are fractions of its display, in full precision.
-- A room's window numbers and when it was last entered stay out of the file, and survive an edit to
-  the room: `Room.keepingRuntime(of:)` returns a number only to a window of the same app.
 
 ## Adding a setting
 

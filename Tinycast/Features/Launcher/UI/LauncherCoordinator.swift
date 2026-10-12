@@ -11,7 +11,6 @@ final class LauncherCoordinator {
     private let systemActionCoordinator: SystemActionCoordinator
     private let quicklinkCoordinator: QuicklinkCoordinator
     private let windowCommandCoordinator: WindowCommandCoordinator
-    private let windowLayoutCoordinator: WindowLayoutCoordinator
     private let snippetCoordinator: SnippetCoordinator
     private let calendarCoordinator: CalendarCoordinator
     /// The backup commands only, which need the live stores to gather from and apply to.
@@ -26,7 +25,6 @@ final class LauncherCoordinator {
         systemActionCoordinator: SystemActionCoordinator,
         quicklinkCoordinator: QuicklinkCoordinator,
         windowCommandCoordinator: WindowCommandCoordinator,
-        windowLayoutCoordinator: WindowLayoutCoordinator,
         snippetCoordinator: SnippetCoordinator,
         calendarCoordinator: CalendarCoordinator,
         core: AppCore
@@ -39,7 +37,6 @@ final class LauncherCoordinator {
         self.systemActionCoordinator = systemActionCoordinator
         self.quicklinkCoordinator = quicklinkCoordinator
         self.windowCommandCoordinator = windowCommandCoordinator
-        self.windowLayoutCoordinator = windowLayoutCoordinator
         self.snippetCoordinator = snippetCoordinator
         self.calendarCoordinator = calendarCoordinator
         self.core = core
@@ -80,24 +77,8 @@ final class LauncherCoordinator {
             return
         }
         if app.kind == .windowCommand {
-            if let command = WindowCommandCatalog.command(forEntryID: app.id) {
-                windowCommandCoordinator.runWindowCommand(id: command.id)
-                return
-            }
-            guard let id = CustomWindowSize.id(fromEntryID: app.id) else { return }
-            windowCommandCoordinator.runCustomWindowSize(id: id)
-            return
-        }
-        if app.kind == .windowRoom {
-            // The coordinator hides the palette itself: entering must not restore focus first.
-            guard let id = Room.id(fromEntryID: app.id) else { return }
-            core.roomCoordinator.enterRoom(id: id)
-            return
-        }
-        if app.kind == .windowLayout {
-            // The coordinator hides the palette itself: a layout must not restore focus first.
-            guard let id = WindowLayout.id(fromEntryID: app.id) else { return }
-            windowLayoutCoordinator.runWindowLayout(id: id)
+            guard let command = WindowCommandCatalog.command(forEntryID: app.id) else { return }
+            windowCommandCoordinator.runWindowCommand(id: command.id)
             return
         }
         if app.kind == .meeting {
@@ -127,8 +108,8 @@ final class LauncherCoordinator {
         case .snippet:
             guard let snippetID = StoredSnippet.id(fromEntryID: app.id) else { return }
             snippetCoordinator.expandSnippet(id: snippetID, target: previous)
-        case .command, .customCommand, .systemAction, .windowCommand, .windowLayout,
-            .windowRoom, .quicklink, .appleShortcut, .meeting:
+        case .command, .customCommand, .systemAction, .windowCommand,
+            .quicklink, .appleShortcut, .meeting:
             break  // handled above
         }
     }
@@ -167,16 +148,6 @@ final class LauncherCoordinator {
             snippetCoordinator.showSnippets()
         case .createSnippet:
             snippetCoordinator.editSnippet(nil)
-        case .createWindowLayout:
-            dismissPalette()
-            windowLayoutCoordinator.editWindowLayout(nil)
-        case .captureWindowLayout:
-            dismissPalette()
-            windowLayoutCoordinator.captureWindowLayout()
-        case .switchRoom:
-            core.roomCoordinator.showRooms()
-        case .createRoom:
-            core.roomCoordinator.createRoom()
         case .createQuicklink:
             quicklinkCoordinator.editQuicklink(nil)
         case .importQuicklinks:

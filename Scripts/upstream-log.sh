@@ -31,6 +31,14 @@ cut=(
     'Tinycast/Features/WindowSwitcher/*' Tinycast/Features/Settings/Panes/NavigationSettingsView.swift
     Tests/window-switch-test.swift docs/features/navigation.md
     'Tinycast/Features/Notes/*' 'Tests/notes-*' docs/features/notes.md
+    'Tinycast/Features/WindowManagement/*/Room*'
+    'Tinycast/Features/WindowManagement/*/WindowLayout*'
+    'Tinycast/Features/WindowManagement/*/CustomWindowSize*'
+    Tinycast/Features/WindowManagement/Service/WindowInventory.swift
+    Tinycast/DesignSystem/EntryIconView.swift
+    Tinycast/Features/Settings/Model/SettingsFileIdentity.swift NOTICE.md
+    Tests/window-layout-test.swift Tests/window-room-test.swift docs/features/window-layouts.md
+    docs/features/window-rooms.md
 )
 # Files any feature edits in passing; on their own they don't make a commit worth reading.
 shared=(

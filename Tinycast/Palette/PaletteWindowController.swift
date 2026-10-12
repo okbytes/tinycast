@@ -45,9 +45,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     var isVisible: Bool { panel?.isVisible ?? false }
 
-    /// Where the panel sits in screen coordinates, so an overlay drawn under it can avoid it.
-    var visibleFrame: CGRect? { panel.flatMap { $0.isVisible ? $0.frame : nil } }
-
     /// The palette's own view, for AppKit UI that must be anchored to it rather than drawn.
     var anchorView: NSView? { panel?.isVisible == true ? panel?.contentView : nil }
 
@@ -127,7 +124,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         commandEscapeTap.disable()
         core.inputSourceSwitcher.endSession()
         core.calendarCoordinator.paletteDidHide()
-        core.roomCoordinator.paletteDidHide()
         core.palette.noteVisible(false)
         core.clipboardStore.setTextSearchActive(false)
         // Drop the anchor, so the next summon re-resolves for the screen in use then.

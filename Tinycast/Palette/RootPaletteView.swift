@@ -67,11 +67,6 @@ struct RootPaletteView: View {
                 index: emojiIndex, frequent: frequentEmoji, pinned: core.pinnedEmoji, core: core, vm: vm,
                 tone: settings.emojiSkinTone, defaultColumns: settings.emojiGridColumns,
                 openActions: openActions)
-        case .rooms:
-            return RoomsScreen(coordinator: core.roomCoordinator, session: core.roomSession, vm: vm)
-        case .roomWindows:
-            return RoomPickerScreen(
-                coordinator: core.roomCoordinator, session: core.roomSession, vm: vm)
         case .schedule:
             return ScheduleScreen(
                 store: calendarStore, clock: meetingClock, core: core, vm: vm,
@@ -299,7 +294,6 @@ struct RootPaletteView: View {
                     dictionary.reset()
                 }
                 if vm.mode != .meetingDetails { calendarStore.clearDetails() }
-                if vm.mode != .rooms, vm.mode != .roomWindows { core.roomCoordinator.screensDidClose() }
             }
             // `prepare` may change nothing else, so this still lands the list as freshly opened.
             .onChange(of: vm.resetToken) {
@@ -1005,10 +999,8 @@ struct RootPaletteView: View {
         }
     }
 
-    /// Tab walks a screen's own fields first, then the inline arguments, then rings the modes.
+    /// Tab walks the inline arguments first, then rings the modes.
     private func advanceTabFocus(backwards: Bool) {
-        let screen = screen
-        if screen.tab(at: selection(in: screen), backwards: backwards) { return }
         guard let accessory = headerAccessory, !accessory.fieldNames.isEmpty else {
             return cycleMode()
         }

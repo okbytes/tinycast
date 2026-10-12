@@ -70,7 +70,6 @@ struct InterfaceSizeTests {
         expect(m.radius.dialogSymbol, Theme.Radius.dialogSymbol, "radius.dialogSymbol")
         expect(m.radius.dialog, Theme.Radius.dialog, "radius.dialog")
         expect(m.radius.thumbnail, Theme.Radius.thumbnail, "radius.thumbnail")
-        expect(m.radius.glyph, Theme.Radius.glyph, "radius.glyph")
         expect(m.radius.attachmentChip, Theme.Radius.attachmentChip, "radius.attachmentChip")
         expect(m.radius.card, Theme.Radius.card, "radius.card")
         expect(m.radius.keyCap, Theme.Radius.keyCap, "radius.keyCap")
@@ -243,7 +242,7 @@ struct InterfaceSizeTests {
             ("radius.barControl", m.radius.barControl), ("radius.menuPanel", m.radius.menuPanel),
             ("radius.dialogSymbol", m.radius.dialogSymbol),
             ("radius.dialog", m.radius.dialog), ("radius.thumbnail", m.radius.thumbnail),
-            ("radius.glyph", m.radius.glyph), ("radius.attachmentChip", m.radius.attachmentChip),
+            ("radius.attachmentChip", m.radius.attachmentChip),
             ("radius.card", m.radius.card), ("radius.keyCap", m.radius.keyCap),
             ("radius.tooltip", m.radius.tooltip),
             ("size.panelWidth", m.size.panelWidth), ("size.panelHeight", m.size.panelHeight),

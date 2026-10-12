@@ -53,8 +53,6 @@ extension SettingsTab {
         case .quicklinks:
             [.createQuicklink, .searchQuicklinks, .importQuicklinks, .exportQuicklinks]
         case .snippets: [.searchSnippets, .createSnippet]
-        case .windowManagement:
-            [.createWindowLayout, .captureWindowLayout, .switchRoom, .createRoom]
         case .clipboard: [.clipboardHistory, .pasteSequentially]
         case .emoji: [.searchEmoji]
         case .calendar:

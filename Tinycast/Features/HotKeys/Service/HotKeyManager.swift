@@ -10,9 +10,6 @@ final class HotKeyManager {
     var onRunCustomCommand: ((UUID) -> Void)?
     var onRunSystemAction: ((SystemAction.ID) -> Void)?
     var onRunWindowCommand: ((WindowCommand.ID) -> Void)?
-    var onRunWindowLayout: ((UUID) -> Void)?
-    var onEnterRoom: ((UUID) -> Void)?
-    var onRunCustomWindowSize: ((UUID) -> Void)?
     var onOpenQuicklink: ((UUID) -> Void)?
     var onRunAppleShortcut: ((UUID) -> Void)?
     var onExpandSnippet: ((StoredSnippet.ID) -> Void)?
@@ -54,23 +51,12 @@ final class HotKeyManager {
     private let boundPaneKey = "boundPaneBundleIDs"
     private let boundCustomCommandKey = "boundCustomCommandIDs"
     private let boundQuicklinkKey = "boundQuicklinkIDs"
-    private let boundWindowLayoutKey = "boundWindowLayoutIDs"
-    private let boundWindowRoomKey = "boundWindowRoomIDs"
-    private let boundCustomWindowSizeKey = "boundCustomWindowSizeIDs"
     private let boundAppleShortcutKey = "boundAppleShortcutIDs"
     private let boundSnippetKey = "boundSnippetIDs"
 
-    func start(
-        customCommandIDs: Set<UUID>, quicklinkIDs: Set<UUID>, windowLayoutIDs: Set<UUID>,
-        windowRoomIDs: Set<UUID>, customWindowSizeIDs: Set<UUID>
-    ) {
+    func start(customCommandIDs: Set<UUID>, quicklinkIDs: Set<UUID>) {
         prune(key: boundCustomCommandKey, live: customCommandIDs) { .customCommand(id: $0) }
         prune(key: boundQuicklinkKey, live: quicklinkIDs) { .quicklink(id: $0) }
-        prune(key: boundWindowLayoutKey, live: windowLayoutIDs) { .windowLayout(id: $0) }
-        prune(key: boundWindowRoomKey, live: windowRoomIDs) { .windowRoom(id: $0) }
-        prune(key: boundCustomWindowSizeKey, live: customWindowSizeIDs) {
-            .customWindowSize(id: $0)
-        }
         // After the prunes, so a dropped record can't survive in memory this session.
         for action in candidateActions { bindings[action] = storedBinding(for: action) }
         revision &+= 1
@@ -101,13 +87,6 @@ final class HotKeyManager {
 
     /// Quicklink UUIDs with a binding — the same index, its own namespace.
     var boundQuicklinkIDs: [UUID] { boundIDs(key: boundQuicklinkKey) }
-
-    /// Window-layout UUIDs with a binding; authored records, so they need an index of their own.
-    var boundWindowLayoutIDs: [UUID] { boundIDs(key: boundWindowLayoutKey) }
-
-    var boundWindowRoomIDs: [UUID] { boundIDs(key: boundWindowRoomKey) }
-
-    var boundCustomWindowSizeIDs: [UUID] { boundIDs(key: boundCustomWindowSizeKey) }
 
     /// Pruned by `AppleShortcutCoordinator` after a successful read, never here at launch.
     var boundAppleShortcutIDs: [UUID] { boundIDs(key: boundAppleShortcutKey) }
@@ -173,12 +152,6 @@ final class HotKeyManager {
             index(id, bound: binding != nil, key: boundCustomCommandKey)
         case .quicklink(let id):
             index(id, bound: binding != nil, key: boundQuicklinkKey)
-        case .windowLayout(let id):
-            index(id, bound: binding != nil, key: boundWindowLayoutKey)
-        case .windowRoom(let id):
-            index(id, bound: binding != nil, key: boundWindowRoomKey)
-        case .customWindowSize(let id):
-            index(id, bound: binding != nil, key: boundCustomWindowSizeKey)
         case .appleShortcut(let id):
             index(id, bound: binding != nil, key: boundAppleShortcutKey)
         case .snippet(let id):
@@ -223,9 +196,6 @@ final class HotKeyManager {
         actions += boundPaneBundleIDs.map { .settingsPane(bundleID: $0) }
         actions += boundCustomCommandIDs.map { .customCommand(id: $0) }
         actions += boundQuicklinkIDs.map { .quicklink(id: $0) }
-        actions += boundWindowLayoutIDs.map { .windowLayout(id: $0) }
-        actions += boundWindowRoomIDs.map { .windowRoom(id: $0) }
-        actions += boundCustomWindowSizeIDs.map { .customWindowSize(id: $0) }
         actions += boundAppleShortcutIDs.map { .appleShortcut(id: $0) }
         actions += boundSnippetIDs.map { .snippet(id: $0) }
         actions += SystemAction.ID.allCases.map { .systemAction(id: $0) }
@@ -248,12 +218,6 @@ final class HotKeyManager {
             return SystemActionCatalog.action(id: id).name
         case .windowCommand(let id):
             return WindowCommandCatalog.command(id: id)?.name ?? "Window Command"
-        case .windowLayout:
-            return displayName?(action) ?? "Window Layout"
-        case .windowRoom:
-            return displayName?(action) ?? "Room"
-        case .customWindowSize:
-            return displayName?(action) ?? "Custom Size"
         case .quicklink:
             return displayName?(action) ?? "Quicklink"
         case .appleShortcut:
@@ -292,9 +256,6 @@ final class HotKeyManager {
         case .customCommand(let id): onRunCustomCommand?(id)
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)
-        case .windowLayout(let id): onRunWindowLayout?(id)
-        case .windowRoom(let id): onEnterRoom?(id)
-        case .customWindowSize(let id): onRunCustomWindowSize?(id)
         case .quicklink(let id): onOpenQuicklink?(id)
         case .appleShortcut(let id): onRunAppleShortcut?(id)
         case .snippet(let id): onExpandSnippet?(id)

@@ -120,7 +120,7 @@ struct LauncherList: View {
         // Publication order, so rows match the flat index.
         let kinds: [AppEntry.Kind] = [
             .meeting, .application, .systemSettings, .quicklink, .appleShortcut,
-            .snippet, .systemAction, .windowLayout, .windowRoom, .windowCommand, .customCommand,
+            .snippet, .systemAction, .windowCommand, .customCommand,
             .command
         ]
         for kind in kinds {

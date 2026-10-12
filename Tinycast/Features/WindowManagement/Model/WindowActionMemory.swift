@@ -8,7 +8,6 @@ struct WindowActionMemory<Key: Hashable> {
         var restoreFrame: CGRect
         /// Where we *observed* it after our last write — not what we asked for. See `decide`.
         var appliedFrame: CGRect
-        /// Nil for a custom size, which never cycles and is never a tile.
         var command: WindowCommand.ID?
         var step: Int
         /// Where it landed; a press from any other display starts a new chain.

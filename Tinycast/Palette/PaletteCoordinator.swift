@@ -9,8 +9,6 @@ final class PaletteCoordinator {
     private let windowController: PaletteWindowController
     /// Features whose launcher rows are read from outside Tinycast re-read them on each open.
     var onLauncherShown: (() -> Void)?
-    /// Screens that snapshot other apps re-read them on every open, a restored one included.
-    var onScreenOpening: ((PaletteMode) -> Void)?
 
     init(
         palette: PaletteState,
@@ -27,8 +25,6 @@ final class PaletteCoordinator {
     // MARK: - Palette control
 
     var isVisible: Bool { windowController.isVisible }
-
-    var panelFrame: CGRect? { windowController.visibleFrame }
 
     /// The palette's own view, for AppKit UI anchored to it — a sharing picker, say.
     var anchorView: NSView? { windowController.anchorView }
@@ -86,8 +82,6 @@ final class PaletteCoordinator {
             navigate(to: mode)
         }
         if let query { palette.query = query }
-        // Before the show: `targetApp` must still name the app in front, and no row may pop in.
-        onScreenOpening?(palette.mode)
         windowController.show()
         // Re-scan on open so an app uninstalled since the last scan drops out of the launcher.
         if palette.mode == .launcher {

@@ -115,8 +115,6 @@ private extension MenuPanelCorner {
     func hasPrimaryAction(at selection: Int) -> Bool
     /// False when ⌘K would open on nothing, which hides the Actions half of the footer group.
     func hasActions(at selection: Int) -> Bool
-    /// True when the screen acted on ⇥ itself, which then never reaches the palette's ring.
-    func tab(at selection: Int, backwards: Bool) -> Bool
     /// The ⌘K rows as the palette's own menu; nil when there are none.
     func actions(at selection: Int) -> PopoverMenuContent?
     /// Defaults to wrapping `actions(at:)`, so a screen implements one or the other.
@@ -147,7 +145,6 @@ extension PaletteScreen {
     func hasPrimaryAction(at selection: Int) -> Bool { true }
     func hasActions(at selection: Int) -> Bool { true }
     var landingSelection: Int { 0 }
-    func tab(at selection: Int, backwards: Bool) -> Bool { false }
     func actions(at selection: Int) -> PopoverMenuContent? { nil }
     func menuContent(
         at selection: Int, searchQuery: ActionMenuSearchQuery, menuSelection: Binding<Int>,

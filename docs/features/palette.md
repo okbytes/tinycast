@@ -92,8 +92,7 @@ every screen but two: the clipboard lands past its pins
 | `.snippets` | `SnippetsScreen` | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets)) |
 | `.dictionary` | `DictionaryScreen` | `DictionaryEntryView` (see [dictionary.md](dictionary.md)) |
 
-**Tab rings the two surfaces a reader opens directly — launcher ↔ clipboard** — unless the screen
-claims it through `tab(at:backwards:)`, or the
+**Tab rings the two surfaces a reader opens directly — launcher ↔ clipboard** — unless the
 selected row declares arguments, in which case it walks those fields first (see below); every other
 mode stays off the ring, and is reached by a command or a global hotkey, with Uninstall only from a
 launcher app's Actions menu, scoped to that app. Clipboard is skipped when `clipboardEnabled` is off,

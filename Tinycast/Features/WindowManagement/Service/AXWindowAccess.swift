@@ -1,10 +1,8 @@
-// Portions adapted from Rooms (MIT): https://github.com/saragordic/rooms/blob/main/LICENSE
 import AppKit
 // `@preconcurrency` downgrades AX diagnostics: `kAX…` are mutable C globals, but constant.
 @preconcurrency import ApplicationServices
 
-/// Every `AXUIElement` call in the feature. Shared, so the mover and the layout runner cannot
-/// disagree about what a window is or how one is written.
+/// Every `AXUIElement` call in the feature.
 @MainActor
 enum AXWindowAccess {
     /// A hung target must not stall main for the AX default. Per element, never inherited.
@@ -56,62 +54,6 @@ enum AXWindowAccess {
         else { return false }
         return (value as? Bool) ?? false
     }
-
-    // MARK: - Bringing one forward
-
-    static func unminimize(_ window: AXUIElement) -> Bool {
-        AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
-            == .success
-    }
-
-    /// Raises the window inside its app, then brings the app itself forward.
-    static func focus(
-        _ window: AXUIElement, in application: AXUIElement, of app: NSRunningApplication
-    ) {
-        AXUIElementPerformAction(window, kAXRaiseAction as CFString)
-        // Belt and braces with `activate()`: an agent-policy app's request can be ignored.
-        AXUIElementSetAttributeValue(
-            application, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
-        app.activate()
-    }
-
-    /// Orders a window forward across apps: a raise alone reorders it only inside its own app.
-    static func raise(_ window: AXUIElement, in application: AXUIElement) {
-        AXUIElementSetAttributeValue(
-            application, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
-        AXUIElementPerformAction(window, kAXRaiseAction as CFString)
-    }
-
-    /// The fallback for an app that refuses `NSRunningApplication.hide()` or `unhide()`.
-    static func setHidden(_ hidden: Bool, application: AXUIElement) {
-        AXUIElementSetAttributeValue(
-            application, kAXHiddenAttribute as CFString, hidden ? kCFBooleanTrue : kCFBooleanFalse)
-    }
-
-    /// Web-based apps list no windows until this is on, and draw focus rings while it stays on.
-    static func setManualAccessibility(_ enabled: Bool, application: AXUIElement) {
-        AXUIElementSetAttributeValue(
-            application, "AXManualAccessibility" as CFString,
-            enabled ? kCFBooleanTrue : kCFBooleanFalse)
-    }
-
-    // MARK: - Window identity
-
-    /// The window server's number, which outlives any `AXUIElement`. See window-rooms.md.
-    static func windowID(of window: AXUIElement) -> UInt32? {
-        guard let copyWindowID else { return nil }
-        var id: CGWindowID = 0
-        return copyWindowID(window, &id) == .success && id != 0 ? id : nil
-    }
-
-    private typealias CopyWindowID =
-        @convention(c) (AXUIElement, UnsafeMutablePointer<CGWindowID>) -> AXError
-
-    /// Private, so resolved at run time: a macOS without it degrades to titles, never a crash.
-    private static let copyWindowID: CopyWindowID? = {
-        guard let symbol = dlsym(dlopen(nil, RTLD_NOW), "_AXUIElementGetWindow") else { return nil }
-        return unsafeBitCast(symbol, to: CopyWindowID.self)
-    }()
 
     // MARK: - Writing a frame
 

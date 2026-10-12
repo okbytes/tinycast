@@ -5,9 +5,6 @@ enum PaletteMode: String, CaseIterable, Identifiable {
     case clipboard
     case calculatorHistory
     case emoji
-    case rooms
-    /// Choosing a room's windows and apps; the room was named on the Rooms screen.
-    case roomWindows
     case schedule
     /// One meeting's read-only page, pushed from that meeting's own actions.
     case meetingDetails
@@ -24,8 +21,6 @@ enum PaletteMode: String, CaseIterable, Identifiable {
         case .clipboard: return "doc.on.doc"
         case .calculatorHistory: return "plus.forwardslash.minus"
         case .emoji: return "face.smiling"
-        case .rooms: return "door.left.hand.open"
-        case .roomWindows: return "macwindow.badge.plus"
         case .schedule: return "calendar"
         case .meetingDetails: return "calendar"
         case .uninstall: return "trash"
@@ -40,8 +35,6 @@ enum PaletteMode: String, CaseIterable, Identifiable {
         case .clipboard: return "Type to filter entries…"
         case .calculatorHistory: return "Do math, convert units, or search your past calculations…"
         case .emoji: return "Search emoji and symbols…"
-        case .rooms: return "Search rooms, or name a new one…"
-        case .roomWindows: return "Search windows, or type an app to add…"
         case .schedule: return "Search your schedule…"
         case .meetingDetails: return "Meeting details"
         case .uninstall: return "Filter files and folders by name…"

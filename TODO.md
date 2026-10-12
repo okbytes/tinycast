@@ -29,8 +29,6 @@ Findings from the initial survey that still shape the plan:
 
 - `AppCore` is an 850-line service locator and `RootPaletteView` a 1,300-line view; both are
   where new wiring lands, so touch them surgically.
-- Two fuzzy scorers exist: `LauncherMatch` for the root search, `SearchRelevance` for every
-  sub-screen.
 - Persistence is mixed (SQLite, UserDefaults JSON, loose JSON, `.md` files) and most writes are
   `try?`, so failures are silent.
 - Space switching synthesizes a trackpad-swipe `CGEvent` with undocumented fields; expect it to
@@ -44,6 +42,8 @@ Findings from the initial survey that still shape the plan:
 - Removed About: its Settings pane, the About command and both menu items.
 - Removed Navigation, the window switcher.
 - Removed Notes.
+- Removed window Layouts, Rooms and Custom Sizes; window commands, cycling, gaps, presets and
+  Spaces stay.
 - Merged upstream through #1410 (`71279c8`), leaving out Dictation and the update-check toggle.
 - Cherry-picked upstream through #1481 (`da2c4e4`): 14 of 24 taken; the rest were for removed
   features, plus #1451, whose posture rewrite would loosen latest-only.
@@ -101,7 +101,6 @@ keyboard instead of an event tap ([key-remap.md](docs/features/key-remap.md)). T
 ## Window management
 
 - Multi-level undo; action memory that survives a relaunch.
-- Re-apply layouts when displays change.
 - Decide whether the synthesized trackpad-swipe Space switching stays or the Space commands go.
 
 ## Cross-cutting

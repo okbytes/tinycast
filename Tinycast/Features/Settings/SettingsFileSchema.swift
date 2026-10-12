@@ -74,15 +74,8 @@ enum SettingsFileSchema {
                 WindowPlacementEngine.gapRange.contains($0) ? $0 : nil
             }
         case .windowCycle: return bind(settings, \.windowCycle)
-        case .windowLayoutsShowInLauncher: return bind(settings, \.windowLayoutsShowInLauncher)
-        case .windowRoomsShowInLauncher: return bind(settings, \.windowRoomsShowInLauncher)
         case .windowShortcuts: return windowManagement.commandShortcutsBinding(for: key)
         case .windowAliases: return windowManagement.commandAliasesBinding(for: key)
-        case .customWindowSizes: return windowManagement.customSizesBinding(for: key)
-        case .windowLayouts: return windowManagement.layoutsBinding(for: key)
-        case .windowRooms: return windowManagement.roomsBinding(for: key)
-        case .windowManagementCommands:
-            return launcher.commandsBinding(for: key, owner: .windowManagement)
         case .clipboardEnabled: return bind(settings, \.clipboardEnabled)
         case .clipboardRetention: return bind(settings, \.clipboardRetention)
         case .clipboardDefaultAction: return bind(settings, \.clipboardDefaultAction)

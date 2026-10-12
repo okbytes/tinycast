@@ -1,5 +1,4 @@
 import AppKit
-import ColorSync
 
 /// The one Cocoa↔AX converter. See docs/features/window-management.md#coordinate-space.
 struct AXGeometry {
@@ -33,30 +32,6 @@ enum AXScreens {
                 frame: geometry.flip(screen.frame),
                 visibleFrame: geometry.flip(screen.visibleFrame))
         }
-    }
-
-    /// Every connected display a layout can name, left to right, with its persistent identity.
-    static func layoutScreens(geometry: AXGeometry) -> [WindowLayoutScreen] {
-        let screens = NSScreen.screens
-        let converted = converted(screens, geometry: geometry)
-        let ordered = WindowPlacementEngine.ordered(converted)
-        return ordered.compactMap { screen in
-            guard let index = converted.firstIndex(where: { $0.id == screen.id }),
-                let uuid = uuid(of: screens[index])
-            else { return nil }
-            return WindowLayoutScreen(
-                display: WindowLayoutDisplay(uuid: uuid, name: screens[index].localizedName),
-                screen: screen)
-        }
-    }
-
-    /// Lowercased, so a stored identity and a live one can never miss each other on case.
-    static func uuid(of screen: NSScreen) -> String? {
-        guard let id = displayID(screen),
-            let uuid = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue(),
-            let string = CFUUIDCreateString(nil, uuid) as String?
-        else { return nil }
-        return string.lowercased()
     }
 
     private static func displayID(_ screen: NSScreen) -> CGDirectDisplayID? {

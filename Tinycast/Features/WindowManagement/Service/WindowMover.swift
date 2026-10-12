@@ -186,17 +186,6 @@ final class WindowMover {
         }
     }
 
-    /// Applies `size` to `target`'s focused window; Restore undoes it like any command.
-    @discardableResult
-    func perform(_ size: CustomWindowSize, target: WindowTarget?, gap: CGFloat) -> Bool {
-        guard let focused = focusedWindow(of: target) else { return false }
-        return place(
-            focused, command: nil, gap: gap, cycleLength: { _ in 1 },
-            resolve: { current, screens, _ in
-                size.placement(for: current, screens: screens, gap: gap)
-            })
-    }
-
     private func focusedWindow(of target: WindowTarget?) -> FocusedWindow? {
         switch target {
         case .own(let window):

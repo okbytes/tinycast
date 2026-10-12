@@ -41,13 +41,9 @@ enum Theme {
         /// The dialog and HUD surface, so a dialog reads as a sibling of the palette.
         static let dialog: CGFloat = 20
         static let thumbnail: CGFloat = 6
-        /// A shape small enough that `thumbnail` would round it into a circle.
-        static let glyph: CGFloat = 2
         /// A pill holding a square thumbnail; a full capsule fights the thumbnail's own corners.
         static let attachmentChip: CGFloat = 8
         static let card: CGFloat = 10
-        /// A window-to-be in the room preview, rounded like a real window rather than a row.
-        static let roomCard: CGFloat = 16
         static let keyCap: CGFloat = 6
         /// Settings shortcut-recorder keycap — smaller than the palette's `keyCap` chip.
         static let recorderKeyCap: CGFloat = 4
@@ -163,24 +159,6 @@ enum Theme {
         static let emojiSkinToneGlyph: CGFloat = 13
         /// One density preview; five fit across the Emoji settings detail pane.
         static let emojiSettingsGridPreview: CGFloat = 72
-        /// The layout editor. Height is stated so selecting an entry cannot resize the panel.
-        static let layoutEditorSheet = CGSize(width: 900, height: 660)
-        /// The inspector column; the preview takes the rest, keeping the split two-to-one.
-        static let layoutInspectorColumn: CGFloat = 300
-        /// The entry dropdown's list, wider than its button so a long app name still reads.
-        static let layoutEntryPopover: CGFloat = 260
-        /// An app icon inside a preview rect, small enough a narrow window still shows one.
-        static let layoutPreviewIcon: CGFloat = 22
-        /// A numbered display tab under the preview.
-        static let layoutDisplayTab: CGFloat = 24
-        /// Every inspector control — field, dropdown, add button — sits on this one height.
-        static let layoutControlHeight: CGFloat = 28
-        /// The unit slot in a numeric field, stated so "%" and "pt" put their digits on one x.
-        static let layoutFieldUnit: CGFloat = 16
-        static let layoutPositionGlyph = CGSize(width: 26, height: 19)
-        static let layoutPositionStroke: CGFloat = 1.5
-        /// A position cell's clickable row; the glyph floats inside it, so the whole cell hits.
-        static let layoutPositionCell: CGFloat = 34
         /// Settings editor modals (Custom Commands, Snippets): fixed width, intrinsic height.
         static let editorSheetWidth: CGFloat = 480
         /// The multi-line box inside those modals; it scrolls rather than grows the panel.
@@ -209,16 +187,6 @@ enum Theme {
         static let volumeTrackHeight: CGFloat = 6
         /// Fixed slot for the level readout, sized to the widest string it ever holds.
         static let volumeReadout: CGFloat = 38
-        static let roomCardTitleBar: CGFloat = 40
-        static let roomCardStroke: CGFloat = 2
-        static let roomCardShadowRadius: CGFloat = 24
-        static let roomCardShadowOffset: CGFloat = 8
-        static let roomCardDot: CGFloat = 8
-        static let roomCardIcon: CGFloat = 64
-        static let roomCardIconLarge: CGFloat = 96
-        /// Below this a card is a sliver, too short for its icon.
-        static let roomCardIconMinHeight: CGFloat = 160
-        static let roomCardLargeIconMinSide: CGFloat = 320
     }
 
     enum Duration {
@@ -244,16 +212,6 @@ enum Theme {
         static let settingsReveal: TimeInterval = 0.28
         static let settingsFlash: TimeInterval = 2.0
         static let settingsFlashOut: TimeInterval = 0.6
-        /// A room preview card gliding to its next place; arriving and leaving cards fade.
-        static let roomGlide: TimeInterval = 0.32
-        static let roomCardEnter: TimeInterval = 0.2
-        static let roomCardExit: TimeInterval = 0.18
-        static let roomSettle: TimeInterval = 0.25
-    }
-
-    enum RoomMotion {
-        /// Quick to leave, long to settle, so a card reads as the window it is about to become.
-        static let glide = Animation.timingCurve(0.2, 0, 0, 1, duration: Theme.Duration.roomGlide)
     }
 
     enum DialogMotion {
@@ -371,26 +329,6 @@ enum Theme {
         /// The Settings card: a faint surface whose border doubles as the row divider.
         static let cardFill = ramp(dark: 0.05, light: 0.04)
         static let cardStroke = ramp(dark: 0.10, light: 0.10)
-        /// White in both: the frost brightens glass, and light glass needs more to read at all.
-        /// A window on the preview's plate. White in both, since the plate is always dark.
-        static let layoutPreviewWindow = adaptive(
-            dark: .srgbInk(1, alpha: 0.22), light: .srgbInk(1, alpha: 0.28))
-        /// The selected one, lifted enough to read as chosen before the accent stroke is seen.
-        static let layoutPreviewWindowSelected = adaptive(
-            dark: .srgbInk(1, alpha: 0.38), light: .srgbInk(1, alpha: 0.44))
-        /// The preview's plate: a display is dark in both appearances, so `adaptive`, not `ramp`.
-        static let layoutPreviewGround = adaptive(
-            dark: .srgbInk(0, alpha: 0.55), light: .srgbInk(0, alpha: 0.50))
-        /// The blurred desk behind a room preview, darkened so only the new layout reads.
-        static let roomPreviewDim = adaptive(
-            dark: .srgbInk(0, alpha: 0.18), light: .srgbInk(0, alpha: 0.18))
-        /// A room card is a solid window in both appearances, so the desk never shows through.
-        static let roomCardFill = adaptive(
-            dark: .srgbInk(0.16, alpha: 0.94), light: .srgbInk(0.98, alpha: 0.94))
-        static let roomCardStroke = Color.accentColor
-        static let roomCardShadow = adaptive(
-            dark: .srgbInk(0, alpha: 0.25), light: .srgbInk(0, alpha: 0.25))
-        static let roomCardDot = ramp(dark: 0.25, light: 0.25)
         /// The pill behind the header of the section a Settings search jumped to.
         static let searchFlash = Color.accentColor.opacity(0.35)
         /// The two squares of a checkerboard, behind a colour with alpha to show.

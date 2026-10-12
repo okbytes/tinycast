@@ -20,14 +20,13 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ Calculator/* · EmojiCatalog · EmojiGridGeometry ·                          │
 │ SystemAction · VolumeLevel ·                                               │
 │ WindowCommand · WindowPlacementEngine · WindowActionMemory ·               │
-│ WindowLayout/* · CustomWindowSize{,Store} · Room/* ·                       │
 │ PaletteRowIndex ·                                                          │
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
 │ Quicklink{,Destination,Store,Archive} · AppleShortcut ·                    │
 │ Snippets/Model/* ·                                                         │
 │ ShellCommandRunner · DoubleTap{Modifier,Detector} · ClipboardStore ·       │
 │ AppSettingsKey · SettingsBackupCoverage · KeyRemapEngine · TopRowMap ·     │
-│ SettingsFile{JSON,Key,Value,Format,Binding,Issue,Identity} ·               │
+│ SettingsFile{JSON,Key,Value,Format,Binding,Issue} ·                        │
 │ HotKeySpelling · WindowManagementFileFormat ·                              │
 │ MeetingLink · MeetingEvent · UpcomingWindow · MeetingDay · MenuBarSummary  │
 │ AutoJoinPolicy · EventDraft                                                │
@@ -36,8 +35,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 ┌─ EFFECT ─────────────────────────▼─────────────────────────────────────────┐
 │ All platform I/O, one folder per feature.                                  │
 │ AppIndex · SettingsPaneScanner ·                                           │
-│ AXWindowAccess · AXScreens · WindowInventory · WindowLayoutRunner ·        │
-│ RoomWindowSweep · RoomRunner ·                                             │
+│ AXWindowAccess · AXScreens ·                                               │
 │ IconCache · WindowMover · UninstallScanner · UninstallRunner ·             │
 │ SystemActionRunner · QuicklinkLauncher · TextInjector ·                    │
 │ SnippetKeywordListener · CurrencyRateStore · Paster ·                      │
@@ -48,7 +46,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 47 @MainActor @Observable stores, sessions, indices and State types        │
+│ 39 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -91,7 +89,7 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 (`ClipboardManager`, the opt-in `ClipboardTextIndexer`, the opt-in `SettingsFileRepository`,
 `HotKeyManager`, `KeyRemapManager`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
 (`AppSettings`, `PaletteState`, `UninstallSession`,
-`MeetingClock`), the nineteen feature coordinators, and the
+`MeetingClock`), the sixteen feature coordinators, and the
 window controllers.
 
 `AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
@@ -159,7 +157,7 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-47 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+39 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:

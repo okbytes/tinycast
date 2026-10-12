@@ -428,20 +428,6 @@ final class AppSettings {
         didSet { defaults.set(windowGap, forKey: Key.windowGap.rawValue) }
     }
 
-    /// Its own flag: hiding 34 command rows must not also hide the layouts you wrote.
-    var windowLayoutsShowInLauncher: Bool {
-        didSet {
-            defaults.set(
-                windowLayoutsShowInLauncher, forKey: Key.windowLayoutsShowInLauncher.rawValue)
-        }
-    }
-
-    var windowRoomsShowInLauncher: Bool {
-        didSet {
-            defaults.set(windowRoomsShowInLauncher, forKey: Key.windowRoomsShowInLauncher.rawValue)
-        }
-    }
-
     /// What re-triggering a half does: nothing, step its size, or walk it across the displays.
     var windowCycle: WindowCycle {
         didSet { defaults.set(windowCycle.rawValue, forKey: Key.windowCycle.rawValue) }
@@ -624,12 +610,6 @@ final class AppSettings {
         windowGap = defaults.integer(forKey: Key.windowGap.rawValue)
         windowCycle =
             defaults.string(forKey: Key.windowCycle.rawValue).flatMap(WindowCycle.init) ?? .off
-        windowLayoutsShowInLauncher =
-            defaults.object(forKey: Key.windowLayoutsShowInLauncher.rawValue) == nil
-            || defaults.bool(forKey: Key.windowLayoutsShowInLauncher.rawValue)
-        windowRoomsShowInLauncher =
-            defaults.object(forKey: Key.windowRoomsShowInLauncher.rawValue) == nil
-            || defaults.bool(forKey: Key.windowRoomsShowInLauncher.rawValue)
         quicklinksEnabled = defaults.bool(forKey: Key.quicklinksEnabled.rawValue)
         quicklinksShowInLauncher =
             defaults.object(forKey: Key.quicklinksShowInLauncher.rawValue) == nil

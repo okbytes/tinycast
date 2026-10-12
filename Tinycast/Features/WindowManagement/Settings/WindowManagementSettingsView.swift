@@ -3,9 +3,6 @@ import SwiftUI
 struct WindowManagementSettingsView: View {
     @Environment(AppSettings.self) private var settings
     @Environment(AppCore.self) private var core
-    @State private var editor: WindowLayoutEditRequest?
-    @State private var pendingDeletion: WindowLayout?
-    @State private var customSizeEdit: CustomWindowSizeEditRequest?
     @State private var chosenPreset: WindowShortcutPreset?
 
     var body: some View {
@@ -22,41 +19,12 @@ struct WindowManagementSettingsView: View {
 
             Group {
                 options
-                WindowLayoutsSection(
-                    onEdit: { editor = WindowLayoutEditRequest(layout: $0) },
-                    onDelete: { pendingDeletion = $0 })
-                RoomsSection()
-                FeatureCommandsSection(
-                    owner: .windowManagement, anchor: .windowManagementLayoutCommands)
-                CustomWindowSizesSection(onEdit: {
-                    customSizeEdit = CustomWindowSizeEditRequest(size: $0)
-                })
                 commands
             }
             .settingsEnabled(settings.windowManagementEnabled)
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.windowManagement)
-        .settingsEditorPanel(item: $editor) { request in
-            WindowLayoutEditorPanel(request: request)
-        }
-        .onChange(of: core.pendingWindowLayoutEdit?.id, initial: true) { _, _ in
-            guard let request = core.pendingWindowLayoutEdit else { return }
-            editor = request
-            core.pendingWindowLayoutEdit = nil
-        }
-        .settingsEditorPanel(item: $customSizeEdit) { request in
-            CustomWindowSizeEditorPanel(request: request)
-        }
-        .alert(item: $pendingDeletion) { layout in
-            Alert(
-                title: Text("Delete \u{201C}\(layout.name)\u{201D}?"),
-                message: Text("Its global shortcut and launcher references go with it."),
-                primaryButton: .destructive(Text("Delete")) {
-                    core.windowLayoutCoordinator.deleteWindowLayout(id: layout.id)
-                },
-                secondaryButton: .cancel())
-        }
     }
 
     private var options: some View {
