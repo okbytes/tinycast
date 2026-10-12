@@ -11,12 +11,13 @@ purpose, one commit per checkpoint. Every checkpoint passed the full definition 
 [docs/testing.md](docs/testing.md): harnesses, warning-free Debug build, lint, purity grep, docs.
 
 Upstream is harvested, never merged. Branch `upstream-reviewed` on `origin` marks the last upstream
-commit read. Never use GitHub's "Sync fork", which merges all of upstream.
+commit read. Never use GitHub's "Sync fork", which merges all of upstream. `Scripts/upstream-log.sh`
+hides commits that change only cut features, so a cut adds its paths to that list in the same commit.
 
 ```sh
 git remote add upstream https://github.com/abue-ammar/tinycast.git   # once per clone
 git fetch --all
-git log --oneline origin/upstream-reviewed..upstream/main   # what is new
+./Scripts/upstream-log.sh                                   # what is new, bar cut features
 git cherry-pick -x <sha>                                     # take what fits
 git push origin upstream/main:upstream-reviewed             # mark it all read
 ```
