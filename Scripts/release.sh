@@ -52,7 +52,7 @@ spctl --assess --type execute "$APP" || fail "Gatekeeper rejects the stapled app
 rm -f "$ZIP"
 ditto -c -k --keepParent "$APP" "$ZIP"
 
-echo "▸ Publishing $TAG…"
+echo "▸ Publishing ${TAG}…"
 git tag -a "$TAG" -m "Tinycast $VERSION"
 git push -q origin "$TAG"
 if [ "$latest" = none ]; then
