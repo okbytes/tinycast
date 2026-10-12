@@ -211,9 +211,6 @@ final class LauncherCoordinator {
         case .settings:
             dismissPalette()
             settingsCoordinator.showSettings()
-        case .about:
-            dismissPalette()
-            settingsCoordinator.showAbout()
         case .quit:
             NSApp.terminate(nil)
         }

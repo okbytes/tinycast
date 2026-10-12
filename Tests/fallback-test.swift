@@ -53,7 +53,7 @@ struct FallbackTests {
         check("built-in ids are distinct", ids.count == Fallback.Builtin.allCases.count)
 
         // A command with no fallback of its own must not resolve to one.
-        check("a plain command is not a fallback", Fallback(id: CommandID.about.rawValue) == nil)
+        check("a plain command is not a fallback", Fallback(id: CommandID.quit.rawValue) == nil)
         check("nonsense is not a fallback", Fallback(id: "banana") == nil)
         check("a bare uuid is not a fallback", Fallback(id: UUID().uuidString) == nil)
     }

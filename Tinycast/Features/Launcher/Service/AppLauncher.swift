@@ -131,7 +131,7 @@ enum AppLauncher {
     /// Every app with a Dock presence, bar Finder and us; resolved once, so it can't drift.
     @MainActor
     static func quitAllTargets() -> [NSRunningApplication] {
-        // By PID, not policy: About/Settings flips us to `.regular` temporarily.
+        // By PID, not policy: Settings flips us to `.regular` temporarily.
         let ownPID = NSRunningApplication.current.processIdentifier
         return NSWorkspace.shared.runningApplications.filter { app in
             app.activationPolicy == .regular

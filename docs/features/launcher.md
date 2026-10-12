@@ -159,7 +159,7 @@ name. Rule 4 applies at any length: rule 2 only protects an exact title past thr
 
 `settings` is the case these were measured against. Apple declares `Settings` in System Settings'
 `CFBundleAlternateNames`, so it is an exact alternate title and wins rule 2; the command is named
-`Tinycast Settings`, like About and Quit, so nothing ties it there.
+`Tinycast Settings`, like Quit, so nothing ties it there.
 
 ## One fold, everywhere
 
@@ -611,8 +611,8 @@ id is what keeps "which pane owns this" out of the entry-ID namespace.
 
 Eight panes own commands today — Notes, Snippets, Navigation, Window Management,
 Clipboard, Emoji, Calendar and Quicklinks. What is left in Settings › Commands is the set no feature
-switch governs: Calculator History, Open Camera, the three backup commands, Tinycast Settings, About
-and Quit.
+switch governs: Calculator History, Open Camera, the three backup commands, Tinycast Settings and
+Quit.
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw
@@ -739,7 +739,7 @@ the key handler read, so the advertised chord can't drift from the behavior.
 
 `AppLauncher.showInFinder` is every feature's reveal. `activateFileViewerSelecting` leaves the file
 viewer to bring itself forward, and macOS refuses that request while Tinycast is `.regular` (an open
-Settings or About window) yet inactive, which the non-activating palette makes common. Only in that
+Settings window) yet inactive, which the non-activating palette makes common. Only in that
 state does the reveal also open the viewer named by the global `NSFileViewer` default, Finder when it
 is unset, so every other reveal is exactly the one system call.
 
@@ -787,7 +787,7 @@ running dot and the availability of the running-only actions:
   that refused the quit is the one asking for it.
 - **Quit All Applications** a system action. `AppLauncher.quitAllTargets()` is the
   policy (every `.regular` app except Finder — `terminate()` only relaunches it — and Tinycast,
-  excluded by PID because About/Settings temporarily flips it to `.regular`). `SystemActionCoordinator.quitAllApps()`
+  excluded by PID because Settings temporarily flips it to `.regular`). `SystemActionCoordinator.quitAllApps()`
   resolves that list **once**, confirms it with an `NSAlert`, then terminates exactly what was
   confirmed. The palette hides before the alert — it is a floating panel and would sit above it.
 

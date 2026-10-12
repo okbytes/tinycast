@@ -149,9 +149,6 @@ struct RootPaletteView: View {
                         openURL(url)
                     }
                 },
-                PopoverMenuItem(title: "About Tinycast", systemImage: "info.circle") {
-                    core.settingsCoordinator.showAbout()
-                },
                 PopoverMenuItem(title: "Settings", systemImage: "gearshape", shortcut: "⌘,") {
                     core.settingsCoordinator.showSettings()
                 },

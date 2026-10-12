@@ -32,7 +32,6 @@ enum CommandID: String, CaseIterable, Sendable {
     case exportSettings = "command:export-settings"
     case importSettings = "command:import-settings"
     case settings = "command:settings"
-    case about = "command:about"
     case quit = "command:quit"
 
     var name: String {
@@ -67,7 +66,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .exportSettings: return "Export Backup"
         case .importSettings: return "Import Backup"
         case .settings: return "Tinycast Settings"
-        case .about: return "About Tinycast"
         case .quit: return "Quit Tinycast"
         }
     }
@@ -104,7 +102,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .exportSettings: return "square.and.arrow.up"
         case .importSettings: return "square.and.arrow.down"
         case .settings: return "gearshape"
-        case .about: return "info.circle"
         case .quit: return "power"
         }
     }

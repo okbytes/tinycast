@@ -64,7 +64,7 @@ Add a token rather than a magic number when introducing a new value.
 ### Interface Size (`InterfaceMetrics`)
 
 `AppSettings.interfaceSize` scales the palette and the surfaces that float with it — the ⌘K menu,
-dialogs and HUDs. Settings, Onboarding, About and Notes never scale.
+dialogs and HUDs. Settings, Onboarding and Notes never scale.
 
 `DesignSystem/InterfaceMetrics.swift` stores **only a scale** and derives every value from the `Theme`
 literal, so `Theme` stays the one place a number is written down. **In any view a scaled surface can
@@ -111,7 +111,7 @@ Notes has no corner of its own: it clips to `panel`, so the two floating surface
 
 `dialog` sits between `menuPanel` and `panel` so a dialog reads as a smaller sibling of the palette, not a second palette.
 
-`menu` is the shared small-control corner (sidebar tiles, About link pills); `menuRow` is the slightly rounder hover highlight behind popover-menu rows.
+`menu` is the shared small-control corner (sidebar tiles); `menuRow` is the slightly rounder hover highlight behind popover-menu rows.
 
 Always `RoundedRectangle(cornerRadius:, style: .continuous)` — continuous corners everywhere, never `.circular`.
 

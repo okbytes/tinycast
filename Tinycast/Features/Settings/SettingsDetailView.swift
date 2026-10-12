@@ -25,7 +25,6 @@ struct SettingsDetailView: View {
             case .calendar: CalendarSettingsView()
             case .permissions: PermissionsSettingsView()
             case .backup: BackupSettingsView()
-            case .about: AboutView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

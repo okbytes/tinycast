@@ -61,7 +61,7 @@ enum WindowInventory {
         }
     }
 
-    /// Every app with a user-facing window, bar us. By pid, since About flips us to `.regular`.
+    /// Every app with a user-facing window, bar us. By pid, since Settings flips us to `.regular`.
     static func candidates() -> [NSRunningApplication] {
         let ownPID = NSRunningApplication.current.processIdentifier
         return NSWorkspace.shared.runningApplications.filter {

@@ -218,7 +218,7 @@ Tinycast/
                     Images/, Compression/
   Palette/          the palette shell: PalettePanel, PaletteWindowController, RootPaletteView,
                     the PaletteScreen protocol, PaletteCoordinator, PaletteState, PaletteMode
-  Windows/          the non-palette AppKit surfaces: AppWindowController, Dialog/, HUD/, About/
+  Windows/          the non-palette AppKit surfaces: AppWindowController, Dialog/, HUD/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top

@@ -41,10 +41,6 @@ final class SettingsCoordinator {
         editorPresenter.attach(to: hosting.view.window)
     }
 
-    func showAbout() {
-        showSettings(tab: .about)
-    }
-
     /// ⌘Q and the window's close button land here; the app itself keeps running.
     func closeSettings() {
         editorPresenter?.dismissAll()
