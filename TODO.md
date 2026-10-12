@@ -74,9 +74,9 @@ Findings from the initial survey that still shape the plan:
 
 ## Key remapping
 
-Branch `keyboard-driver`, not merged: Hyper and Meh through a root helper driving pqrs's virtual
-keyboard instead of an event tap ([key-remap.md](docs/features/key-remap.md)). Test builds come from
-`./Scripts/install-dev.sh` ([development.md](docs/development.md#a-team-signed-dev-build)).
+Shipped in 0.12.0: Hyper and Meh through a root helper driving pqrs's virtual keyboard instead of
+an event tap ([key-remap.md](docs/features/key-remap.md)). Hyper app-switch shortcuts are in daily use
+on two Macs; the old event tap eventually went dead, so long uptime is the test that matters.
 
 - Verified on hardware: Hyper reaching the system as ⌃⌥⇧⌘ (an ✦ binding fired), fn+arrows, the
   Input Monitoring grant picked up in two seconds, updates keeping the grant. Not yet: Meh, the top
