@@ -81,7 +81,8 @@ Accessibility**.
 1. Open **Settings → General** and record a global shortcut to summon Tinycast.
 2. Press it anywhere → the palette floats in. Type to filter, **↵** to launch.
 3. **Tab** switches between Apps and Clipboard; **↑/↓** move, **Esc** dismisses.
-4. **Settings → Shortcuts** — search an app or command and record a global shortcut.
+4. **Settings → Applications**, **Commands** or **Apple Shortcuts** — record a global shortcut for
+   any row.
 
 ## Building from source
 
