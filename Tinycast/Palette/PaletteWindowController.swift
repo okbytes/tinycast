@@ -45,9 +45,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     var isVisible: Bool { panel?.isVisible ?? false }
 
-    /// The palette's own view, for AppKit UI that must be anchored to it rather than drawn.
-    var anchorView: NSView? { panel?.isVisible == true ? panel?.contentView : nil }
-
     func show() {
         Signposts.interval("PaletteWindowController.show") {
             isPoppedToRoot = false
@@ -155,7 +152,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         }
     }
 
-    /// The screen only: a conversation is not a typed query, and `Opens To` decides its lifetime.
     private func popToRoot() {
         core.palette.prepare(mode: .launcher)
         isPoppedToRoot = true
@@ -190,7 +186,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     // MARK: - NSWindowDelegate
 
-    /// Not for a dialog or a modal: hiding tears down a running command.
+    /// Click-away hides the palette; a dialog or a modal taking key is not a click away.
     func windowDidResignKey(_ notification: Notification) {
         guard isVisible, !core.isShowingDialog else { return }
         if core.palette.menuOpen { return }

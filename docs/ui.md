@@ -280,7 +280,7 @@ Glass is normally for floating controls. The dialog root is the one modal-surfac
 - Its native search field is a row-height sibling of the scroller, above header menus or below footer menus. It uses an 18pt horizontal inset to align with the visible row glyphs. The top field stays vertically symmetric; the bottom field keeps its 1pt optical lift. Menus omit the adjacent edge dissolve and centre **No Results** in one row when their filtered rows are empty. The 8pt resting list inset belongs to the scroll content, so rows can reach the surface edges without shifting their initial position; hover fills keep the dedicated `menuRow 10` corner.
 - `PopoverMenuRow`: leading glyph, label, trailing shortcut glyph and `menuHover` fill on hover. Menus animate in with opacity and scale from the anchored corner, stretching briefly to 1.003 before settling; `Theme.MenuMotion` owns the entry, settle and exit timings.
 - The glyph is a `PopoverMenuIcon`: `.symbol` (SF Symbol, `monochrome`, `menuSymbol` — or **red** when `isDestructive`) `.file` (a real app icon via `IconCache`, used by the paste rows to show the paste target) or `.thumbnail` (a picture's own preview, cropped to the slot). `PopoverMenuItem` keeps a `systemImage:` convenience init, so symbol rows read exactly as before.
-- **Every glyph kind shares one square `menuIcon` (20) slot**, which pins one row height. A native SF Symbol uses the dedicated 14pt Medium `menuSymbol` font; file and brand icons keep their own artwork sizing inside the same slot, and a thumbnail fills it.
+- **Every glyph kind shares one square `menuIcon` (20) slot**, which pins one row height. A native SF Symbol uses the dedicated 14pt Medium `menuSymbol` font; a file icon keeps its own artwork sizing inside the same slot, and a thumbnail fills it.
 - Menu rows use the `md` icon→label gap; the fixed slot adds the remaining optical slack.
 - **A menu's rows are a `LazyVStack`**, so opening one builds only the rows in view: the model menu runs to hundreds, and laying all of them out took seconds. The viewport's height is worked out from the row count, never measured, so nothing needs the rest. The rows hold no AppKit control, which is what keeps a lazy stack safe here (see Settings lists below).
 
@@ -399,18 +399,15 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   before the sentence is read. Auto-dismisses after
   `Duration.messageHUD` (2.4s) — longer than the volume box, since a sentence needs reading time and a
   level only needs a glance — and a repeat call replaces rather than stacks.
-- **The same pill reports work still running**, through `showProgress(message:onCancel:)`: reading
+- **The same pill reports work still running**, through `showProgress(message:)`: reading
   the text out of a clipboard image has no panel to watch the answer arrive in, so the pill says
   `Reading text…` in its place and the result message replaces it when the read is done. Its leading mark is a spinner rather
   than a tone, which is why `MessageHUDView.Accessory` exists — a tone says how something *went*, and
-  nothing has gone anywhere yet. When `onCancel` is provided, hovering over the pill lights it up,
-  turns the spinner into an `xmark`, and clicking anywhere on the pill cancels the in-flight task.
-  The spinner is **`progress.indicator` with
+  nothing has gone anywhere yet. The spinner is **`progress.indicator` with
   `.symbolEffect(.variableColor)`, never a `ProgressView`**: AppKit draws that one itself and ignores
   every tint given to it, so a blue spinner is only reachable as a symbol. Progress has no natural
-  dwell, so it is shown with `dwells: false` and stays up until something replaces it or
-  `HUDPresenter.dismiss()` runs — the caller owns that, so every exit from the work it covers must
-  end in one or the other.
+  dwell, so it is shown with `dwells: false` and stays up until something replaces it — the caller
+  owns that, so every exit from the work it covers must end in a message of its own.
 - **`HUDPresenter`** is what keeps those two controllers from duplicating each other: one panel at a
   time, replace rather than stack, fade in, sit out its dwell, fade away, centred horizontally on
   a screen. The two HUDs differ only in their content, their anchor (`edgeInset(hudEdgeOffset 48)` for

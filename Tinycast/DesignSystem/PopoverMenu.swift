@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// A menu row's leading glyph: a symbol, a bundled template asset, or an app icon from `IconCache`.
+/// A menu row's leading glyph: a symbol, or an app icon from `IconCache`.
 enum PopoverMenuIcon: Equatable {
     case symbol(String)
-    case asset(String)
     case file(path: String)
     /// No glyph and no slot: a run of rows under one repeated icon says more without it.
     case blank
@@ -19,7 +18,6 @@ enum PopoverMenuIcon: Equatable {
 struct PopoverMenuItem {
     let title: String
     let icon: PopoverMenuIcon
-    let isLoading: Bool
     let isEnabled: Bool
     var sectionTitle: String?
     var startsSection: Bool
@@ -30,17 +28,16 @@ struct PopoverMenuItem {
     var isDestructive: Bool = false
     let action: () -> Void
 
-    /// What the keyboard and pointer may land on; a loading or disabled row only states itself.
-    var isSelectable: Bool { isEnabled && !isLoading }
+    /// What the keyboard and pointer may land on; a disabled row only states itself.
+    var isSelectable: Bool { isEnabled }
 
     init(
-        title: String, icon: PopoverMenuIcon, isLoading: Bool = false, isEnabled: Bool = true,
+        title: String, icon: PopoverMenuIcon, isEnabled: Bool = true,
         sectionTitle: String? = nil, startsSection: Bool = false, shortcut: String? = nil,
         detail: String? = nil, isDestructive: Bool = false, action: @escaping () -> Void
     ) {
         self.title = title
         self.icon = icon
-        self.isLoading = isLoading
         self.isEnabled = isEnabled
         self.sectionTitle = sectionTitle
         self.startsSection = startsSection
@@ -51,12 +48,12 @@ struct PopoverMenuItem {
     }
 
     init(
-        title: String, systemImage: String, isLoading: Bool = false, isEnabled: Bool = true,
+        title: String, systemImage: String, isEnabled: Bool = true,
         sectionTitle: String? = nil, startsSection: Bool = false, shortcut: String? = nil,
         isDestructive: Bool = false, action: @escaping () -> Void
     ) {
         self.init(
-            title: title, icon: .symbol(systemImage), isLoading: isLoading, isEnabled: isEnabled,
+            title: title, icon: .symbol(systemImage), isEnabled: isEnabled,
             sectionTitle: sectionTitle, startsSection: startsSection, shortcut: shortcut,
             isDestructive: isDestructive, action: action)
     }
@@ -349,36 +346,23 @@ private struct PopoverMenuRow: View {
     var body: some View {
         Button(action: onActivate) {
             HStack(spacing: metrics.spacing.md) {
-                if item.isLoading {
-                    ProgressView()
-                        .controlSize(.small)
+                switch item.icon {
+                case .blank:
+                    EmptyView()
+                case .symbol(let name):
+                    Image(systemName: SystemSymbolName.resolve(name))
+                        .font(
+                            .system(
+                                size: metrics.scaled(Theme.Typography.menuSymbolSize),
+                                weight: Theme.Typography.menuSymbolWeight)
+                        )
+                        .symbolRenderingMode(.monochrome)
+                        .foregroundStyle(
+                            item.isDestructive ? Color.red : Theme.Colors.menuSymbol
+                        )
                         .frame(width: metrics.size.menuIcon, height: metrics.size.menuIcon)
-                } else {
-                    switch item.icon {
-                    case .blank:
-                        EmptyView()
-                    case .symbol(let name):
-                        Image(systemName: SystemSymbolName.resolve(name))
-                            .font(
-                                .system(
-                                    size: metrics.scaled(Theme.Typography.menuSymbolSize),
-                                    weight: Theme.Typography.menuSymbolWeight)
-                            )
-                            .symbolRenderingMode(.monochrome)
-                            .foregroundStyle(
-                                item.isDestructive ? Color.red : Theme.Colors.menuSymbol
-                            )
-                            .frame(width: metrics.size.menuIcon, height: metrics.size.menuIcon)
-                    case .asset(let name):
-                        Image(name)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .foregroundStyle(item.isDestructive ? Color.red : Color.secondary)
-                            .frame(width: metrics.size.menuBrandIcon, height: metrics.size.menuBrandIcon)
-                            .frame(width: metrics.size.menuIcon, height: metrics.size.menuIcon)
-                    case .file(let path):
-                        MenuFileIcon(path: path)
-                    }
+                case .file(let path):
+                    MenuFileIcon(path: path)
                 }
                 Text(item.title)
                     .font(metrics.typography.menuRow)
@@ -420,7 +404,6 @@ private struct PopoverMenuRow: View {
     }
 }
 
-/// A menu row's picture, cropped to the icon slot; the task keys on the id, so a redraw reuses it.
 /// A menu row's app icon, seeded warm so the paste target paints on the first frame.
 struct MenuFileIcon: View {
     let path: String

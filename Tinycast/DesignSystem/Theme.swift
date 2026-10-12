@@ -120,10 +120,6 @@ enum Theme {
         }
         /// A menu row's glyph slot, sized so symbol and app-icon rows read the same.
         static let menuIcon: CGFloat = 20
-        /// A brand mark inside the menu icon slot, sized to the optical weight of a symbol.
-        static let menuBrandIcon: CGFloat = 14
-        /// The same mark in a header bar button, matched to the callout symbol beside it.
-        static let barBrandIcon: CGFloat = 12
         /// The clipboard preview's player; `VideoPlayer` expands unbounded without a height.
         static let clipboardMediaHeight: CGFloat = 260
         /// The preview pane is ~460pt wide, so 900px stays crisp at 2× without over-decoding.

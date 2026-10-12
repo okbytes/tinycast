@@ -6,7 +6,6 @@ import SwiftUI
 final class AppWindowController: NSObject, NSWindowDelegate {
     private let title: String
     private let contentSize: CGSize
-    private let minimumSize: CGSize
     private let isResizable: Bool
     private let autosaveName: String?
     private let activation: ActivationPolicy
@@ -14,14 +13,13 @@ final class AppWindowController: NSObject, NSWindowDelegate {
     /// Rebuilt with the window, so a chrome's state never outlives the window it decorated.
     private var chrome: WindowChrome?
 
-    /// The opening size is also the resize floor unless a smaller `minimumSize` is named.
+    /// The opening size is also the resize floor.
     init(
-        title: String, contentSize: CGSize, minimumSize: CGSize? = nil, resizable: Bool = false,
-        autosaveName: String? = nil, activation: ActivationPolicy
+        title: String, contentSize: CGSize, resizable: Bool = false, autosaveName: String? = nil,
+        activation: ActivationPolicy
     ) {
         self.title = title
         self.contentSize = contentSize
-        self.minimumSize = minimumSize ?? contentSize
         self.isResizable = resizable
         self.autosaveName = autosaveName
         self.activation = activation
@@ -110,7 +108,7 @@ final class AppWindowController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         // AppKit would otherwise resurrect the window at launch, before anything is wired up.
         window.isRestorable = false
-        window.contentMinSize = minimumSize
+        window.contentMinSize = contentSize
         window.delegate = self
         // Before the content: a bridged SwiftUI toolbar restores the title flags it mounted over.
         chrome?.install(in: window)

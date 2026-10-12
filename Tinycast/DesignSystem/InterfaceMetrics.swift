@@ -73,8 +73,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var clipboardFilterMenuWidth: CGFloat { scaledPoints(Theme.Size.clipboardFilterMenuWidth, scale) }
         var emojiCategoryMenuWidth: CGFloat { scaledPoints(Theme.Size.emojiCategoryMenuWidth, scale) }
         var menuIcon: CGFloat { scaledPoints(Theme.Size.menuIcon, scale) }
-        var menuBrandIcon: CGFloat { scaledPoints(Theme.Size.menuBrandIcon, scale) }
-        var barBrandIcon: CGFloat { scaledPoints(Theme.Size.barBrandIcon, scale) }
         var menuRowSpacing: CGFloat { scaledPoints(Theme.Size.menuRowSpacing, scale) }
         var menuSectionHeader: CGFloat { scaledPoints(Theme.Size.menuSectionHeader, scale) }
         /// Derived like `Theme`'s, so the row cap still counts whole rows at every size.
@@ -132,16 +130,6 @@ struct InterfaceMetrics: Equatable, Sendable {
         var disclosure: Font { font(Theme.Typography.disclosure, .caption1, .semibold) }
         var menuRow: Font { font(Theme.Typography.menuRow, .body) }
         var menuIcon: Font { font(Theme.Typography.menuIcon, .body) }
-
-        /// The AppKit twin of a text style, for text an `NSTextView` draws beside SwiftUI's own.
-        func textNSFont(
-            _ style: NSFont.TextStyle, weight: NSFont.Weight? = nil, monospaced: Bool = false
-        ) -> NSFont {
-            let base = nsFont(style)
-            if monospaced { return .monospacedSystemFont(ofSize: base.pointSize, weight: weight ?? .regular) }
-            guard let weight else { return base }
-            return .systemFont(ofSize: base.pointSize, weight: weight)
-        }
 
         /// Composed like `Theme`'s own: the style carries the face, an explicit weight overrides it.
         private func font(

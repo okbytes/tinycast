@@ -1,6 +1,6 @@
 import Foundation
 
-/// The three surfaces stay reachable one way, and chat is skipped when off.
+/// The two surfaces stay reachable one way, and the clipboard is skipped when off.
 @main
 @MainActor
 struct PaletteTabTests {

@@ -327,14 +327,12 @@ the arrow outside it, and AppKit's own alternation over the field came straight 
 `RootPaletteView` holds a single `OpenMenu?` rather than a flag per menu, so "at most one is open" is
 structural instead of a pair of `onChange` handlers pushing each other closed. The ⌘K Actions menu
 hangs `.bottomTrailing`, the app menu `.bottomLeading`, and everything drawn as a header control —
-the clipboard type filter and a running command's
-`searchBarAccessory` dropdown — hangs `.belowHeaderTrailing`, under its own
-button. `menuContent` resolves the open case to one `PaletteMenuContent` — a row count, a row action
-and a view built on demand — so ↑/↓, plain ↵, Esc and the click-away catcher serve every menu without
-knowing which is up. A screen supplies its rows as a `PopoverMenuContent` through `actions(at:)` and
-the default `menuContent` wraps them; a screen whose rows the palette's menu can't express may override
-`menuContent` and hand over its own view instead; no shipped screen does today. The view is a closure because `moveMenu` resolves the open menu on
-every arrow key and needs the row count alone. Every open path goes through `open(_:highlighting:)`
+the clipboard type filter and the emoji category filter — hangs `.belowHeaderTrailing`, under its
+own button. `menuContent` resolves the open case to one `PaletteMenuContent` — a row count, a row
+action and a view built on demand — so ↑/↓, plain ↵, Esc and the click-away catcher serve every menu
+without knowing which is up. A screen supplies its rows as a `PopoverMenuContent` through
+`actions(at:)`, and `PaletteScreen.menuContent` wraps them. The view is a closure because `moveMenu`
+resolves the open menu on every arrow key and needs the row count alone. Every open path goes through `open(_:highlighting:)`
 and states where the highlight starts: the first row, except a pop-up-shaped menu — the type
 filter — which opens on the choice it already holds.
 

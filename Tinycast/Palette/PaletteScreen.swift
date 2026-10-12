@@ -115,11 +115,6 @@ private extension MenuPanelCorner {
     func hasPrimaryAction(at selection: Int) -> Bool
     /// The ⌘K rows as the palette's own menu; nil when there are none.
     func actions(at selection: Int) -> PopoverMenuContent?
-    /// Defaults to wrapping `actions(at:)`, so a screen implements one or the other.
-    func menuContent(
-        at selection: Int, searchQuery: ActionMenuSearchQuery, menuSelection: Binding<Int>,
-        onActivate: @escaping (Int) -> Void
-    ) -> PaletteMenuContent?
     func activate(at selection: Int)
     /// ⌘↵. False when the selection has no secondary action, leaving the key unhandled.
     func secondary(at selection: Int) -> Bool
@@ -138,6 +133,7 @@ extension PaletteScreen {
     func hasPrimaryAction(at selection: Int) -> Bool { true }
     var landingSelection: Int { 0 }
     func actions(at selection: Int) -> PopoverMenuContent? { nil }
+    /// `actions(at:)` filtered by the menu's own search, as the panel that hosts it.
     func menuContent(
         at selection: Int, searchQuery: ActionMenuSearchQuery, menuSelection: Binding<Int>,
         onActivate: @escaping (Int) -> Void

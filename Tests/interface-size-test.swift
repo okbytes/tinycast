@@ -93,8 +93,6 @@ struct InterfaceSizeTests {
             m.size.emojiCategoryMenuWidth, Theme.Size.emojiCategoryMenuWidth,
             "size.emojiCategoryMenuWidth")
         expect(m.size.menuIcon, Theme.Size.menuIcon, "size.menuIcon")
-        expect(m.size.menuBrandIcon, Theme.Size.menuBrandIcon, "size.menuBrandIcon")
-        expect(m.size.barBrandIcon, Theme.Size.barBrandIcon, "size.barBrandIcon")
         expect(m.size.menuRowSpacing, Theme.Size.menuRowSpacing, "size.menuRowSpacing")
         expect(m.size.menuSectionHeader, Theme.Size.menuSectionHeader, "size.menuSectionHeader")
         expect(m.size.menuRowHeight, Theme.Size.menuRowHeight, "size.menuRowHeight")
@@ -239,8 +237,7 @@ struct InterfaceSizeTests {
             ("size.checkbox", m.size.checkbox),
             ("size.clipboardFilterMenuWidth", m.size.clipboardFilterMenuWidth),
             ("size.emojiCategoryMenuWidth", m.size.emojiCategoryMenuWidth),
-            ("size.menuIcon", m.size.menuIcon), ("size.menuBrandIcon", m.size.menuBrandIcon),
-            ("size.barBrandIcon", m.size.barBrandIcon),
+            ("size.menuIcon", m.size.menuIcon),
             ("size.menuSectionHeader", m.size.menuSectionHeader),
             ("size.menuRowHeight", m.size.menuRowHeight),
             ("size.menuRowsMaxHeight", m.size.menuRowsMaxHeight),

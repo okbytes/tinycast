@@ -61,52 +61,18 @@ struct BarButton<Label: View>: View {
 /// A header control that states the active choice and opens an in-window menu.
 struct HeaderMenuButton: View {
     let title: String
-    let icon: PopoverMenuIcon
-    /// A symbol's point size before scaling; a menu beside a brand mark matches the mark instead.
-    let symbolSize: CGFloat
+    let systemImage: String
     let isOpen: Bool
     let help: String
     let action: () -> Void
     @Environment(\.metrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(
-        title: String, icon: PopoverMenuIcon, symbolSize: CGFloat = Theme.Typography.menuSymbolSize,
-        isOpen: Bool, help: String, action: @escaping () -> Void
-    ) {
-        self.title = title
-        self.icon = icon
-        self.symbolSize = symbolSize
-        self.isOpen = isOpen
-        self.help = help
-        self.action = action
-    }
-
-    init(
-        title: String, systemImage: String, symbolSize: CGFloat = Theme.Typography.menuSymbolSize,
-        isOpen: Bool, help: String, action: @escaping () -> Void
-    ) {
-        self.init(
-            title: title, icon: .symbol(systemImage), symbolSize: symbolSize, isOpen: isOpen,
-            help: help, action: action)
-    }
-
     var body: some View {
         BarButton(chrome: .rounded, action: action) {
             HStack(spacing: metrics.spacing.sm) {
-                switch icon {
-                case .blank:
-                    EmptyView()
-                case .symbol(let name):
-                    HeaderMenuSymbol(name: name, size: metrics.scaled(symbolSize))
-                case .asset(let name):
-                    Image(name)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: metrics.size.barBrandIcon, height: metrics.size.barBrandIcon)
-                case .file(let path):
-                    MenuFileIcon(path: path)
-                }
+                HeaderMenuSymbol(
+                    name: systemImage, size: metrics.scaled(Theme.Typography.menuSymbolSize))
                 Text(title)
                     .font(metrics.typography.bar)
                     .lineLimit(1)
