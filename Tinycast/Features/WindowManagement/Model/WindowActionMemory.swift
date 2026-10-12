@@ -8,7 +8,7 @@ struct WindowActionMemory<Key: Hashable> {
         var restoreFrame: CGRect
         /// Where we *observed* it after our last write — not what we asked for. See `decide`.
         var appliedFrame: CGRect
-        var command: WindowCommand.ID?
+        var command: WindowCommand.ID
         var step: Int
         /// Where it landed; a press from any other display starts a new chain.
         var screenID: Int
@@ -52,7 +52,7 @@ struct WindowActionMemory<Key: Hashable> {
 
     /// Resolves the cycle step and restore point; `commit` writes once the mover knows what landed.
     func decide(
-        key: Key, command: WindowCommand.ID?, currentFrame: CGRect, currentScreenID: Int,
+        key: Key, command: WindowCommand.ID, currentFrame: CGRect, currentScreenID: Int,
         cycleLength: Int, now: Date
     ) -> Decision {
         // First sight: capture where it was, so Restore works for a never-moved window.
@@ -69,9 +69,8 @@ struct WindowActionMemory<Key: Hashable> {
                 canRestore: true, lastTileCommand: nil)
         }
 
-        let lastTileCommand = record.command.flatMap {
-            WindowPlacementEngine.isTileCommand($0) ? $0 : nil
-        }
+        let lastTileCommand =
+            WindowPlacementEngine.isTileCommand(record.command) ? record.command : nil
         let expired = cycleTimeout.map { now.timeIntervalSince(record.at) > $0 } ?? false
         // A length of 1 covers both a non-cycling command and cycling switched off entirely.
         let continues =
@@ -85,7 +84,7 @@ struct WindowActionMemory<Key: Hashable> {
 
     /// Records what actually landed. `appliedFrame` must be read back from the window, not assumed.
     mutating func commit(
-        key: Key, command: WindowCommand.ID?, decision: Decision, appliedFrame: CGRect,
+        key: Key, command: WindowCommand.ID, decision: Decision, appliedFrame: CGRect,
         screenID: Int, now: Date
     ) {
         records[key] = Record(

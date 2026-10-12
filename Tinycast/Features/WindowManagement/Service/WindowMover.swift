@@ -150,12 +150,6 @@ final class WindowMover {
         let key: WindowKey
     }
 
-    /// Turns the observed frame, the displays and the memory's verdict into a target.
-    private typealias Resolver = (
-        _ current: CGRect, _ screens: [WindowPlacementEngine.Screen],
-        _ decision: WindowActionMemory<WindowKey>.Decision
-    ) -> WindowPlacementEngine.Placement?
-
     /// Runs `command` against `target`'s focused window, returning whether anything changed.
     @discardableResult
     func perform(
@@ -171,19 +165,7 @@ final class WindowMover {
             memory.forgetCycle(key: focused.key)
             return true
         }
-        return place(
-            focused, command: command, gap: gap,
-            cycleLength: {
-                WindowPlacementEngine.cycleLength(for: command, screens: $0, cycle: cycle)
-            }
-        ) { current, screens, decision in
-            WindowPlacementEngine.placement(
-                for: WindowPlacementEngine.Input(
-                    command: command, windowFrame: current, screens: screens, gap: gap,
-                    step: decision.step, cycle: cycle, originScreenID: decision.originScreenID,
-                    restoreFrame: decision.canRestore ? decision.restoreFrame : nil,
-                    lastTileCommand: decision.lastTileCommand))
-        }
+        return place(focused, command: command, gap: gap, cycle: cycle)
     }
 
     private func focusedWindow(of target: WindowTarget?) -> FocusedWindow? {
@@ -212,8 +194,7 @@ final class WindowMover {
 
     /// The one decide → resolve → write → commit sequence every geometry press runs through.
     private func place(
-        _ focused: FocusedWindow, command: WindowCommand.ID?, gap: CGFloat,
-        cycleLength: ([WindowPlacementEngine.Screen]) -> Int, resolve: Resolver
+        _ focused: FocusedWindow, command: WindowCommand.ID, gap: CGFloat, cycle: WindowCycle
     ) -> Bool {
         let surface = focused.surface
         let geometry = AXGeometry(screens: NSScreen.screens)
@@ -229,8 +210,15 @@ final class WindowMover {
         let now = Date()
         let decision = memory.decide(
             key: focused.key, command: command, currentFrame: current, currentScreenID: host.id,
-            cycleLength: cycleLength(screens), now: now)
-        guard let placement = resolve(current, screens, decision) else { return false }
+            cycleLength: WindowPlacementEngine.cycleLength(
+                for: command, screens: screens, cycle: cycle),
+            now: now)
+        let input = WindowPlacementEngine.Input(
+            command: command, windowFrame: current, screens: screens, gap: gap, step: decision.step,
+            cycle: cycle, originScreenID: decision.originScreenID,
+            restoreFrame: decision.canRestore ? decision.restoreFrame : nil,
+            lastTileCommand: decision.lastTileCommand)
+        guard let placement = WindowPlacementEngine.placement(for: input) else { return false }
 
         // Checked before any write, so an unpositionable window is left untouched.
         guard surface.canMove else { return false }
