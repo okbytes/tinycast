@@ -173,12 +173,16 @@ enum WindowPlacementEngine {
                 frame: rounded(clamped(frame, into: canvas)), screenID: host.id,
                 anchor: .topLeading, resizes: true)
 
+        // Horizontal only: the window keeps its vertical position, clamped back onto the display.
         case .center:
             let size = CGSize(
                 width: min(current.width, canvas.width), height: min(current.height, canvas.height))
+            let frame = CGRect(
+                x: canvas.midX - size.width / 2, y: current.minY, width: size.width,
+                height: size.height)
             return Placement(
-                frame: rounded(Anchor.centered.place(size, in: canvas)), screenID: host.id,
-                anchor: .centered, resizes: true)
+                frame: rounded(clamped(frame, into: canvas)), screenID: host.id,
+                anchor: Anchor(horizontal: .center, vertical: .min), resizes: true)
 
         case .makeLarger, .makeSmaller:
             return Placement(

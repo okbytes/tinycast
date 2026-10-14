@@ -552,8 +552,8 @@ struct WindowCommandTests {
             "maximize width brings a stray window back on screen")
 
         expectRect(
-            frame(.center, window: window)!, CGRect(x: 570, y: 250, width: 300, height: 400),
-            "center preserves the size and centres it")
+            frame(.center, window: window)!, CGRect(x: 570, y: 200, width: 300, height: 400),
+            "center preserves the size and vertical position and centres it horizontally")
         expectRect(
             frame(.center, window: frame(.center, window: window)!)!,
             frame(.center, window: window)!, "center is idempotent")

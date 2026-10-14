@@ -112,6 +112,9 @@ at any window size. Both directions saturate into exact no-ops: the ceiling is t
 display-independent — a laptop gets the fraction, a 4K or 5K display gets a moderate window instead of
 a 2304×1296 one. It ignores the window's current size entirely, so it is idempotent.
 
+**Center** centres horizontally only: the window keeps its size and its vertical position, clamped
+back onto the display if it hangs off it.
+
 **Center Half** is half the screen's _area_: half width, full height, horizontally centred — the family
 sibling of Center Third. **Center Two Thirds** and **Center Three Fourths** are the same shape at two
 thirds and three quarters of the width.
