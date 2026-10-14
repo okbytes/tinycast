@@ -438,6 +438,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Lock Screen locks from a global hotkey with the palette closed, including a Hyper-key binding
 - Window commands move the window you were last in; cycle-on-repeat steps ½ → ⅓ → ⅔
 - "Top Left Quarter" lands flush with the top of the usable frame, on a secondary display too
+- With the Dock auto-hidden, a Left Half window is full height again after a display sleep and wake
 - A command with Settings focused places Settings, not the app behind it
 - Cycling works on Settings; HUDs are never placed
 

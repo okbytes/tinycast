@@ -34,6 +34,7 @@ entries and a still-registered shortcut moves nothing.
 | `Service/AXWindowAccess.swift`       | AppKit + ApplicationServices | `@MainActor`. Every `AXUIElement` call, and the one write sequence  |
 | `Service/AXScreens.swift`            | AppKit                       | `@MainActor`. `AXGeometry`, the one coordinate flip                 |
 | `Service/WindowMover.swift`          | AppKit + ApplicationServices | `@MainActor`. Command policy: resolve, cycle, write                 |
+| `Service/DockShrinkGuard.swift`      | AppKit + ApplicationServices | `@MainActor`. Undoes a later Dock-height shrink of a bottom tile    |
 | `Service/WindowTarget.swift`         | AppKit                       | `@MainActor`. Which window a command acts on                        |
 | `UI/WindowCommandCoordinator.swift`  | AppKit                       | The one funnel from a palette row or a global hotkey                |
 | `Model/WindowShortcutPreset.swift`   | Foundation + Carbon          | **Pure.** Rectangle / Magnet and Spectacle tables, and the apply plan |
@@ -73,7 +74,8 @@ in this feature is a bug.
 the notch inside it): `AXScreens` keeps `visibleFrame`'s top edge, which the Dock never occupies, and
 takes the other three from `frame`. With the Dock auto-hidden, tiles occasionally came up a Dock's
 height short; a Dock that stays shown is simply covered. Avoiding it again would be a new feature,
-not a fix.
+not a fix. Ignoring it when placing is only half of it: macOS or the app can still shorten the window
+later, which [Holding a tile over the Dock](#holding-a-tile-over-the-dock) undoes.
 
 ## Geometry
 
@@ -203,6 +205,34 @@ some apps reinterpret frame writes while it is on — but never while VoiceOver 
 break the screen reader. **This mitigation is inherited convention and unverified on macOS 27**; if a
 stock Electron app tiles correctly without it, delete the helper rather than keep it.
 
+## Holding a tile over the Dock
+
+Placing over the Dock was not enough on its own. With the Dock auto-hidden, a window Tinycast tiled to
+the bottom of the screen could still, later and with no command pressed, have its bottom edge pulled up
+by the Dock's height. Tinycast writes nothing between commands, so that is macOS or the app re-fitting
+the window. The trigger is unconfirmed; the likeliest is a `visibleFrame` that briefly reports the Dock
+around a display or Dock change. Tinycast cannot stop the re-fit, only undo it.
+
+`DockShrinkGuard` does that. After a command whose placement reaches the bottom of the canvas, the
+mover hands it the observed frame and the window, and it registers an `AXObserver` for resized, moved
+and destroyed. `WindowPlacementEngine.heldFrameChange` classifies every change against the held frame:
+
+- **Unchanged**, within `clampTolerance`: nothing to do. Our own restore lands here.
+- **Dock shrink**: top-left and width kept, only the bottom edge raised, by at most `dockReserveLimit`.
+  After a 500 ms settle, so the restore lands after the app's last re-fit, the held frame is written
+  back through `AXWindowAccess.write`.
+- **Anything else**, a mouse button held during the change, or the window closing: the window is
+  the user's again and the guard lets go.
+
+**Two restores in ten seconds is the limit.** An app that re-applies the shrink a third time wins, for
+the same reason the write does no correction loop: fighting it only makes the window jitter. Every
+restore and every give-up is logged under the `window-management` category.
+
+The mover releases a window before every write, so the size → position → size sequence never reads as
+a shrink, and the guard drops a quit app's windows with the cycle memory. It holds at most 16 windows,
+oldest dropped first. Only external windows are held; our own go through AppKit and are left alone.
+Only a bottom Dock is covered: a side Dock shrinks the width, which reads as any other change.
+
 ## Shortcut presets
 
 Settings › Window Management › Options › **Shortcut preset**, a pop-up and an Apply button, fills
@@ -272,3 +302,7 @@ and has no automated coverage — the AX path needs manual verification, particu
 3. Cycling, in both modes: under `.sizes`, three presses of Left Half, then drag the window and confirm
    the next press restarts at ½. Under `.displays` on two monitors, four presses of Left Half must
    visit every half-slot once and return to the first.
+4. The Dock guard, with the Dock auto-hidden: tile a window to Left Half, then sleep and wake the
+   displays or plug one in. The window must end up full height again, and
+   `log stream --predicate 'category == "window-management"'` shows a restore if anything shrank it.
+   Dragging its bottom edge up afterwards must stick.

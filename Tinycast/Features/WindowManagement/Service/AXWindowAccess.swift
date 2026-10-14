@@ -114,6 +114,36 @@ enum AXWindowAccess {
         return { AXUIElementSetAttributeValue(application, attribute, kCFBooleanTrue) }
     }
 
+    // MARK: - Observing
+
+    private static let observedNotifications = [
+        kAXResizedNotification, kAXMovedNotification, kAXUIElementDestroyedNotification,
+    ]
+
+    /// Delivers `window`'s resizes, moves and close to `callback` on the main run loop.
+    static func observe(
+        _ window: AXUIElement, pid: pid_t, callback: AXObserverCallback,
+        refcon: UnsafeMutableRawPointer
+    ) -> AXObserver? {
+        var created: AXObserver?
+        guard AXObserverCreate(pid, callback, &created) == .success, let observer = created
+        else { return nil }
+        for notification in observedNotifications {
+            AXObserverAddNotification(observer, window, notification as CFString, refcon)
+        }
+        CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+        return observer
+    }
+
+    /// Once this returns `callback` cannot fire again, so its refcon may be freed.
+    static func stopObserving(_ window: AXUIElement, with observer: AXObserver) {
+        for notification in observedNotifications {
+            AXObserverRemoveNotification(observer, window, notification as CFString)
+        }
+        CFRunLoopRemoveSource(
+            CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+    }
+
     // MARK: - Primitives
 
     static func frame(of window: AXUIElement) -> CGRect? {

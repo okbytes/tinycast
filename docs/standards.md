@@ -85,6 +85,7 @@ fit the table.
 | `Worker` | Runs a job on a process or thread of its own, holding nothing between jobs |
 | `Mailbox` | The one lock-guarded handoff between threads that otherwise share nothing |
 | `Watchdog` | Ends a process that has stopped making progress |
+| `Guard` | Holds a state it set, undoing one specific outside change to it |
 
 `Manager` is the one worth thinking twice about. It means *lifecycle plus policy*, which is a lot for one
 type, so there are only three: `ClipboardManager` (polls, and owns the capture policy and the paste-side

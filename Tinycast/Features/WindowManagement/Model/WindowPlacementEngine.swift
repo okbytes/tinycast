@@ -302,6 +302,31 @@ enum WindowPlacementEngine {
         return rounded(clamped(moved, into: canvas))
     }
 
+    // MARK: - Held frames
+
+    /// What happened to a frame we placed since we placed it.
+    enum HeldFrameChange: Equatable, Sendable {
+        case unchanged
+        /// Only the bottom edge rose, by at most a Dock: macOS or the app fitting it above one.
+        case dockShrink
+        case other
+    }
+
+    /// A Dock at its largest tile size plus its padding; a deeper lift is not the Dock's doing.
+    static let dockReserveLimit: CGFloat = 160
+
+    static func heldFrameChange(
+        from held: CGRect, to current: CGRect, tolerance: CGFloat
+    ) -> HeldFrameChange {
+        let keepsTopLeftAndWidth =
+            abs(current.minX - held.minX) <= tolerance && abs(current.minY - held.minY) <= tolerance
+            && abs(current.width - held.width) <= tolerance
+        guard keepsTopLeftAndWidth else { return .other }
+        let lift = held.maxY - current.maxY
+        if abs(lift) <= tolerance { return .unchanged }
+        return lift > 0 && lift <= dockReserveLimit ? .dockShrink : .other
+    }
+
     // MARK: - Primitives
 
     /// Rounds the four edges, so two tiles sharing a boundary round it identically.

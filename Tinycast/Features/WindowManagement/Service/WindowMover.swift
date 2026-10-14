@@ -111,6 +111,7 @@ final class WindowMover {
     }
 
     private var memory = WindowActionMemory<WindowKey>()
+    private let dockShrinkGuard = DockShrinkGuard()
     private var terminationToken: NotificationToken?
     private var windowCloseToken: NotificationToken?
 
@@ -129,6 +130,7 @@ final class WindowMover {
                     guard case .external(let external) = key else { return false }
                     return external.pid == pid
                 }
+                self?.dockShrinkGuard.release(pid: pid)
             }
         }
         terminationToken = NotificationToken(token, center: NSWorkspace.shared.notificationCenter)
@@ -219,6 +221,7 @@ final class WindowMover {
                 $0.usableFrame,
                 gap: WindowPlacementEngine.sanitizedGap(gap, in: $0.usableFrame))
         }
+        if case .external(_, let window) = surface { dockShrinkGuard.release(window) }
         let restoreEnhancedUI = canResize ? surface.suppressEnhancedUserInterface() : {}
         defer { restoreEnhancedUI() }
 
@@ -227,6 +230,12 @@ final class WindowMover {
                 placement, current: current, canResize: canResize, canvas: canvas,
                 geometry: geometry)
         else { return false }
+
+        if case .external(_, let window) = surface, case .external(let key) = focused.key,
+            let canvas, placement.frame.maxY >= canvas.maxY - AXWindowAccess.clampTolerance
+        {
+            dockShrinkGuard.hold(applied, anchor: placement.anchor, of: window, pid: key.pid)
+        }
 
         let landedOn =
             WindowPlacementEngine.screen(containing: applied, in: screens)?.id
