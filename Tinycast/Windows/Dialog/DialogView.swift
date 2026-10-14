@@ -20,25 +20,24 @@ extension DialogTone {
 
 /// Tinycast's Liquid Glass dialog.
 struct DialogView: View {
-    @Environment(\.metrics) private var metrics
     let request: DialogRequest
     let width: CGFloat
     let onChoose: (Int) -> Void
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: metrics.radius.panel, style: .continuous)
-        VStack(alignment: .leading, spacing: metrics.spacing.xxl) {
-            VStack(alignment: .leading, spacing: metrics.spacing.xxl) {
+        let shape = RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
+        VStack(alignment: .leading, spacing: Theme.Spacing.xxl) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xxl) {
                 if let symbol = request.symbol {
                     DialogSymbol(name: symbol, tone: request.tone)
                 }
 
-                VStack(alignment: .leading, spacing: metrics.spacing.sm) {
+                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
                     Text(request.title)
-                        .font(metrics.typography.panelTitle)
+                        .font(Theme.Typography.panelTitle)
                     if let message = request.message {
                         Text(message)
-                            .font(metrics.typography.rowTitle)
+                            .font(Theme.Typography.rowTitle)
                             .foregroundStyle(Theme.Colors.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -48,13 +47,13 @@ struct DialogView: View {
                     VolumeSlider(state: volume)
                 }
             }
-            .padding(.horizontal, metrics.spacing.xs)
-            .padding(.top, metrics.spacing.xs)
+            .padding(.horizontal, Theme.Spacing.xs)
+            .padding(.top, Theme.Spacing.xs)
             .frame(maxWidth: .infinity, alignment: .leading)
 
             actions
         }
-        .padding(metrics.spacing.dialogInset)
+        .padding(Theme.Spacing.dialogInset)
         .frame(width: width, alignment: .leading)
         .background(Theme.Colors.panelScrim, in: shape)
         .glassEffect(.regular, in: shape)
@@ -63,13 +62,13 @@ struct DialogView: View {
     @ViewBuilder private var actions: some View {
         if request.actions.count == 2 {
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: metrics.spacing.md) { actionButtons(singleLine: true) }
-                VStack(spacing: metrics.spacing.md) { actionButtons(singleLine: false) }
+                HStack(spacing: Theme.Spacing.md) { actionButtons(singleLine: true) }
+                VStack(spacing: Theme.Spacing.md) { actionButtons(singleLine: false) }
             }
         } else if request.actions.count > 2 {
-            VStack(spacing: metrics.spacing.md) { actionButtons }
+            VStack(spacing: Theme.Spacing.md) { actionButtons }
         } else {
-            HStack(spacing: metrics.spacing.md) { actionButtons }
+            HStack(spacing: Theme.Spacing.md) { actionButtons }
         }
     }
 
@@ -108,19 +107,18 @@ struct DialogView: View {
 }
 
 private struct DialogSymbol: View {
-    @Environment(\.metrics) private var metrics
     let name: String
     let tone: DialogTone
 
     var body: some View {
-        SymbolImage(name: name, size: metrics.size.dialogSymbol, monochrome: true)
+        SymbolImage(name: name, size: Theme.Size.dialogSymbol, monochrome: true)
             .foregroundStyle(symbolTint)
             .frame(
-                width: metrics.size.dialogSymbolContainer,
-                height: metrics.size.dialogSymbolContainer
+                width: Theme.Size.dialogSymbolContainer,
+                height: Theme.Size.dialogSymbolContainer
             )
             .background(
-                RoundedRectangle(cornerRadius: metrics.radius.dialogSymbol, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.dialogSymbol, style: .continuous)
                     .fill(tone.tileFill))
     }
 

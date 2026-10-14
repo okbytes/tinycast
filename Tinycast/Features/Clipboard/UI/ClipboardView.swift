@@ -3,7 +3,6 @@ import SwiftUI
 
 struct ClipboardList: View {
 
-    @Environment(\.metrics) private var metrics
     let results: [ClipboardItem]
     let selectedID: ClipboardItem.ID?
     /// Changes only when the list should scroll, so mouse selection never yanks it.
@@ -80,9 +79,9 @@ struct ClipboardList: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.spacing.md)
-                .padding(.top, metrics.spacing.xs)
-                .padding(.bottom, metrics.spacing.md)
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.top, Theme.Spacing.xs)
+                .padding(.bottom, Theme.Spacing.md)
                 .hideNativeScrollers()
                 .scrollOriginAnchor()
             }
@@ -126,7 +125,6 @@ enum DateBucket: Int {
 
 private struct ClipboardRow: View {
 
-    @Environment(\.metrics) private var metrics
     let item: ClipboardItem
     let selected: Bool
     let imageURL: URL?
@@ -144,25 +142,25 @@ private struct ClipboardRow: View {
 
     var body: some View {
         IconCache.observeStyle()
-        return HStack(spacing: metrics.spacing.lg) {
+        return HStack(spacing: Theme.Spacing.lg) {
             thumbnail(item.colorValue)
-                .frame(width: metrics.size.resultRowIcon, height: metrics.size.resultRowIcon)
+                .frame(width: Theme.Size.resultRowIcon, height: Theme.Size.resultRowIcon)
             Text(previewText)
-                .font(metrics.typography.menuRow)
+                .font(Theme.Typography.menuRow)
                 .lineLimit(1)
                 .truncationMode(.tail)
             Spacer(minLength: 0)
             if let slot, palette.commandHeld {
-                HStack(spacing: metrics.spacing.xxs) {
+                HStack(spacing: Theme.Spacing.xxs) {
                     KeyCapChip(text: "⌘", style: .outline)
                     KeyCapChip(text: String(slot), style: .outline)
                 }
             }
         }
-        .padding(.horizontal, metrics.spacing.md)
-        .padding(.vertical, metrics.spacing.sm)
+        .padding(.horizontal, Theme.Spacing.md)
+        .padding(.vertical, Theme.Spacing.sm)
         .background(
-            RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
                 .fill(fill)
         )
         .armedHover($hovered)
@@ -200,7 +198,7 @@ private struct ClipboardRow: View {
                     .scaledToFill()
                     .frame(width: artworkSize, height: artworkSize)
                     .clipShape(
-                        RoundedRectangle(cornerRadius: metrics.radius.thumbnail, style: .continuous))
+                        RoundedRectangle(cornerRadius: Theme.Radius.thumbnail, style: .continuous))
             } placeholder: {
                 Image(nsImage: IconCache.symbolIcon(named: "photo")).resizable()
             }
@@ -211,7 +209,7 @@ private struct ClipboardRow: View {
                     .scaledToFill()
                     .frame(width: artworkSize, height: artworkSize)
                     .clipShape(
-                        RoundedRectangle(cornerRadius: metrics.radius.thumbnail, style: .continuous))
+                        RoundedRectangle(cornerRadius: Theme.Radius.thumbnail, style: .continuous))
             } placeholder: {
                 Image(nsImage: IconCache.symbolIcon(named: fileKind.systemImage)).resizable()
             }
@@ -227,7 +225,7 @@ private struct ClipboardRow: View {
         item.filePath.map { ClipboardFileKind.of(path: $0) } ?? .other
     }
 
-    private var artworkSize: CGFloat { metrics.size.resultRowIcon * IconCache.appIconExtent }
+    private var artworkSize: CGFloat { Theme.Size.resultRowIcon * IconCache.appIconExtent }
 }
 
 /// ImageIO for a blob we hold; QuickLook for a referenced file, which may be any type.
@@ -286,7 +284,6 @@ private struct AsyncThumbnail<Content: View, Placeholder: View>: View {
 
 struct ClipboardPreview: View {
 
-    @Environment(\.metrics) private var metrics
     let item: ClipboardItem?
     @Environment(ClipboardStore.self) private var store
 
@@ -318,16 +315,16 @@ struct ClipboardPreview: View {
                 }
             }
         case .image:
-            AsyncThumbnail(url: store.imageURL(for: item), maxPixel: metrics.size.clipboardPreviewPixel) {
+            AsyncThumbnail(url: store.imageURL(for: item), maxPixel: Theme.Size.clipboardPreviewPixel) {
                 image in
                 image
                     .resizable()
                     .scaledToFit()
                     .clipShape(
-                        RoundedRectangle(cornerRadius: metrics.radius.card, style: .continuous)
+                        RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous)
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: metrics.radius.card, style: .continuous)
+                        RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous)
                             .strokeBorder(Theme.Colors.cardStroke, lineWidth: 1)
                     )
             } placeholder: {
@@ -342,7 +339,6 @@ struct ClipboardPreview: View {
 
 /// The "Information" block; disk-touching details are gathered off the main actor.
 private struct ClipboardInfoSection: View {
-    @Environment(\.metrics) private var metrics
     let item: ClipboardItem
     let imageURL: URL?
 
@@ -373,17 +369,17 @@ private struct ClipboardInfoSection: View {
     }()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: metrics.spacing.sm) {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
             Text("Information")
-                .font(metrics.typography.sectionHeader)
+                .font(Theme.Typography.sectionHeader)
                 .foregroundStyle(.secondary)
             VStack(spacing: 0) {
                 let rows = self.rows
                 ForEach(rows) { row in
                     if row.id != rows.first?.id { Divider() }
-                    HStack(spacing: metrics.spacing.sm) {
+                    HStack(spacing: Theme.Spacing.sm) {
                         Text(row.label).foregroundStyle(.secondary)
-                        Spacer(minLength: metrics.spacing.lg)
+                        Spacer(minLength: Theme.Spacing.lg)
                         if let icon = row.icon {
                             Image(nsImage: icon)
                                 .resizable()
@@ -392,11 +388,11 @@ private struct ClipboardInfoSection: View {
                         Text(row.value).lineLimit(1).truncationMode(.middle)
                     }
                     .font(.callout)
-                    .padding(.vertical, metrics.spacing.sm)
+                    .padding(.vertical, Theme.Spacing.sm)
                 }
             }
         }
-        .padding(.top, metrics.spacing.xl)
+        .padding(.top, Theme.Spacing.xl)
         .task(id: item.id) { await loadDetails() }
     }
 

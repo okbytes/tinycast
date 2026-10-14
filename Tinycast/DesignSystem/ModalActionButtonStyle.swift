@@ -12,7 +12,6 @@ struct ModalActionButtonStyle: ButtonStyle {
 
     private struct ButtonBody: View {
         @Environment(\.isEnabled) private var isEnabled
-        @Environment(\.metrics) private var metrics
         let configuration: ButtonStyleConfiguration
         let role: Role
         let fillsWidth: Bool
@@ -20,11 +19,11 @@ struct ModalActionButtonStyle: ButtonStyle {
 
         var body: some View {
             configuration.label
-                .font(metrics.typography.rowTrailing)
+                .font(Theme.Typography.rowTrailing)
                 .foregroundStyle(labelColor)
-                .padding(.horizontal, metrics.spacing.xl)
+                .padding(.horizontal, Theme.Spacing.xl)
                 .frame(maxWidth: fillsWidth ? .infinity : nil)
-                .frame(height: metrics.size.dialogButtonHeight)
+                .frame(height: Theme.Size.dialogButtonHeight)
                 .contentShape(Capsule())
                 .background(Capsule().fill(fill))
                 .opacity(isEnabled ? 1 : 0.45)

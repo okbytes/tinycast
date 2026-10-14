@@ -13,19 +13,18 @@ struct MessageHUDView: View {
 
     let message: String
     let accessory: Accessory
-    @Environment(\.metrics) private var metrics
 
     var body: some View {
-        HStack(spacing: metrics.spacing.md) {
+        HStack(spacing: Theme.Spacing.md) {
             mark
             Text(message)
-                .font(metrics.typography.bar)
+                .font(Theme.Typography.bar)
                 .foregroundStyle(Color.primary)
                 .lineLimit(1)
         }
-        .padding(.horizontal, metrics.spacing.xl)
-        .padding(.vertical, metrics.spacing.lg)
-        .frame(maxWidth: metrics.size.hudMaxWidth, alignment: .leading)
+        .padding(.horizontal, Theme.Spacing.xl)
+        .padding(.vertical, Theme.Spacing.lg)
+        .frame(maxWidth: Theme.Size.hudMaxWidth, alignment: .leading)
         .fixedSize()
         .background { glow }
         // Not glass: with nothing to lens it falls back to an opaque backing and shows.
@@ -48,7 +47,7 @@ struct MessageHUDView: View {
                 RadialGradient(
                     colors: [tint.opacity(Self.glowOpacity), tint.opacity(0.03), .clear],
                     center: UnitPoint(
-                        x: (metrics.spacing.xl + metrics.size.menuIcon / 2) / proxy.size.width,
+                        x: (Theme.Spacing.xl + Theme.Size.menuIcon / 2) / proxy.size.width,
                         y: 0.5),
                     startRadius: 0, endRadius: Self.glowRadius))
         }
@@ -65,8 +64,8 @@ struct MessageHUDView: View {
     /// One box for both marks, so swapping a spinner for its outcome cannot resize the pill.
     private var mark: some View {
         symbol
-            .font(metrics.typography.menuIcon)
-            .frame(width: metrics.size.menuIcon, height: metrics.size.menuIcon)
+            .font(Theme.Typography.menuIcon)
+            .frame(width: Theme.Size.menuIcon, height: Theme.Size.menuIcon)
     }
 
     @ViewBuilder

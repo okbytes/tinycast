@@ -61,14 +61,6 @@ Source: `Tinycast/DesignSystem/Theme.swift`.
 `Theme` is the single source of truth. **Never hardcode a spacing/radius/size/color that has a token.**
 Add a token rather than a magic number when introducing a new value.
 
-### `InterfaceMetrics`
-
-The palette and the surfaces that float with it — the ⌘K menu, dialogs and HUDs — read `Theme`
-through `DesignSystem/InterfaceMetrics.swift`, which only ever runs at `.standard`: there is no
-Interface Size setting any more, so every value is the `Theme` literal. **In any view the palette can
-reach, read `@Environment(\.metrics)`**; the key defaults to `.standard`, so nothing has to inject it.
-`interface-size-test` pins `.standard` to `Theme` verbatim, member by member.
-
 ### Spacing (`Theme.Spacing`)
 
 `xxs 2` · `xs 4` · `sm 6` · `md 8` · `lg 10` · `xl 12` · `dialogInset 18` · `xxl 20`
@@ -151,12 +143,6 @@ System text styles only — **no fixed point sizes in views**. Two named excepti
 `searchField` (20pt Regular) and the optical SF Symbol treatment `menuSymbol` (14pt Medium). Use
 `rowTitle` (`.body`), `sectionHeader` (`.subheadline.medium`),
 `rowTrailing`/`bar`/`menuRow`/`keyCap` etc. as named.
-
-`InterfaceMetrics.Typography` scales a style by rebuilding its `NSFont` **from that font's own
-descriptor** at the scaled point size. Never reconstruct one as `.system(size:weight:)` from a
-hand-written weight table: on macOS `.headline` is Bold and `.caption2` is Medium, so a table
-*lightens* them the moment the user leaves the default size. `menuSymbol` is the deliberate exception:
-it is an explicitly-sized glyph treatment, not a system text style, so scaling preserves Medium.
 
 ### Colors (`Theme.Colors`) — the alpha ramp
 

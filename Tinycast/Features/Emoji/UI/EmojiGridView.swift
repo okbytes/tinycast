@@ -98,7 +98,6 @@ private enum EmojiGridItem: Identifiable {
 
 struct EmojiGridView: View {
 
-    @Environment(\.metrics) private var metrics
     let sections: [EmojiGridSection]
     /// Flat selection index across all sections, as in the list modes.
     let selection: Int
@@ -164,15 +163,15 @@ struct EmojiGridView: View {
                             )
                             .padding(
                                 .bottom,
-                                row.isLastInSection ? 0 : metrics.spacing.md
+                                row.isLastInSection ? 0 : Theme.Spacing.md
                             )
                             .selectionFrame(item.id == selectedRowID)
                         }
                     }
                 }
-                .padding(.horizontal, metrics.size.emojiGridInset)
-                .padding(.top, metrics.spacing.xs)
-                .padding(.bottom, metrics.spacing.md)
+                .padding(.horizontal, Theme.Size.emojiGridInset)
+                .padding(.top, Theme.Spacing.xs)
+                .padding(.bottom, Theme.Spacing.md)
                 .hideNativeScrollers()
                 .scrollOriginAnchor()
             }
@@ -188,13 +187,12 @@ struct EmojiGridView: View {
 
 /// Count trails the title without changing the shared section header used by the other screens.
 private struct EmojiSectionHeader: View {
-    @Environment(\.metrics) private var metrics
     let title: String
     let count: Int
     let isFirst: Bool
 
     var body: some View {
-        HStack(spacing: metrics.spacing.sm) {
+        HStack(spacing: Theme.Spacing.sm) {
             Text(title)
                 .foregroundStyle(Theme.Colors.textSecondary)
             Text(count, format: .number)
@@ -202,15 +200,14 @@ private struct EmojiSectionHeader: View {
                 .monospacedDigit()
             Spacer(minLength: 0)
         }
-        .font(metrics.typography.sectionHeader)
-        .padding(.top, isFirst ? metrics.spacing.xs : metrics.spacing.emojiSectionSpacing)
-        .padding(.bottom, metrics.spacing.md)
+        .font(Theme.Typography.sectionHeader)
+        .padding(.top, isFirst ? Theme.Spacing.xs : Theme.Spacing.emojiSectionSpacing)
+        .padding(.bottom, Theme.Spacing.md)
     }
 }
 
 /// One grid row, owning all interaction for its cells. See docs/features/emoji.md#rendering.
 private struct EmojiGridRowView: View {
-    @Environment(\.metrics) private var metrics
     let row: EmojiGridRow
     let selection: Int
     let tone: EmojiSkinTone
@@ -222,12 +219,12 @@ private struct EmojiGridRowView: View {
     @Environment(PaletteState.self) private var palette
     @State private var hoveredColumn: Int?
 
-    private var spacing: CGFloat { metrics.spacing.md }
+    private var spacing: CGFloat { Theme.Spacing.md }
 
     /// The palette has a fixed metric width, so cells can be square without a measuring render pass.
     private var cellSize: CGFloat {
         let count = CGFloat(columns.rawValue)
-        let contentWidth = metrics.size.panelWidth - metrics.size.emojiGridInset * 2
+        let contentWidth = Theme.Size.panelWidth - Theme.Size.emojiGridInset * 2
         return (contentWidth - spacing * (count - 1)) / count
     }
 
@@ -290,7 +287,6 @@ private struct EmojiGridRowView: View {
 
 /// Pure content: no gestures, overlays or hover tracking. See docs/features/emoji.md#rendering.
 private struct EmojiCell: View {
-    @Environment(\.metrics) private var metrics
     let glyph: String
     let selected: Bool
     let hovered: Bool
@@ -305,7 +301,7 @@ private struct EmojiCell: View {
     private var glyphSize: CGFloat { min(max(size * 0.48, 30), 52) }
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: metrics.radius.emojiCell, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Theme.Radius.emojiCell, style: .continuous)
         return ZStack {
             shape.fill(fill)
             if selected {

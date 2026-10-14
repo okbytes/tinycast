@@ -10,7 +10,6 @@ private struct TooltipModifier: ViewModifier {
     let label: TooltipLabel?
     let alignment: HorizontalAlignment
     let edge: VerticalEdge
-    @Environment(\.metrics) private var metrics
     @State private var hovered = false
     @State private var visible = false
 
@@ -34,21 +33,21 @@ private struct TooltipModifier: ViewModifier {
     private var side: VerticalAlignment { edge == .top ? .top : .bottom }
 
     private func tile(_ label: TooltipLabel) -> some View {
-        let shape = RoundedRectangle(cornerRadius: metrics.radius.tooltip, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Theme.Radius.tooltip, style: .continuous)
         return chip(label)
-            .padding(metrics.spacing.xs)
+            .padding(Theme.Spacing.xs)
             .background {
                 shape.fill(Color(nsColor: .windowBackgroundColor))
                 shape.fill(Theme.Colors.controlSurface)
             }
             .shadow(
-                color: Theme.Colors.tooltipShadow, radius: metrics.spacing.xs,
-                y: metrics.spacing.xxs
+                color: Theme.Colors.tooltipShadow, radius: Theme.Spacing.xs,
+                y: Theme.Spacing.xxs
             )
             .fixedSize()
             // A zero-height frame on the control's edge, so a label of any height hangs off it.
             .frame(height: 0, alignment: edge == .top ? .bottom : .top)
-            .offset(y: edge == .top ? -metrics.spacing.sm : metrics.spacing.sm)
+            .offset(y: edge == .top ? -Theme.Spacing.sm : Theme.Spacing.sm)
             .transition(.opacity)
             .allowsHitTesting(false)
     }
@@ -57,10 +56,10 @@ private struct TooltipModifier: ViewModifier {
         switch label {
         case .text(let text):
             Text(text)
-                .font(metrics.typography.keyCap)
+                .font(Theme.Typography.keyCap)
                 .foregroundStyle(Theme.Colors.textSecondary)
-                .padding(.horizontal, metrics.spacing.xs)
-                .frame(minHeight: metrics.size.keyCap)
+                .padding(.horizontal, Theme.Spacing.xs)
+                .frame(minHeight: Theme.Size.keyCap)
         case .keyCap(let cap):
             KeyCapChip(text: cap, style: .outline)
         }

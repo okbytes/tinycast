@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Row icon decoding off the main thread; warm icons seed synchronously, so no flash.
 struct AppIconView: View {
-    @Environment(\.metrics) private var metrics
     @Environment(\.displayScale) private var displayScale
     let app: AppEntry
     /// Nil keeps the shared 96px bitmap; a size gets this row its own, far smaller one.
@@ -29,7 +28,7 @@ struct AppIconView: View {
             if let image {
                 Image(nsImage: image).resizable()
             } else {
-                RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
                     .fill(Theme.Colors.iconPlaceholder)
             }
         }

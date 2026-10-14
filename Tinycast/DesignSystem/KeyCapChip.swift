@@ -30,20 +30,20 @@ struct KeyCapChip: View {
         case standard
         case hero
 
-        func side(_ metrics: InterfaceMetrics) -> CGFloat {
+        var side: CGFloat {
             switch self {
-            case .compact: metrics.size.compactKeyCap
-            case .standard: metrics.size.keyCap
-            case .hero: metrics.size.heroKeyCap
+            case .compact: Theme.Size.compactKeyCap
+            case .standard: Theme.Size.keyCap
+            case .hero: Theme.Size.heroKeyCap
             }
         }
 
         @MainActor
-        func font(_ metrics: InterfaceMetrics) -> Font {
+        var font: Font {
             switch self {
-            case .compact: metrics.typography.compactKeyCap
-            case .standard: metrics.typography.keyCap
-            case .hero: metrics.typography.heroKeyCap
+            case .compact: Theme.Typography.compactKeyCap
+            case .standard: Theme.Typography.keyCap
+            case .hero: Theme.Typography.heroKeyCap
             }
         }
     }
@@ -52,19 +52,18 @@ struct KeyCapChip: View {
     var style: Style = .filled
     var scale: Scale = .standard
     var prefix: String?
-    @Environment(\.metrics) private var metrics
 
     /// "↵" falls back to another face that seats high, so nudge it render-only.
     private static let returnGlyphDrop: CGFloat = 1.1
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: metrics.radius.keyCap, style: .continuous)
-        Label(text: text, prefix: prefix, spacing: metrics.spacing.xxs)
-            .font(scale.font(metrics))
+        let shape = RoundedRectangle(cornerRadius: Theme.Radius.keyCap, style: .continuous)
+        Label(text: text, prefix: prefix, spacing: Theme.Spacing.xxs)
+            .font(scale.font)
             .foregroundStyle(Theme.Colors.textSecondary)
             .offset(y: text == "↵" ? Self.returnGlyphDrop : 0)
-            .padding(.horizontal, metrics.spacing.xs)
-            .frame(minWidth: scale.side(metrics), minHeight: scale.side(metrics))
+            .padding(.horizontal, Theme.Spacing.xs)
+            .frame(minWidth: scale.side, minHeight: scale.side)
             .background {
                 switch style {
                 case .filled: shape.fill(Theme.Colors.controlSurface)

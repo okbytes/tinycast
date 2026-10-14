@@ -111,21 +111,20 @@ struct PopoverMenu: View {
 
     /// The palette arms this only once the pointer has moved of its own accord.
     @Environment(PaletteState.self) private var palette
-    @Environment(\.metrics) private var metrics
     @Environment(\.displayScale) private var displayScale
     @FocusState private var searchFocused: Bool
     /// Set by the pointer so the reveal can tell its own move from a keyboard one.
     @State private var pointerSelection: Int?
 
-    private var listInset: CGFloat { metrics.spacing.md }
+    private var listInset: CGFloat { Theme.Spacing.md }
     /// One device pixel: a point-wide rule reads heavy against the glass.
     private var hairline: CGFloat { 1 / displayScale }
     var body: some View {
         let shape = SurfaceShape(
-            attachment: attachment, radius: metrics.radius.menuPanel,
-            attachedRadius: metrics.size.menuButton / 2)
+            attachment: attachment, radius: Theme.Radius.menuPanel,
+            attachedRadius: Theme.Size.menuButton / 2)
         surfaceContent
-            .frame(width: width ?? metrics.size.actionMenuWidth)
+            .frame(width: width ?? Theme.Size.actionMenuWidth)
             .glassEffect(.regular, in: shape)
     }
 
@@ -149,13 +148,13 @@ struct PopoverMenu: View {
             VStack(alignment: .leading, spacing: 0) {
                 if let header {
                     headerLabel(header)
-                    Color.clear.frame(height: metrics.size.menuRowSpacing)
+                    Color.clear.frame(height: Theme.Size.menuRowSpacing)
                 }
                 Text("No Results")
-                    .font(metrics.typography.menuRow)
+                    .font(Theme.Typography.menuRow)
                     .foregroundStyle(Theme.Colors.textTertiary)
                     .frame(maxWidth: .infinity)
-                    .frame(height: metrics.size.menuRowHeight)
+                    .frame(height: Theme.Size.menuRowHeight)
             }
             .padding(listInset)
         } else {
@@ -168,7 +167,7 @@ struct PopoverMenu: View {
         let placeholder = search.placeholder
         return TextField("", text: $palette.menuQuery)
             .textFieldStyle(.plain)
-            .font(metrics.typography.menuRow)
+            .font(Theme.Typography.menuRow)
             .foregroundStyle(Theme.Colors.textPrimary)
             .tint(Theme.Colors.textPrimary)
             .focused($searchFocused)
@@ -176,17 +175,17 @@ struct PopoverMenu: View {
             .background(alignment: .leading) {
                 if palette.menuQuery.isEmpty {
                     Text(placeholder)
-                        .font(metrics.typography.menuRow)
+                        .font(Theme.Typography.menuRow)
                         .foregroundStyle(Theme.Colors.textTertiary)
                         .lineLimit(1)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
             }
-            .padding(.horizontal, metrics.spacing.xl + metrics.spacing.sm)
-            .frame(height: metrics.size.menuRowHeight)
-            .offset(y: search.placement == .bottom ? -metrics.spacing.xxs / 2 : 0)
-            .padding(.vertical, metrics.spacing.xxs / 2)
+            .padding(.horizontal, Theme.Spacing.xl + Theme.Spacing.sm)
+            .frame(height: Theme.Size.menuRowHeight)
+            .offset(y: search.placement == .bottom ? -Theme.Spacing.xxs / 2 : 0)
+            .padding(.vertical, Theme.Spacing.xxs / 2)
             .accessibilityLabel(placeholder)
             .onAppear { searchFocused = true }
     }
@@ -200,14 +199,14 @@ struct PopoverMenu: View {
 
     private func headerLabel(_ text: String) -> some View {
         Text(text)
-            .font(metrics.typography.sectionHeader)
+            .font(Theme.Typography.sectionHeader)
             .foregroundStyle(.secondary)
             .lineLimit(1)
             .truncationMode(.tail)
-            .frame(height: metrics.size.menuSectionHeader, alignment: .leading)
-            .padding(.horizontal, metrics.spacing.lg)
-            .padding(.top, metrics.spacing.xs)
-            .padding(.bottom, metrics.spacing.xs / 2)
+            .frame(height: Theme.Size.menuSectionHeader, alignment: .leading)
+            .padding(.horizontal, Theme.Spacing.lg)
+            .padding(.top, Theme.Spacing.xs)
+            .padding(.bottom, Theme.Spacing.xs / 2)
     }
 
     /// The title and rows move as one surface, while row IDs still drive keyboard reveal.
@@ -223,7 +222,7 @@ struct PopoverMenu: View {
                             // Inside the first row's target, so revealing that row brings the title.
                             if index == 0, let header {
                                 headerLabel(header)
-                                Color.clear.frame(height: metrics.size.menuRowSpacing)
+                                Color.clear.frame(height: Theme.Size.menuRowSpacing)
                             }
                             rowBoundary(before: index)
                             VStack(alignment: .leading, spacing: 0) {
@@ -268,33 +267,33 @@ struct PopoverMenu: View {
             Rectangle()
                 .fill(Theme.Colors.separator)
                 .frame(height: hairline)
-                .padding(.horizontal, metrics.spacing.md)
+                .padding(.horizontal, Theme.Spacing.md)
                 // The list inset, so a row sits as far from this hairline as from the search one.
                 .padding(.vertical, listInset)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
         } else if index > 0 {
-            Color.clear.frame(height: metrics.size.menuRowSpacing)
+            Color.clear.frame(height: Theme.Size.menuRowSpacing)
         }
     }
 
     /// Exact, not measured; a capped viewport ends mid-row, never on a separator or section title.
     private var listExtent: (content: CGFloat, viewport: CGFloat) {
-        let rowHeight = metrics.size.menuRowHeight
+        let rowHeight = Theme.Size.menuRowHeight
         let rowsMaxHeight =
             visibleRows.map {
-                ($0 * (rowHeight + metrics.size.menuRowSpacing)).rounded()
-            } ?? metrics.size.menuRowsMaxHeight
+                ($0 * (rowHeight + Theme.Size.menuRowSpacing)).rounded()
+            } ?? Theme.Size.menuRowsMaxHeight
         let capacity = rowsMaxHeight + headerExtent
         var offset = headerExtent
         var fold: CGFloat = 0
         for (index, item) in items.enumerated() {
             if index > 0 {
-                offset += item.startsSection ? listInset * 2 + hairline : metrics.size.menuRowSpacing
+                offset += item.startsSection ? listInset * 2 + hairline : Theme.Size.menuRowSpacing
             }
             if item.sectionTitle != nil {
-                offset += metrics.size.menuSectionHeader + metrics.spacing.xxs
-                if index > 0 { offset += metrics.spacing.md }
+                offset += Theme.Size.menuSectionHeader + Theme.Spacing.xxs
+                if index > 0 { offset += Theme.Spacing.md }
             }
             let midRow = (offset + rowHeight / 2).rounded(.down)
             if midRow <= capacity { fold = midRow }
@@ -305,25 +304,25 @@ struct PopoverMenu: View {
 
     private var headerExtent: CGFloat {
         guard header != nil else { return 0 }
-        return metrics.size.menuSectionHeader + metrics.spacing.xs * 1.5
-            + metrics.size.menuRowSpacing
+        return Theme.Size.menuSectionHeader + Theme.Spacing.xs * 1.5
+            + Theme.Size.menuRowSpacing
     }
 
     /// Tighter below than above, so a header belongs to the rows under it, not between two groups.
     private func sectionLabel(_ title: String, isFirst: Bool) -> some View {
         Text(title)
-            .font(metrics.typography.sectionHeader)
+            .font(Theme.Typography.sectionHeader)
             .foregroundStyle(.secondary)
             .lineLimit(1)
             .truncationMode(.tail)
             .frame(
-                maxWidth: .infinity, minHeight: metrics.size.menuSectionHeader,
-                maxHeight: metrics.size.menuSectionHeader, alignment: .leading
+                maxWidth: .infinity, minHeight: Theme.Size.menuSectionHeader,
+                maxHeight: Theme.Size.menuSectionHeader, alignment: .leading
             )
             // `md`, matching a row's own inset, so header and icon share one edge.
-            .padding(.horizontal, metrics.spacing.md)
-            .padding(.top, isFirst ? 0 : metrics.spacing.md)
-            .padding(.bottom, metrics.spacing.xxs)
+            .padding(.horizontal, Theme.Spacing.md)
+            .padding(.top, isFirst ? 0 : Theme.Spacing.md)
+            .padding(.bottom, Theme.Spacing.xxs)
     }
 
     /// Armed only once the pointer has moved of its own accord, so a scroll past it lights nothing.
@@ -341,11 +340,10 @@ private struct PopoverMenuRow: View {
     let item: PopoverMenuItem
     let selected: Bool
     let onActivate: () -> Void
-    @Environment(\.metrics) private var metrics
 
     var body: some View {
         Button(action: onActivate) {
-            HStack(spacing: metrics.spacing.md) {
+            HStack(spacing: Theme.Spacing.md) {
                 switch item.icon {
                 case .blank:
                     EmptyView()
@@ -353,48 +351,48 @@ private struct PopoverMenuRow: View {
                     Image(systemName: SystemSymbolName.resolve(name))
                         .font(
                             .system(
-                                size: metrics.scaled(Theme.Typography.menuSymbolSize),
+                                size: Theme.Typography.menuSymbolSize,
                                 weight: Theme.Typography.menuSymbolWeight)
                         )
                         .symbolRenderingMode(.monochrome)
                         .foregroundStyle(
                             item.isDestructive ? Color.red : Theme.Colors.menuSymbol
                         )
-                        .frame(width: metrics.size.menuIcon, height: metrics.size.menuIcon)
+                        .frame(width: Theme.Size.menuIcon, height: Theme.Size.menuIcon)
                 case .file(let path):
                     MenuFileIcon(path: path)
                 }
                 Text(item.title)
-                    .font(metrics.typography.menuRow)
+                    .font(Theme.Typography.menuRow)
                     .foregroundStyle(item.isDestructive ? Color.red : Color.primary)
                     .lineLimit(1)
-                Spacer(minLength: metrics.spacing.sm)
+                Spacer(minLength: Theme.Spacing.sm)
                 if let detail = item.detail {
                     Text(detail)
                         // Smaller than the title it trails: a stated value, not a second label.
-                        .font(metrics.typography.keyCap)
+                        .font(Theme.Typography.keyCap)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         // A notation opens with what identifies it, so the tail is what can go.
                         .truncationMode(.tail)
                 }
                 if let shortcut = item.shortcut {
-                    HStack(spacing: metrics.spacing.xxs) {
+                    HStack(spacing: Theme.Spacing.xxs) {
                         ForEach(Array(shortcut.enumerated()), id: \.offset) { _, glyph in
                             KeyCapChip(text: String(glyph), style: .outline)
                         }
                     }
                 }
             }
-            .padding(.horizontal, metrics.spacing.md)
+            .padding(.horizontal, Theme.Spacing.md)
             // Stated, not padded: the height maths above counts rows, so a row is one exact height.
             .frame(
-                maxWidth: .infinity, minHeight: metrics.size.menuRowHeight,
-                maxHeight: metrics.size.menuRowHeight, alignment: .leading
+                maxWidth: .infinity, minHeight: Theme.Size.menuRowHeight,
+                maxHeight: Theme.Size.menuRowHeight, alignment: .leading
             )
             .contentShape(Rectangle())
             .background(
-                RoundedRectangle(cornerRadius: metrics.radius.menuRow, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.menuRow, style: .continuous)
                     .fill(selected ? Theme.Colors.menuHover : Color.clear)
             )
             .opacity(item.isEnabled ? 1 : 0.45)
@@ -408,7 +406,6 @@ private struct PopoverMenuRow: View {
 struct MenuFileIcon: View {
     let path: String
     @State private var image: NSImage?
-    @Environment(\.metrics) private var metrics
 
     init(path: String) {
         self.path = path
@@ -423,7 +420,7 @@ struct MenuFileIcon: View {
                 Color.clear
             }
         }
-        .frame(width: metrics.size.menuIcon, height: metrics.size.menuIcon)
+        .frame(width: Theme.Size.menuIcon, height: Theme.Size.menuIcon)
         .task(id: IconRequest(path)) {
             guard image == nil else { return }
             image = await IconCache.loadAsync(forFile: path)

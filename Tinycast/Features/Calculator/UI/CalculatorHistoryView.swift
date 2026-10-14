@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Past calculations, shaped like `ClipboardList`; both sides per row, so no preview pane.
 struct CalculatorHistoryList: View {
-    @Environment(\.metrics) private var metrics
     let results: [CalcHistoryEntry]
     let selectedID: CalcHistoryEntry.ID?
     /// Changes only when the list should scroll, so mouse selection never yanks the position.
@@ -71,7 +70,7 @@ struct CalculatorHistoryList: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture(perform: onActivateCalc)
                                 .onRightClick(perform: onCalcActions)
-                                .padding(.bottom, metrics.spacing.xs)
+                                .padding(.bottom, Theme.Spacing.xs)
                                 .selectionFrame(calcSelected)
                         case .entry(let entry):
                             CalcHistoryRow(entry: entry, selected: entry.id == selectedID)
@@ -88,9 +87,9 @@ struct CalculatorHistoryList: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.spacing.md)
-                .padding(.top, metrics.spacing.xs)
-                .padding(.bottom, metrics.spacing.md)
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.top, Theme.Spacing.xs)
+                .padding(.bottom, Theme.Spacing.md)
                 .hideNativeScrollers()
                 .scrollOriginAnchor()
             }
@@ -105,7 +104,6 @@ struct CalculatorHistoryList: View {
 
 private struct CalcHistoryRow: View {
 
-    @Environment(\.metrics) private var metrics
     @Environment(AppCore.self) private var core
     let entry: CalcHistoryEntry
     let selected: Bool
@@ -121,23 +119,23 @@ private struct CalcHistoryRow: View {
 
     var body: some View {
         IconCache.observeStyle()
-        return HStack(spacing: metrics.spacing.lg) {
+        return HStack(spacing: Theme.Spacing.lg) {
             Image(nsImage: IconCache.symbolIcon(named: "plus.forwardslash.minus")).resizable()
-                .frame(width: metrics.size.resultRowIcon, height: metrics.size.resultRowIcon)
+                .frame(width: Theme.Size.resultRowIcon, height: Theme.Size.resultRowIcon)
             Text(format.localizedExpression(entry.expression))
-                .font(metrics.typography.rowTitle)
+                .font(Theme.Typography.rowTitle)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .truncationMode(.tail)
-            Spacer(minLength: metrics.spacing.xl)
+            Spacer(minLength: Theme.Spacing.xl)
             Text(format.localized(entry.result))
-                .font(metrics.typography.rowTitle.weight(.semibold))
+                .font(Theme.Typography.rowTitle.weight(.semibold))
                 .lineLimit(1)
         }
-        .padding(.horizontal, metrics.spacing.md)
-        .padding(.vertical, metrics.spacing.sm)
+        .padding(.horizontal, Theme.Spacing.md)
+        .padding(.vertical, Theme.Spacing.sm)
         .background(
-            RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
                 .fill(fill)
         )
         .armedHover($hovered)

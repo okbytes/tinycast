@@ -9,8 +9,7 @@ struct PalettePlacementTests {
     static var passes = 0
 
     // Exactly what `PaletteWindowController` passes.
-    static let metrics = InterfaceMetrics.standard
-    static let width = metrics.size.panelWidth
+    static let width = Theme.Size.panelWidth
     static let topFraction = Theme.Size.paletteTopMarginFraction
 
     /// A 1440p display with the menu bar taken off the top.
@@ -57,7 +56,7 @@ struct PalettePlacementTests {
 
         // The panel grows downward from the anchor, so a full-height list must still fit.
         expect(
-            anchor.y - metrics.size.panelHeight > laptop.minY,
+            anchor.y - Theme.Size.panelHeight > laptop.minY,
             "an expanded palette clears the bottom of the screen it opened on")
 
         // A screen offset from the origin must not shift the panel off it.
@@ -73,8 +72,8 @@ struct PalettePlacementTests {
     static func menuPanelAnchors() {
         let parent = CGRect(x: 100, y: 200, width: 750, height: 475)
         let content = CGSize(width: 276, height: 240)
-        let inset = metrics.spacing.md
-        let headerExtent = metrics.size.headerPadding + metrics.size.headerHeight
+        let inset = Theme.Spacing.md
+        let headerExtent = Theme.Size.headerPadding + Theme.Size.headerHeight
 
         let leading = MenuPanelCorner.bottomLeading.frame(
             contentSize: content, parentFrame: parent, inset: inset,

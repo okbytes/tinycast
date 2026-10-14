@@ -80,7 +80,7 @@ final class DialogController: NSObject, NSWindowDelegate {
         return await withCheckedContinuation { continuation in
             self.continuation = continuation
             onPresentationChanged(true)
-            let width = metrics.size.dialogWidth
+            let width = Theme.Size.dialogWidth
             let content = hostingView(
                 DialogView(
                     request: request, width: width,
@@ -88,7 +88,7 @@ final class DialogController: NSObject, NSWindowDelegate {
                         self?.finish(index)
                     }),
                 width: width)
-            let panel = DialogPanel(content: content, cornerRadius: metrics.radius.panel)
+            let panel = DialogPanel(content: content, cornerRadius: Theme.Radius.panel)
             panel.handlesArrowKeys = request.volume != nil
             panel.delegate = self
             panel.onKey = { [weak self] key in
@@ -142,7 +142,6 @@ final class DialogController: NSObject, NSWindowDelegate {
         closing?.fadeOut(duration: Theme.Duration.dialogExit)
     }
 
-    private let metrics = InterfaceMetrics.standard
 
     private func hostingView(_ view: some View, width: CGFloat) -> NSView {
         let hosting = NSHostingView(rootView: AnyView(view))

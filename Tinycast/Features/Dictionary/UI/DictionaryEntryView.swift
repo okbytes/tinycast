@@ -2,20 +2,19 @@ import SwiftUI
 
 /// A dictionary page: headword, then numbered senses hung off a shared gutter, then its sections.
 struct DictionaryEntryView: View {
-    @Environment(\.metrics) private var metrics
     let entry: DictionaryEntry
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: metrics.spacing.md) {
+            LazyVStack(alignment: .leading, spacing: Theme.Spacing.md) {
                 ForEach(entry.blocks.indices, id: \.self) { index in
                     DictionaryBlockView(block: entry.blocks[index], leadsPage: index == 0)
                 }
             }
             .textSelection(.enabled)
-            .padding(.horizontal, metrics.spacing.xxl)
-            .padding(.top, metrics.spacing.md)
-            .padding(.bottom, metrics.spacing.xxl)
+            .padding(.horizontal, Theme.Spacing.xxl)
+            .padding(.top, Theme.Spacing.md)
+            .padding(.bottom, Theme.Spacing.xxl)
             .hideNativeScrollers()
         }
         .edgeDissolve()
@@ -26,90 +25,89 @@ struct DictionaryEntryView: View {
 }
 
 private struct DictionaryBlockView: View {
-    @Environment(\.metrics) private var metrics
     let block: DictionaryEntry.Block
     let leadsPage: Bool
 
     /// Sense numbers hang in it, so every definition, bullet and note starts on one line.
-    private var gutter: CGFloat { metrics.spacing.xxl }
-    private var textColumn: CGFloat { gutter + metrics.spacing.sm }
+    private var gutter: CGFloat { Theme.Spacing.xxl }
+    private var textColumn: CGFloat { gutter + Theme.Spacing.sm }
 
     var body: some View {
         switch block {
         case .headword(let word, let homograph, let pronunciation):
-            HStack(alignment: .firstTextBaseline, spacing: metrics.spacing.md) {
-                HStack(alignment: .firstTextBaseline, spacing: metrics.spacing.xxs) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.md) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.xxs) {
                     Text(word)
-                        .font(metrics.typography.calcResult.weight(.bold))
+                        .font(Theme.Typography.calcResult.weight(.bold))
                     if let homograph {
                         Text(homograph)
-                            .font(metrics.typography.keyCap)
+                            .font(Theme.Typography.keyCap)
                             .foregroundStyle(Theme.Colors.textSecondary)
-                            .baselineOffset(metrics.spacing.md)
+                            .baselineOffset(Theme.Spacing.md)
                     }
                 }
                 if let pronunciation {
                     Text("| \(pronunciation) |")
-                        .font(metrics.typography.rowTitle)
+                        .font(Theme.Typography.rowTitle)
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
             }
             // A homograph's page follows the one before it, so it needs the room of a new entry.
-            .padding(.top, leadsPage ? 0 : metrics.spacing.xxxl)
+            .padding(.top, leadsPage ? 0 : Theme.Spacing.xxxl)
         case .partOfSpeech(let runs):
             Text(runs.attributed(base: Theme.Colors.textSecondary))
-                .font(metrics.typography.rowTrailing)
-                .padding(.top, metrics.spacing.xs)
+                .font(Theme.Typography.rowTrailing)
+                .padding(.top, Theme.Spacing.xs)
         case .sense(let number, let runs):
-            HStack(alignment: .firstTextBaseline, spacing: metrics.spacing.sm) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
                 Text(number ?? "")
-                    .font(metrics.typography.rowTitle.weight(.semibold))
+                    .font(Theme.Typography.rowTitle.weight(.semibold))
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .frame(width: gutter, alignment: .trailing)
                 Text(runs.attributed())
-                    .font(metrics.typography.rowTitle)
+                    .font(Theme.Typography.rowTitle)
             }
         case .subsense(let runs):
-            HStack(alignment: .firstTextBaseline, spacing: metrics.spacing.sm) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
                 Text("•")
                     .foregroundStyle(Theme.Colors.textTertiary)
                 Text(runs.attributed())
             }
-            .font(metrics.typography.rowTitle)
+            .font(Theme.Typography.rowTitle)
             .padding(.leading, textColumn)
         case .note(let runs):
             Text(runs.attributed(base: Theme.Colors.textSecondary))
-                .font(metrics.typography.rowTrailing)
+                .font(Theme.Typography.rowTrailing)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, metrics.spacing.xl)
-                .padding(.vertical, metrics.spacing.md)
+                .padding(.horizontal, Theme.Spacing.xl)
+                .padding(.vertical, Theme.Spacing.md)
                 .background(noteShape.fill(Theme.Colors.cardFill))
                 .overlay(noteShape.strokeBorder(Theme.Colors.cardStroke))
                 .padding(.leading, textColumn)
         case .section(let title):
-            VStack(alignment: .leading, spacing: metrics.spacing.xs) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text(title)
-                    .font(metrics.typography.sectionHeader)
+                    .font(Theme.Typography.sectionHeader)
                     .foregroundStyle(Theme.Colors.textTertiary)
                 Rectangle()
                     .fill(Theme.Colors.separator)
                     .frame(height: 1)
             }
-            .padding(.top, metrics.spacing.xl)
+            .padding(.top, Theme.Spacing.xl)
         case .phrase(let runs):
             Text(runs.attributed())
-                .font(metrics.typography.rowTitle)
-                .padding(.top, metrics.spacing.xs)
+                .font(Theme.Typography.rowTitle)
+                .padding(.top, Theme.Spacing.xs)
         case .paragraph(let runs):
             Text(runs.attributed())
-                .font(metrics.typography.rowTitle)
+                .font(Theme.Typography.rowTitle)
                 .padding(.leading, textColumn)
         }
     }
 
     private var noteShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous)
+        RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
     }
 }
 

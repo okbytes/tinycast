@@ -31,10 +31,7 @@ enum PaletteAxis {
         exitTiming: Theme.MenuMotion.exitTiming)
 }
 
-typealias MenuPanelClipPath =
-    @MainActor (
-        _ bounds: CGRect, _ metrics: InterfaceMetrics, _ corner: MenuPanelCorner
-    ) -> CGPath
+typealias MenuPanelClipPath = @MainActor (_ bounds: CGRect, _ corner: MenuPanelCorner) -> CGPath
 
 /// A menu supplied by a palette screen, including its rendering and row activation.
 @MainActor struct PaletteMenuContent {
@@ -82,10 +79,10 @@ typealias MenuPanelClipPath =
             },
             activate: { popover.items[$0].action() },
             isSelectable: { popover.items[$0].isSelectable },
-            clipPath: { bounds, metrics, corner in
+            clipPath: { bounds, corner in
                 PopoverMenu.SurfaceShape(
-                    attachment: corner.popoverAttachment, radius: metrics.radius.menuPanel,
-                    attachedRadius: metrics.size.menuButton / 2
+                    attachment: corner.popoverAttachment, radius: Theme.Radius.menuPanel,
+                    attachedRadius: Theme.Size.menuButton / 2
                 ).path(in: bounds).cgPath
             },
             motion: .palette)

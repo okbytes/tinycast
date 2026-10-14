@@ -93,7 +93,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `emoji-search-test` | `Emoji/Service/EmojiIndex.swift`, `FrequentEmojiStore.swift`, `scripts/gen-emoji.js`'s keyword format, multilingual search |
 | `palette-navigation-test` | `Palette/PaletteState.swift`'s screen motions — `prepare`, `replace`, `push`, `pop` — and hover arming, pointer drift, scroll disarming and highlight tokens |
 | `palette-selection-test` | `Features/PaletteRowIndex.swift` |
-| `interface-size-test` | `DesignSystem/InterfaceMetrics.swift` |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `palette-menu-click-test` | `Palette/PalettePanel.swift` — complete click-away presses and subsequent control activation |
 | `key-remap-test` | all of `KeyRemap/Model/` — the driver's wire bytes, report packing, the top-row map and the remap engine |

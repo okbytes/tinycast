@@ -23,13 +23,13 @@ enum BarButtonChrome {
     case capsule
     case rounded
 
-    func shape(_ metrics: InterfaceMetrics) -> AnyShape {
+    var shape: AnyShape {
         switch self {
         case .capsule:
             return AnyShape(Capsule())
         case .rounded:
             return AnyShape(
-                RoundedRectangle(cornerRadius: metrics.radius.barControl, style: .continuous))
+                RoundedRectangle(cornerRadius: Theme.Radius.barControl, style: .continuous))
         }
     }
 }
@@ -40,14 +40,13 @@ struct BarButton<Label: View>: View {
     let action: () -> Void
     @ViewBuilder let label: Label
     @State private var hovered = false
-    @Environment(\.metrics) private var metrics
 
     var body: some View {
-        let shape = chrome.shape(metrics)
+        let shape = chrome.shape
         return Button(action: action) {
             label
-                .padding(.horizontal, metrics.spacing.md)
-                .frame(height: metrics.size.barButtonHeight)
+                .padding(.horizontal, Theme.Spacing.md)
+                .frame(height: Theme.Size.barButtonHeight)
                 .contentShape(shape)
                 .background(shape.fill(fill))
         }
@@ -65,21 +64,20 @@ struct HeaderMenuButton: View {
     let isOpen: Bool
     let help: String
     let action: () -> Void
-    @Environment(\.metrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         BarButton(chrome: .rounded, action: action) {
-            HStack(spacing: metrics.spacing.sm) {
+            HStack(spacing: Theme.Spacing.sm) {
                 HeaderMenuSymbol(
-                    name: systemImage, size: metrics.scaled(Theme.Typography.menuSymbolSize))
+                    name: systemImage, size: Theme.Typography.menuSymbolSize)
                 Text(title)
-                    .font(metrics.typography.bar)
+                    .font(Theme.Typography.bar)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 // One glyph rotates rather than swapping, so opening the menu cannot shift the layout.
                 Image(systemName: "chevron.down")
-                    .font(metrics.typography.disclosure)
+                    .font(Theme.Typography.disclosure)
                     .rotationEffect(.degrees(isOpen ? 180 : 0))
                     .animation(reduceMotion ? nil : Theme.MenuMotion.chevronAnimation, value: isOpen)
             }

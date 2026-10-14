@@ -145,7 +145,7 @@ struct ClipboardScreen: PaletteScreen {
                     onDragPayload: { core.clipboardCoordinator.dragPayload(for: $0) },
                     onDropped: { core.paletteCoordinator.dragLanded() }
                 )
-                .frame(width: InterfaceMetrics.standard.size.clipboardListWidth)
+                .frame(width: Theme.Size.clipboardListWidth)
                 Rectangle()
                     .fill(Theme.Colors.separator)
                     .frame(width: 1)

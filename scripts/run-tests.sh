@@ -202,14 +202,9 @@ run index emoji-search-performance \
 run palette-selection-test Tinycast/Features/PaletteRowIndex.swift \
                            Tinycast/Features/Emoji/Model/EmojiGridGeometry.swift
 run appearance-test        Tinycast/Platform/Appearance.swift \
-                           Tinycast/DesignSystem/Theme.swift \
-                           Tinycast/DesignSystem/InterfaceMetrics.swift
-run interface-size-test    Tinycast/Platform/Appearance.swift \
-                           Tinycast/DesignSystem/Theme.swift \
-                           Tinycast/DesignSystem/InterfaceMetrics.swift
+                           Tinycast/DesignSystem/Theme.swift
 run palette-placement-test Tinycast/Platform/Appearance.swift \
                            Tinycast/DesignSystem/Theme.swift \
-                           Tinycast/DesignSystem/InterfaceMetrics.swift \
                            Tinycast/Palette/PalettePlacement.swift
 run palette-menu-click-test Tinycast/Platform/Appearance.swift \
                            Tinycast/DesignSystem/Theme.swift \
@@ -259,7 +254,6 @@ run hotkey-test            Tinycast/Features/HotKeys/Model/DoubleTapModifier.swi
                            Tinycast/Features/WindowManagement/Model/WindowCommand.swift
 run callout-test          Tinycast/Platform/Appearance.swift \
                            Tinycast/DesignSystem/Theme.swift \
-                           Tinycast/DesignSystem/InterfaceMetrics.swift \
                            Tinycast/Features/HotKeys/UI/CalloutPlacement.swift
 run icon-cache-test        Tinycast/Platform/Appearance.swift \
                            Tinycast/Platform/Images/IconCache.swift

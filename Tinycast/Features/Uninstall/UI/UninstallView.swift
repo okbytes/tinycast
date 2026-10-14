@@ -3,7 +3,6 @@ import SwiftUI
 
 struct UninstallList: View {
 
-    @Environment(\.metrics) private var metrics
     let results: [UninstallCandidate]
     let selectedID: UninstallCandidate.ID?
     let summary: String
@@ -44,9 +43,9 @@ struct UninstallList: View {
                         .onRightClick { onActions(candidate) }
                     }
                 }
-                .padding(.horizontal, metrics.spacing.md)
-                .padding(.top, metrics.spacing.xs)
-                .padding(.bottom, metrics.spacing.md)
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.top, Theme.Spacing.xs)
+                .padding(.bottom, Theme.Spacing.md)
                 .hideNativeScrollers()
                 .scrollOriginAnchor()
             }
@@ -62,7 +61,6 @@ struct UninstallList: View {
 
 private struct UninstallRow: View {
 
-    @Environment(\.metrics) private var metrics
     let candidate: UninstallCandidate
     let selected: Bool
     let checked: Bool
@@ -82,42 +80,42 @@ private struct UninstallRow: View {
     }
 
     var body: some View {
-        HStack(spacing: metrics.spacing.lg) {
+        HStack(spacing: Theme.Spacing.lg) {
             // Smaller glyph, same result-row slot, so titles line up at one x across modes.
-            SymbolImage(name: glyph, size: metrics.size.checkbox)
+            SymbolImage(name: glyph, size: Theme.Size.checkbox)
                 .foregroundStyle(candidate.isLocked ? Theme.Colors.textTertiary : .primary)
-                .frame(width: metrics.size.resultRowIcon, height: metrics.size.resultRowIcon)
+                .frame(width: Theme.Size.resultRowIcon, height: Theme.Size.resultRowIcon)
                 .contentShape(Rectangle())
                 // Only the checkbox toggles; the rest of the row selects.
                 .onTapGesture(perform: onToggle)
                 .tooltip(candidate.lockReason)
             Text(candidate.name)
-                .font(metrics.typography.rowTitle)
+                .font(Theme.Typography.rowTitle)
                 .lineLimit(1)
                 .layoutPriority(1)
             Text(candidate.locationLabel)
-                .font(metrics.typography.rowTrailing)
+                .font(Theme.Typography.rowTrailing)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
             if let label = candidate.evidence.label {
                 Text(label)
-                    .font(metrics.typography.rowTrailing)
+                    .font(Theme.Typography.rowTrailing)
                     .foregroundStyle(Theme.Colors.textTertiary)
                     .lineLimit(1)
             }
-            Spacer(minLength: metrics.spacing.md)
+            Spacer(minLength: Theme.Spacing.md)
             Text(candidate.size?.formatted ?? "")
-                .font(metrics.typography.rowTrailing)
+                .font(Theme.Typography.rowTrailing)
                 .foregroundStyle(.secondary)
             FileIconView(path: candidate.path)
-                .frame(width: metrics.size.resultRowIcon, height: metrics.size.resultRowIcon)
+                .frame(width: Theme.Size.resultRowIcon, height: Theme.Size.resultRowIcon)
         }
         .opacity(candidate.isLocked ? 0.55 : 1)
-        .padding(.horizontal, metrics.spacing.md)
-        .padding(.vertical, metrics.spacing.sm)
+        .padding(.horizontal, Theme.Spacing.md)
+        .padding(.vertical, Theme.Spacing.sm)
         .background(
-            RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
                 .fill(fill)
         )
         .armedHover($hovered)
@@ -126,7 +124,6 @@ private struct UninstallRow: View {
 
 private struct FileIconView: View {
 
-    @Environment(\.metrics) private var metrics
     let path: String
     @State private var image: NSImage?
 
@@ -140,7 +137,7 @@ private struct FileIconView: View {
             if let image {
                 Image(nsImage: image).resizable()
             } else {
-                RoundedRectangle(cornerRadius: metrics.radius.thumbnail, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.thumbnail, style: .continuous)
                     .fill(Theme.Colors.iconPlaceholder)
             }
         }

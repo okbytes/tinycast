@@ -262,14 +262,13 @@ final class MenuPanelController {
     /// Sizes to the hosted menu, then seats it against the palette's frame in screen space.
     private func layout(corner: MenuPanelCorner, parent: NSWindow, resetMotion: Bool) {
         guard let panel, let hosting, let motion else { return }
-        let metrics = InterfaceMetrics.standard
         let size = hosting.intrinsicContentSize
         guard size.width > 0, size.height > 0 else { return }
         // `bottomBar`'s own padding: a menu's edge must line up with the button it hangs off.
-        let inset = metrics.spacing.md
+        let inset = Theme.Spacing.md
         let frame = corner.frame(
             contentSize: size, parentFrame: parent.frame, inset: inset,
-            headerExtent: metrics.size.headerPadding + metrics.size.headerHeight)
+            headerExtent: Theme.Size.headerPadding + Theme.Size.headerHeight)
         let canvas = corner.scaledFrame(frame, by: motion.maximumScale)
         let next = Placement(canvas: canvas, corner: corner)
         // Every arrow key re-pushes the tree; reconfiguring would cut the reveal short.
@@ -277,8 +276,7 @@ final class MenuPanelController {
         placement = next
         panel.setFrame(canvas, display: true)
         configureHosting(
-            contentSize: size, canvasSize: canvas.size, scale: modelScale, corner: corner,
-            metrics: metrics)
+            contentSize: size, canvasSize: canvas.size, scale: modelScale, corner: corner)
         refreshShadow(panel)
     }
 
@@ -347,8 +345,7 @@ final class MenuPanelController {
     }
 
     private func configureHosting(
-        contentSize: NSSize, canvasSize: NSSize, scale: CGFloat, corner: MenuPanelCorner,
-        metrics: InterfaceMetrics
+        contentSize: NSSize, canvasSize: NSSize, scale: CGFloat, corner: MenuPanelCorner
     ) {
         guard let hosting, let layer = hosting.layer, let clipPath else { return }
         CATransaction.begin()
@@ -362,7 +359,7 @@ final class MenuPanelController {
         let mask = (layer.mask as? CAShapeLayer) ?? CAShapeLayer()
         mask.frame = NSRect(origin: .zero, size: contentSize)
         mask.isGeometryFlipped = layer.isGeometryFlipped
-        mask.path = clipPath(mask.bounds, metrics, corner)
+        mask.path = clipPath(mask.bounds, corner)
         layer.mask = mask
         layer.setAffineTransform(CGAffineTransform(scaleX: scale, y: scale))
         CATransaction.commit()

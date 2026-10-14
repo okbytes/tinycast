@@ -14,7 +14,6 @@ struct RootPaletteView: View {
     @Environment(DictionarySession.self) private var dictionary
     @Environment(UninstallSession.self) private var uninstall
     @Environment(AppSettings.self) private var settings
-    @Environment(\.metrics) private var metrics
     @FocusState private var searchFocused: Bool
     /// Which in-window menu is open; at most one, so the state cannot disagree with itself.
     @State private var openMenu: OpenMenu?
@@ -139,9 +138,9 @@ struct RootPaletteView: View {
                 onActivate: activateMenuItem, preferredSelection: filtered.bestMatch)
         case .clipboardFilter:
             return headerMenu(
-                clipboardFilterContent, width: metrics.size.clipboardFilterMenuWidth)
+                clipboardFilterContent, width: Theme.Size.clipboardFilterMenuWidth)
         case .emojiCategory:
-            return headerMenu(emojiCategoryContent, width: metrics.size.emojiCategoryMenuWidth)
+            return headerMenu(emojiCategoryContent, width: Theme.Size.emojiCategoryMenuWidth)
         case nil: return nil
         }
     }
@@ -187,7 +186,7 @@ struct RootPaletteView: View {
                             ? Theme.Duration.dialogEnter : Theme.Duration.dialogExit),
                     value: core.isDimmingPaletteForDialog
                 )
-                .clipShape(RoundedRectangle(cornerRadius: metrics.radius.panel, style: .continuous))),
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))),
             selection: sel)
     }
 
@@ -423,30 +422,30 @@ struct RootPaletteView: View {
     private var header: some View {
         HStack(alignment: .center, spacing: 0) {
             // Matches the list rows and section headers' own indent below.
-            headerGutter(width: metrics.spacing.md * 2)
+            headerGutter(width: Theme.Spacing.md * 2)
             // Every sub-screen leaves the same way, so the slot reads the same on all of them.
             if vm.mode != .launcher {
                 HeaderBackButton(help: backHelp, action: goBack)
             } else {
                 Image(systemName: vm.mode.systemImage)
-                    .font(metrics.typography.headerIcon)
+                    .font(Theme.Typography.headerIcon)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(.secondary)
-                    .frame(width: metrics.size.headerIconSlot)
+                    .frame(width: Theme.Size.headerIconSlot)
             }
             // slot + xl equals a row's icon + lg, so the query starts where the row titles do.
-            headerGutter(width: metrics.spacing.xl)
+            headerGutter(width: Theme.Spacing.xl)
             // One structural position: a field inside a branch loses first responder when it flips.
             searchField
             // Keyed off the mode, which says which screen is up; the field just flexes narrower.
             if !isCollapsed, vm.mode == .clipboard {
-                headerGutter(width: metrics.spacing.md)
+                headerGutter(width: Theme.Spacing.md)
                 ClipboardFilterButton(
                     filter: vm.clipboardFilter, isOpen: openMenu == .clipboardFilter,
                     action: toggleClipboardFilter)
             }
             if !isCollapsed, vm.mode == .emoji {
-                headerGutter(width: metrics.spacing.md)
+                headerGutter(width: Theme.Spacing.md)
                 HeaderMenuButton(
                     title: vm.emojiCategoryFilter.title,
                     systemImage: vm.emojiCategoryFilter.systemImage,
@@ -454,11 +453,11 @@ struct RootPaletteView: View {
                     help: "Filter by category  ⌘P",
                     action: toggleEmojiCategory)
             }
-            headerGutter(width: metrics.spacing.md * 2)
+            headerGutter(width: Theme.Spacing.md * 2)
         }
         // Identical metrics in both states, so typing can't move the search bar.
-        .frame(height: metrics.size.headerHeight)
-        .padding(.top, metrics.size.headerPadding)
+        .frame(height: Theme.Size.headerHeight)
+        .padding(.top, Theme.Size.headerPadding)
         .frame(maxWidth: .infinity)
     }
 
@@ -470,7 +469,7 @@ struct RootPaletteView: View {
         @Bindable var vm = vm
         return TextField("", text: $vm.query)
             .textFieldStyle(.plain)
-            .font(metrics.typography.searchField)
+            .font(Theme.Typography.searchField)
             .tint(Theme.Colors.textPrimary)
             .focused($searchFocused)
             .frame(maxHeight: .infinity)
@@ -478,7 +477,7 @@ struct RootPaletteView: View {
                 // An IME's marked text leaves `query` empty, so the placeholder would overlap it.
                 if vm.query.isEmpty, !vm.isComposing {
                     Text(searchPrompt)
-                        .font(metrics.typography.searchField)
+                        .font(Theme.Typography.searchField)
                         .foregroundStyle(Theme.Colors.textTertiary)
                         .lineLimit(1)
                         // Never a click target: tapping the placeholder must still land the caret.
@@ -509,8 +508,8 @@ struct RootPaletteView: View {
                 actionGroup(pillLabel: pillLabel)
             }
         }
-        .padding(.horizontal, metrics.spacing.md)
-        .frame(height: metrics.size.bottomBarHeight)
+        .padding(.horizontal, Theme.Spacing.md)
+        .frame(height: Theme.Size.bottomBarHeight)
         .frame(maxWidth: .infinity)
     }
 
@@ -524,26 +523,26 @@ struct RootPaletteView: View {
     private func actionGroup(pillLabel: String) -> some View {
         HStack(spacing: 2) {
             BarButton(action: activateSelection) {
-                HStack(spacing: metrics.spacing.sm) {
+                HStack(spacing: Theme.Spacing.sm) {
                     Text(pillLabel)
-                        .font(metrics.typography.bar)
+                        .font(Theme.Typography.bar)
                         .foregroundStyle(pillTint)
                     KeyCapChip(text: "↵", style: .outline)
                 }
             }
             BarButton(action: toggleActions) {
-                HStack(spacing: metrics.spacing.sm) {
+                HStack(spacing: Theme.Spacing.sm) {
                     Text("Actions")
-                        .font(metrics.typography.bar)
+                        .font(Theme.Typography.bar)
                         .foregroundStyle(Theme.Colors.textSecondary)
-                    HStack(spacing: metrics.spacing.xxs) {
+                    HStack(spacing: Theme.Spacing.xxs) {
                         KeyCapChip(text: "⌘", style: .outline)
                         KeyCapChip(text: "K", style: .outline)
                     }
                 }
             }
         }
-        .padding(metrics.spacing.xs)
+        .padding(Theme.Spacing.xs)
         .frosted(in: Capsule())
     }
 
@@ -883,7 +882,6 @@ private struct PaletteHideObserver: ViewModifier {
 private struct MenuCircleButton: View {
     let action: () -> Void
     @State private var hovered = false
-    @Environment(\.metrics) private var metrics
 
     var body: some View {
         Button(action: action) {
@@ -892,7 +890,7 @@ private struct MenuCircleButton: View {
                 Capsule().frame(width: 8, height: 1.5)
             }
             .foregroundStyle(Theme.Colors.textSecondary)
-            .frame(width: metrics.size.menuButton, height: metrics.size.menuButton)
+            .frame(width: Theme.Size.menuButton, height: Theme.Size.menuButton)
             .background(Circle().fill(hovered ? Theme.Colors.rowHover : Color.clear))
             .contentShape(.circle)
         }
@@ -907,15 +905,14 @@ private struct HeaderBackButton: View {
     let help: String
     let action: () -> Void
     @State private var hovered = false
-    @Environment(\.metrics) private var metrics
 
     var body: some View {
         Button(action: action) {
             Image(systemName: "chevron.left")
-                .font(metrics.typography.headerIcon)
+                .font(Theme.Typography.headerIcon)
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(hovered ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
-                .frame(width: metrics.size.headerIconSlot)
+                .frame(width: Theme.Size.headerIconSlot)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

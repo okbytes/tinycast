@@ -272,7 +272,6 @@
 		CA6BA9C381351D0B2CADFB9D /* IconCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CBCCE63360E4590CF5884A /* IconCache.swift */; };
 		CAE4C44A9D2EC4AC51FD3150 /* UninstallTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EBAD0766FF9BFC6A4396474 /* UninstallTarget.swift */; };
 		CB95B0CBF0DFEDFCEA837053 /* ImageThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36C6775BBA0FC6F134296606 /* ImageThumbnail.swift */; };
-		CB9A463B71829D219F5AD477 /* InterfaceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFF8EEC4B5B30644A7EAA117 /* InterfaceMetrics.swift */; };
 		CBE647056A15F49DF0711ECD /* SettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CBD6D8BC6951A482BDF6169 /* SettingsCoordinator.swift */; };
 		CC984C9647779469629461E7 /* LauncherItemsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 121A2ACAEC4D2D25D3112634 /* LauncherItemsSection.swift */; };
 		CC9A286B77E32C22B21A22BE /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0311153A4A3557C6FFEAAAB /* HotKeyManager.swift */; };
@@ -695,7 +694,6 @@
 		EC895E9AF76C4530E52C34BB /* WindowShortcutPresetCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowShortcutPresetCoordinator.swift; sourceTree = "<group>"; };
 		EE1C64977153EF104F583008 /* CalcTokenizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcTokenizer.swift; sourceTree = "<group>"; };
 		EFAD3CBED74EA031B58266EC /* SettingsFileKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFileKey.swift; sourceTree = "<group>"; };
-		EFF8EEC4B5B30644A7EAA117 /* InterfaceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceMetrics.swift; sourceTree = "<group>"; };
 		F0311153A4A3557C6FFEAAAB /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		F044A6A0C3C1CEC53D46497A /* ClipboardTextWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardTextWorker.swift; sourceTree = "<group>"; };
 		F082FD6A3AC234F43735715D /* FeatureCommandsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureCommandsSection.swift; sourceTree = "<group>"; };
@@ -893,7 +891,6 @@
 				16F1DA610F3D792F6B08AFE5 /* Scrolling */,
 				4395BACF833C810961A248F0 /* BarButton.swift */,
 				7E6EA47F0085375A3A621F5E /* GlassEffectView.swift */,
-				EFF8EEC4B5B30644A7EAA117 /* InterfaceMetrics.swift */,
 				C5BA06E4CC7E8D40E3285F16 /* KeyCapChip.swift */,
 				5E62A0BA3E85C8942167A310 /* ModalActionButtonStyle.swift */,
 				4FAE24CC14F7DFECD1BD7FB1 /* PopoverMenu.swift */,
@@ -2008,7 +2005,6 @@
 				3E2E2CFAD5C5731A5F059AD5 /* IconStyleMonitor.swift in Sources */,
 				CB95B0CBF0DFEDFCEA837053 /* ImageThumbnail.swift in Sources */,
 				0A086C5452FD9FCE68AF4E46 /* InputSourceSwitcher.swift in Sources */,
-				CB9A463B71829D219F5AD477 /* InterfaceMetrics.swift in Sources */,
 				8855C67C7EE196E3F9EDE778 /* KeyCapChip.swift in Sources */,
 				E115EBE9FA7B04CB086BA837 /* KeyRemapConfiguration.swift in Sources */,
 				8FD61A7CB2CF3B90594B31B2 /* KeyRemapEngine.swift in Sources */,

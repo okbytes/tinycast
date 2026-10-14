@@ -2,7 +2,6 @@ import SwiftUI
 
 struct LauncherList: View {
 
-    @Environment(\.metrics) private var metrics
     let results: [AppEntry]
     let selectedRowID: String?
     let suggestionCount: Int
@@ -110,7 +109,7 @@ struct LauncherList: View {
                                         .contentShape(Rectangle())
                                         .onTapGesture(perform: onActivateCard)
                                         .onRightClick(perform: onCardActions)
-                                        .padding(.bottom, metrics.spacing.xs)
+                                        .padding(.bottom, Theme.Spacing.xs)
                                         .selectionFrame(cardSelected)
                                 case .app(let app):
                                     AppRow(
@@ -125,9 +124,9 @@ struct LauncherList: View {
                                 }
                             }
                         }
-                        .padding(.horizontal, metrics.spacing.md)
-                        .padding(.top, metrics.spacing.xs)
-                        .padding(.bottom, metrics.spacing.md)
+                        .padding(.horizontal, Theme.Spacing.md)
+                        .padding(.top, Theme.Spacing.xs)
+                        .padding(.bottom, Theme.Spacing.md)
                         .hideNativeScrollers()
                         .scrollOriginAnchor()
                     }
@@ -167,7 +166,6 @@ private struct LeadCardView: View {
 
 private struct AppRow: View {
 
-    @Environment(\.metrics) private var metrics
     let app: AppEntry
     let selected: Bool
     let running: Bool
@@ -191,9 +189,9 @@ private struct AppRow: View {
     }
 
     var body: some View {
-        HStack(spacing: metrics.spacing.lg) {
-            AppIconView(app: app, pointSize: metrics.size.resultRowIcon)
-                .frame(width: metrics.size.resultRowIcon, height: metrics.size.resultRowIcon)
+        HStack(spacing: Theme.Spacing.lg) {
+            AppIconView(app: app, pointSize: Theme.Size.resultRowIcon)
+                .frame(width: Theme.Size.resultRowIcon, height: Theme.Size.resultRowIcon)
                 .overlay(alignment: .bottom) {
                     if running {
                         Circle()
@@ -203,27 +201,27 @@ private struct AppRow: View {
                     }
                 }
             Text(app.name)
-                .font(metrics.typography.rowTitle)
+                .font(Theme.Typography.rowTitle)
                 .lineLimit(1)
             if let subtitle = app.subtitle {
                 Text(subtitle)
-                    .font(metrics.typography.rowTrailing)
+                    .font(Theme.Typography.rowTrailing)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             if let alias = aliases.alias(for: app.preferenceKey) {
                 Text(alias)
-                    .font(metrics.typography.rowTrailing)
+                    .font(Theme.Typography.rowTrailing)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .padding(.horizontal, metrics.spacing.sm)
-                    .padding(.vertical, metrics.spacing.xxs)
+                    .padding(.horizontal, Theme.Spacing.sm)
+                    .padding(.vertical, Theme.Spacing.xxs)
                     .background(
-                        RoundedRectangle(cornerRadius: metrics.radius.menu, style: .continuous)
+                        RoundedRectangle(cornerRadius: Theme.Radius.menu, style: .continuous)
                             .fill(Theme.Colors.controlSurface))
             }
             if let caps = shortcutCaps {
-                HStack(spacing: metrics.spacing.xxs) {
+                HStack(spacing: Theme.Spacing.xxs) {
                     ForEach(Array(caps.enumerated()), id: \.offset) { _, cap in
                         KeyCapChip(text: cap, style: .outline)
                     }
@@ -231,13 +229,13 @@ private struct AppRow: View {
             }
             Spacer()
             Text(app.kindLabel)
-                .font(metrics.typography.rowTrailing)
+                .font(Theme.Typography.rowTrailing)
                 .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, metrics.spacing.md)
-        .padding(.vertical, metrics.spacing.sm)
+        .padding(.horizontal, Theme.Spacing.md)
+        .padding(.vertical, Theme.Spacing.sm)
         .background(
-            RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
                 .fill(fill)
         )
         .armedHover($hovered)

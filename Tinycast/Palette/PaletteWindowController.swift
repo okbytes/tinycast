@@ -258,10 +258,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     /// Size to height and place against the session anchor, so the list grows downward.
     private func positionPanel(_ panel: NSPanel, collapsed: Bool) {
         guard let anchor = resolveAnchor() else { return }
-        let size = metrics.size
-        let height = collapsed ? size.compactHeight : size.panelHeight
+        let height = collapsed ? Theme.Size.compactHeight : Theme.Size.panelHeight
         let frame = NSRect(
-            x: anchor.x, y: anchor.y - height, width: size.panelWidth, height: height)
+            x: anchor.x, y: anchor.y - height, width: Theme.Size.panelWidth, height: height)
         panel.setFrame(frame, display: true)
     }
 
@@ -270,11 +269,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         if let anchor { return anchor }
         anchor = NSScreen.underCursor.map {
             PalettePlacement.defaultAnchor(
-                in: $0.visibleFrame, width: metrics.size.panelWidth,
+                in: $0.visibleFrame, width: Theme.Size.panelWidth,
                 topMarginFraction: Theme.Size.paletteTopMarginFraction)
         }
         return anchor
     }
-
-    private let metrics = InterfaceMetrics.standard
 }

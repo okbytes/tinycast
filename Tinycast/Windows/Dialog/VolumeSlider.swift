@@ -1,25 +1,24 @@
 import SwiftUI
 
 struct VolumeSlider: View {
-    @Environment(\.metrics) private var metrics
     let state: VolumeState
 
     var body: some View {
-        HStack(spacing: metrics.spacing.lg) {
+        HStack(spacing: Theme.Spacing.lg) {
             Image(systemName: VolumeLevel.symbol(level: state.level))
-                .font(metrics.typography.menuIcon)
+                .font(Theme.Typography.menuIcon)
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Theme.Colors.textSecondary)
-                .frame(width: metrics.size.menuIcon)
+                .frame(width: Theme.Size.menuIcon)
             Slider(value: level, in: 0...1)
                 .labelsHidden()
                 .tint(Theme.Colors.textPrimary)
                 .accessibilityLabel("Output volume")
             Text(VolumeLevel.percentage(state.level))
-                .font(metrics.typography.rowTrailing)
+                .font(Theme.Typography.rowTrailing)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .monospacedDigit()
-                .frame(width: metrics.size.volumeReadout, alignment: .trailing)
+                .frame(width: Theme.Size.volumeReadout, alignment: .trailing)
         }
     }
 
