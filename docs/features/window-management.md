@@ -2,7 +2,7 @@
 
 Rectangle-style window actions — halves, quarters, fourths, thirds, sizing, edge moves, display moves,
 native fullscreen and Space switching — searchable in the palette and bindable to global shortcuts.
-35 commands, no new dependencies and no new permission: they reuse the Accessibility grant
+36 commands, no new dependencies and no new permission: they reuse the Accessibility grant
 clipboard paste already needs.
 
 Ships **off**. Settings › Window Management is the switch, and while it is off there are no launcher
@@ -55,7 +55,7 @@ overlay rather than in Foundation.
 
 Adding a command is four edits in `WindowCommand.swift` (a case in `ID`, plus `name`, `symbol` and
 `group` arms), an arm in `WindowPlacementEngine.placement` or `tileFractions`, and bumping
-`commands.count == 35` and its group count in the harness. A command opening a new family also needs
+`commands.count == 36` and its group count in the harness. A command opening a new family also needs
 a `Group` case and its `title` arm; `ID.allCases` stays in group order.
 
 ## Coordinate space
@@ -113,7 +113,8 @@ display-independent — a laptop gets the fraction, a 4K or 5K display gets a mo
 a 2304×1296 one. It ignores the window's current size entirely, so it is idempotent.
 
 **Center Half** is half the screen's _area_: half width, full height, horizontally centred — the family
-sibling of Center Third. **Center Two Thirds** is the same shape at two thirds of the width.
+sibling of Center Third. **Center Two Thirds** and **Center Three Fourths** are the same shape at two
+thirds and three quarters of the width.
 
 An oversized or off-screen window is always clamped back onto the display; `clamped` pins the leading
 edge rather than shoving the window off the far side. Maximize Height and Maximize Width keep the
@@ -343,7 +344,7 @@ and every shortcut stays editable afterwards.
 
 ## Testing
 
-`Tests/window-command-test.swift` (499 assertions) covers the catalog, the AX-space convention lock,
+`Tests/window-command-test.swift` (505 assertions) covers the catalog, the AX-space convention lock,
 tiling on divisible and non-divisible screens, off-origin and negative-coordinate displays, gap
 arithmetic including degenerate values, sizing, the Make Larger/Smaller round trip, edge moves, display
 moves and wrapping, both cycling modes including the strip walk, its wrap and a run of real presses

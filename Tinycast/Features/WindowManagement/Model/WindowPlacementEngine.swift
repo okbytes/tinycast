@@ -403,6 +403,8 @@ enum WindowPlacementEngine {
 
         case .firstThreeFourths:
             return Fractions(x0: 0, x1: 0.75, y0: 0, y1: 1, anchor: .topLeading)
+        case .centerThreeFourths:
+            return centeredFractions(0.75)
         case .lastThreeFourths:
             return Fractions(
                 x0: 0.25, x1: 1, y0: 0, y1: 1, anchor: Anchor(horizontal: .max, vertical: .min))
