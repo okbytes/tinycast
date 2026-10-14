@@ -8,12 +8,9 @@ struct PalettePlacementTests {
     static var failures = 0
     static var passes = 0
 
-    // Exactly what `PaletteWindowController` passes, at the size the user picked.
+    // Exactly what `PaletteWindowController` passes.
     static let metrics = InterfaceMetrics.standard
     static let width = metrics.size.panelWidth
-    static let graspable = CGSize(width: width, height: metrics.size.compactHeight)
-    static let minimumVisible = Theme.Size.paletteMinimumVisible
-    static let snap = Theme.Size.paletteSnapDistance
     static let topFraction = Theme.Size.paletteTopMarginFraction
 
     /// A 1440p display with the menu bar taken off the top.
@@ -39,21 +36,10 @@ struct PalettePlacementTests {
             in: screen, width: width, topMarginFraction: topFraction)
     }
 
-    static func restored(_ stored: CGPoint, on screen: CGRect) -> CGPoint? {
-        PalettePlacement.restored(
-            stored, graspable: graspable, visibleFrame: screen, minimumVisible: minimumVisible)
-    }
-
     static func main() {
         theDefaultPlacement()
-        restoringOnItsOwnDisplay()
-        offsetsFollowTheirDisplay()
-        restoringPartlyOffscreen()
-        snapping()
-        expandedDetentFollowsGeometry()
         menuPanelAnchors()
         tokenGrammar()
-        everyInterfaceSize()
 
         print("\(passes) passed, \(failures) failed")
         if failures > 0 { exit(1) }
@@ -80,162 +66,6 @@ struct PalettePlacementTests {
         expect(
             offset.y, external.maxY - external.height * topFraction,
             "and its top edge is measured from its own maxY")
-    }
-
-    // MARK: - Restoring a stored position
-
-    static func restoringOnItsOwnDisplay() {
-        let onExternal = CGPoint(x: 2700, y: 900)
-        expect(
-            restored(onExternal, on: external) == onExternal,
-            "a drop comes back verbatim on the display it was made on")
-        expect(
-            restored(onExternal, on: laptop) == nil,
-            "and is never read onto the neighbouring display the palette is summoned on")
-
-        // The fallback has to be reachable, not merely different.
-        expect(
-            restored(home(laptop), on: laptop) != nil,
-            "the default placement is always restorable on its own screen")
-    }
-
-    /// Stored against the display, so rearranging or rescaling it keeps the drop.
-    static func offsetsFollowTheirDisplay() {
-        let dropped = CGPoint(x: external.minX + 400, y: external.maxY - 260)
-        let offset = PalettePlacement.offset(of: dropped, on: external)
-        expect(offset.x, 400, "the offset runs rightward from the display's own left edge")
-        expect(offset.y, 260, "and downward from its top edge")
-        expect(
-            PalettePlacement.anchor(for: offset, on: external) == dropped,
-            "reading it back on the unchanged display returns the point that was dropped")
-
-        // Same display, moved to the other side in Displays settings.
-        let rearranged = CGRect(x: -1920, y: 0, width: 1920, height: 1055)
-        let moved = PalettePlacement.anchor(for: offset, on: rearranged)
-        expect(moved.x, rearranged.minX + 400, "a rearranged display keeps the drop on itself")
-        expect(moved.y, rearranged.maxY - 260, "wherever the global origin left it")
-        expect(restored(moved, on: rearranged) != nil, "and the bar is grabbable there")
-
-        // A resolution change shortens it from the bottom, so a top offset holds.
-        let scaled = CGRect(x: 2560, y: 0, width: 1440, height: 775)
-        let resized = PalettePlacement.anchor(for: offset, on: scaled)
-        expect(resized.y, scaled.maxY - 260, "a rescaled display keeps the distance from the top")
-        expect(restored(resized, on: scaled) != nil, "and still shows enough of the bar to grab")
-
-        let edge = PalettePlacement.offset(
-            of: CGPoint(x: external.maxX - 10, y: external.maxY - 260), on: external)
-        expect(
-            restored(PalettePlacement.anchor(for: edge, on: scaled), on: scaled) == nil,
-            "an offset past the edge of a shrunken display falls home instead")
-    }
-
-    static func restoringPartlyOffscreen() {
-        // Deliberately slid off to the right: still restorable while a grabbable sliver shows.
-        let sliver = CGPoint(x: laptop.maxX - minimumVisible, y: 900)
-        expect(
-            restored(sliver, on: laptop) != nil,
-            "exactly the minimum sliver of the compact bar is still grabbable")
-        let tooFar = CGPoint(x: laptop.maxX - minimumVisible + 1, y: 900)
-        expect(
-            restored(tooFar, on: laptop) == nil,
-            "one point less than that is not, and falls back to the default")
-
-        // Slid off the top, where the whole grab strip is what goes missing first.
-        let peeking = CGPoint(x: 800, y: laptop.maxY + graspable.height - minimumVisible)
-        expect(
-            restored(peeking, on: laptop) != nil,
-            "a bar hanging off the top edge is grabbable while the minimum still shows")
-        let gone = CGPoint(x: 800, y: laptop.maxY + graspable.height - minimumVisible + 1)
-        expect(
-            restored(gone, on: laptop) == nil,
-            "pushed one point further up it is dropped")
-    }
-
-    // MARK: - Invisible centre line
-
-    static func snapping() {
-        for screen in [laptop, external] {
-            let origin = home(screen)
-            let expandedY = screen.midY + metrics.size.panelHeight / 2
-            func snapped(
-                _ point: CGPoint, previous: PalettePlacement.Snap? = nil, speed: CGFloat = 0
-            ) -> PalettePlacement.Snap {
-                PalettePlacement.snapped(
-                    point, home: origin, visibleFrame: screen,
-                    expandedHeight: metrics.size.panelHeight, within: snap,
-                    previous: previous, speed: speed)
-            }
-            let freeY = (origin.y + expandedY) / 2
-            let centered = PalettePlacement.Snap(
-                anchor: CGPoint(x: origin.x, y: freeY), centeredX: true, height: nil)
-            expect(
-                snapped(CGPoint(x: origin.x + snap, y: freeY)).anchor.x, origin.x,
-                "the centre line catches at the right boundary")
-            expect(
-                snapped(CGPoint(x: origin.x - snap, y: freeY)).anchor.x, origin.x,
-                "the centre line catches at the left boundary")
-            expect(
-                !snapped(CGPoint(x: origin.x + snap + 1, y: freeY)).centeredX,
-                "an unlatched drag does not catch beyond the entry range")
-            expect(
-                snapped(CGPoint(x: origin.x + snap * 2, y: origin.y + 1), previous: centered)
-                    .height == .home,
-                "a latched drag holds the centre line and its height detent twice as far")
-            expect(
-                !snapped(
-                    CGPoint(x: origin.x + snap * 2 + 1, y: origin.y + 1),
-                    previous: centered
-                ).centeredX,
-                "a latched drag releases beyond twice the entry range")
-            expect(
-                snapped(CGPoint(x: origin.x + snap + 1, y: origin.y + 1)).anchor
-                    == CGPoint(x: origin.x + snap + 1, y: origin.y + 1),
-                "the home detent does not extend horizontally")
-            expect(
-                snapped(CGPoint(x: origin.x + snap + 1, y: expandedY + 1)).height == nil,
-                "the expanded detent does not extend horizontally")
-            expect(
-                snapped(CGPoint(x: origin.x + 1, y: origin.y + snap)).height == .home,
-                "the home detent catches on the centre line")
-            expect(
-                snapped(CGPoint(x: origin.x + 1, y: expandedY - snap)).anchor.y,
-                expandedY, "the expanded detent centres the full-height palette")
-            expect(
-                snapped(CGPoint(x: origin.x + 1, y: freeY)).anchor.y, freeY,
-                "height remains free between the two detents")
-            let fast = PalettePlacement.maxSnapEntrySpeedPointsPerSecond + 1
-            expect(
-                !snapped(CGPoint(x: origin.x + 1, y: freeY), speed: fast).centeredX,
-                "a fast pass does not enter the centre line")
-            expect(
-                snapped(CGPoint(x: origin.x + 1, y: freeY), speed: fast - 1).centeredX,
-                "a deliberate pass can still enter the centre line")
-            expect(
-                snapped(CGPoint(x: origin.x + snap * 2, y: freeY), previous: centered, speed: fast)
-                    .centeredX,
-                "speed does not release an already held centre line")
-            expect(
-                snapped(CGPoint(x: origin.x + 1, y: origin.y + 1), previous: centered, speed: fast)
-                    .height == nil,
-                "a fast pass on the centre line does not enter a height detent")
-            let held = PalettePlacement.Snap(anchor: origin, centeredX: true, height: .home)
-            expect(
-                snapped(CGPoint(x: origin.x + 1, y: origin.y + 1), previous: held, speed: fast)
-                    .height == .home,
-                "speed does not release an already held detent")
-        }
-    }
-
-    static func expandedDetentFollowsGeometry() {
-        let shifted = CGRect(x: 300, y: 50, width: 1800, height: 1000)
-        for size in InterfaceSize.allCases {
-            let panelHeight = size.metrics.size.panelHeight
-            let top = PalettePlacement.expandedCenterY(
-                in: shifted, expandedHeight: panelHeight)
-            expect(
-                top - panelHeight / 2, shifted.midY,
-                "the expanded detent stays centred after display or Interface Size changes")
-        }
     }
 
     // MARK: - Menu panels
@@ -279,50 +109,6 @@ struct PalettePlacementTests {
     // MARK: - The tokens these rules depend on
 
     static func tokenGrammar() {
-        // Raise it past the bar's own height and no stored position is ever restorable again.
-        expect(
-            minimumVisible <= graspable.height,
-            "the minimum visible sliver fits inside the compact bar")
-        expect(
-            snap * 2 < width,
-            "the snap zone is narrower than the panel, so it can't swallow every drop")
         expect(topFraction > 0 && topFraction < 1, "the top margin is a real fraction of the screen")
-    }
-
-    // MARK: - The same rules at every Interface Size
-
-    /// The largest palette still has to land on the smallest display Tinycast supports.
-    static let smallest = CGRect(x: 0, y: 0, width: 1440, height: 875)
-
-    static func everyInterfaceSize() {
-        for size in InterfaceSize.allCases {
-            let metrics = size.metrics
-            let width = metrics.size.panelWidth
-            let label = "at \(size.rawValue)"
-
-            for screen in [laptop, external, smallest] {
-                let anchor = PalettePlacement.defaultAnchor(
-                    in: screen, width: width, topMarginFraction: topFraction)
-                expect(anchor.x, screen.midX - width / 2, "the panel stays centred \(label)")
-                expect(
-                    anchor.y - metrics.size.panelHeight > screen.minY,
-                    "an expanded palette clears the bottom of a \(Int(screen.width))pt display \(label)"
-                )
-            }
-
-            // The wider bar needs more of itself on screen, so a stored edge position can lapse.
-            let graspable = CGSize(width: width, height: metrics.size.compactHeight)
-            let sliver = CGPoint(x: laptop.maxX - minimumVisible, y: 900)
-            expect(
-                PalettePlacement.restored(
-                    sliver, graspable: graspable, visibleFrame: laptop,
-                    minimumVisible: minimumVisible) != nil,
-                "the minimum sliver is still grabbable \(label)")
-            expect(
-                PalettePlacement.restored(
-                    CGPoint(x: laptop.maxX, y: 900), graspable: graspable,
-                    visibleFrame: laptop, minimumVisible: minimumVisible) == nil,
-                "a bar dragged fully past the right edge is dropped \(label)")
-        }
     }
 }

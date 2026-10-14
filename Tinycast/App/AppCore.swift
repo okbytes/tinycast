@@ -84,12 +84,11 @@ final class AppCore {
         paletteCoordinator: paletteCoordinator)
 
     @ObservationIgnored private lazy var windowController = PaletteWindowController(core: self)
-    @ObservationIgnored private lazy var messageHUD = MessageHUDController(settings: settings)
+    @ObservationIgnored private lazy var messageHUD = MessageHUDController()
     private(set) var isShowingDialog = false
     var isDimmingPaletteForDialog: Bool { isShowingDialog && windowController.isVisible }
     /// Every confirmation, report and prompt; it also stops a held hotkey stacking them.
     @ObservationIgnored private lazy var dialogs = DialogController(
-        settings: settings,
         onPresentationChanged: { [weak self] isPresenting in
             guard let self else { return }
             isShowingDialog = isPresenting
@@ -111,7 +110,6 @@ final class AppCore {
             // Shorten AppKit's ~2–3s tooltip delay; registration domain, so a user default wins.
             UserDefaults.standard.register(defaults: ["NSInitialToolTipDelay": 250])
             NSApp.setActivationPolicy(.accessory)
-            applyAppearance()
             observeEffectiveAppearance()
             pinnedEmoji.onPersistenceFailure = { [weak self] in
                 self?.showMessage("Couldn't save Emoji & Symbols pins", tone: .danger)
@@ -260,20 +258,13 @@ final class AppCore {
             }, reproject: { $0.calendarCoordinator.applyClock() })
         // Not a feature switch, but the same re-projection: a combo has the chord's ⇧ bit baked in.
         track({ _ = $0.hyperKeyIncludesShift }, reproject: { $0.applyHyperChord() })
-        track({ _ = $0.appearance }, reproject: { $0.applyAppearance() })
-        track({ _ = $0.interfaceSize }, reproject: { $0.windowController.applyInterfaceSize() })
         // Settings panes did these on change; settings.json can change them with no pane open.
         track(
             { _ = $0.clipboardRetention },
             reproject: { $0.clipboardCoordinator.applyRetention($0.settings.clipboardRetention) })
     }
 
-    /// `.system` resolves to `nil`, so AppKit follows macOS with nothing polling.
-    private func applyAppearance() {
-        NSApp.appearance = settings.appearance.nsAppearance
-    }
-
-    /// IconCache is told here, not from `applyAppearance()`, which never fires under `.system`.
+    /// Tinycast never sets `NSApp.appearance`, so this tracks macOS's own light and dark switch.
     private func observeEffectiveAppearance() {
         // Synchronous on main, so no row can cache a tile under the outgoing appearance's key.
         appearanceObservation = NSApp.observe(\.effectiveAppearance, options: [.initial]) { app, _ in

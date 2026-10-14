@@ -7,9 +7,8 @@ The command palette is a borderless floating `NSPanel` hosting SwiftUI; see
 
 - **`PaletteWindowController` solely owns the palette frame.** The hosting view sets
   `sizingOptions = []` so SwiftUI never drives the window size — otherwise the hosting view resizes the
-  panel to fit content and the top edge drifts on the compact↔expanded swap. A user drag is the one
-  frame change that starts elsewhere, and `windowDidMove` folds it back into the anchor so the
-  controller stays the authority.
+  panel to fit content and the top edge drifts on the compact↔expanded swap. Nothing else moves the
+  panel: there is no drag handle and no remembered position.
 - **The flat `selection` index must match the visible row order exactly**, including the inline
   calculator card at index 0 when present. Selection is the single source of truth for highlight and
   activation. `Features/PaletteRowIndex.swift` is that mapping and stays **Foundation-only and pure** —
@@ -153,98 +152,15 @@ another screen; ringing round forever therefore never grows the stack past two.
 for every compact↔expanded resize, so only the height changes and the top edge never drifts. The
 anchor is dropped on hide, so the next summon re-resolves for wherever the user is then.
 
-All of the arithmetic lives in `PalettePlacement`, which is CoreGraphics-only and takes every screen
-fact as a parameter, so `palette-placement-test` drives the shipped rules rather than a copy of them.
+The anchor is `PalettePlacement.defaultAnchor`: centred on the display, its top edge
+`Theme.Size.paletteTopMarginFraction` of the way down. `PalettePlacement` is CoreGraphics-only and
+takes every screen fact as a parameter, so `palette-placement-test` drives the shipped rule rather than
+a copy of it.
 
-The panel's width and height are not constants: they come from `InterfaceMetrics`, so Interface Size
-changes them. A change re-enters through `AppCore.track` → `applyInterfaceSize()`, which **drops the
-cached anchor** and re-resolves it — one rule, the summon's. An untouched palette re-centres at the new
-width; a dragged one keeps its stored horizontal centre unless the wider bar no longer leaves
-`paletteMinimumVisible` on the display it opens on, in which case it falls home.
-
-### Drag to reposition
-
-**Drag to reposition** (`AppSettings.paletteDraggable`, off by default) is the only thing that moves a
-panel already on screen. `WindowDragHandle` claims mouse-down on the top strip and on the header's
-margins and inter-item gaps (`RootPaletteView.headerGutter`) — everywhere in the header no control
-occupies. The launcher magnifier is a handle too. The search field is one **only while it is empty**:
-`EmptyFieldDragHandle` declines the hit-test outright the moment there is text to select, or marked
-text being composed.
-Measuring the query and claiming the run past it was the older rule, and it cost the thing a search
-field is for — a selection almost always starts or ends past the last glyph, so every such press moved
-the window instead. A field with a caret in it is being edited; nothing in it is a handle.
-
-AppKit moves the frame without going through the controller, so `windowDidMove` writes the new top-left
-back into the anchor — otherwise the next compact↔expanded resize would snap the panel back to the
-position it was summoned at. That write is idempotent, since `positionPanel` places the frame at exactly
-the anchor and its own `setFrame` round-trips the same values.
-
-**The handle tracks the gesture itself rather than calling `performDrag(with:)`.** That method hands the
-drag to the window server and returns immediately, so it can say when a drag *starts* but never when it
-ends — the mouse-up arrives long after it has returned. `DragView.mouseDown` instead runs
-`trackEvents(matching:timeout:mode:)` over `.leftMouseDragged` / `.leftMouseUp`, moving the window by
-the `NSEvent.mouseLocation` delta, which puts the whole gesture inside one call. **A press only becomes
-a drag once it passes `DragView.dragSlop`**, and one that never does is reported as a click instead:
-without that, a handle over the empty search field swallowed the click that was meant to put the caret
-back in it. It brackets a real drag with `PaletteCoordinator.beginPaletteDrag()` / `endPaletteDrag()`,
-and the controller holds a `DragSession` for exactly that span. **Only a move inside a session is a user drag**; without that flag every
-programmatic resize would be recorded as one. Starting that session gives one haptic tick; a click
-without a drag does not.
-
-### Drop guides and snapping
-
-During a drag, `PaletteDropGuideController` shows the original three dotted guides: both edges of
-the default panel placement run vertically across the display, and its top edge runs horizontally.
-Their strokes sit immediately outside the panel frame rather than underneath it.
-They are a visual readout only. `PalettePlacement.snapped` centres the panel when its left edge comes
-within `Theme.Size.paletteSnapDistance` of the centre line, at any height. Once aligned, it stays
-there until dragged twice that distance away. **Only on that line**, the panel also snaps to the
-default top edge or a lower detent that centres the expanded palette vertically. Neither height
-detent extends horizontally beyond the centre-line range. Entry requires a deliberate drag no faster
-than 600pt/s; a quick pass neither snaps nor flashes, while an already held detent keeps its normal
-release range. Entering the line or a height detent gives one system haptic tick. The vertical guides
-briefly turn blue on centre-line alignment; the horizontal guide flashes blue on the home detent,
-or all three when both alignments engage within 6pt of vertical travel.
-Guides appear neutral when a drag starts on an existing alignment; only a new entry flashes.
-The vertical dashes are 8pt with 12pt gaps; the
-horizontal dashes adjust slightly to the panel width so one continuous line leaves the same empty
-gap at both intersections. They fade in after the first move and fade out on release, using the same
-duration as the blue flash. During a drag, the guides stay fully visible for the first 36pt away from
-alignment; moving farther horizontally fades all three, while moving farther vertically fades only
-the horizontal guide. Crossing displays recalculates both the guides and the snap points.
-
-### Remembering where it was left
-
-A drop away from the home detent writes the panel's top-left to `AppSettings.palettePositions`, **one entry per
-display**, keyed by `NSScreen.displayKey` and held **relative to that display's visible top-left**. Per
-display stops a drop made on one screen pulling the palette back there when it is summoned on another;
-relative survives rearranging that display or rescaling it, so no key goes stale.
-Changing Interface Size shifts each saved left edge by half the width difference, preserving the
-launcher's horizontal centre on every display.
-
-**The display is chosen first, by the setting below.** `PalettePlacement.restored` drops the corner once
-that display shows less than `Theme.Size.paletteMinimumVisible` of the compact bar. Dropping at the
-home detent clears that display's stored position.
-
-The lower expanded-centre detent also records its display separately, so restoring it recomputes
-the centre for the current visible frame and Interface Size instead of reusing an obsolete offset.
-
-The position and its detent are deliberately **not** in a settings backup — they are machine-local
-geometry, the same reason the Settings window autosaves its frame instead
-([backup.md](backup.md)).
-
-Which display the palette anchors to depends on the **Follow the cursor across displays**
-setting (`AppSettings.openOnCursorScreen`, on by default):
-
-- **On** — `NSScreen.underCursor`: the screen holding `NSEvent.mouseLocation`, i.e. the display under
-  the pointer.
-- **Off** — `NSScreen.primary`: the screen at the global origin, i.e. the one with the menu bar.
-
-**Neither case may use `NSScreen.main`**, which is documented as the screen of the window with keyboard
-focus — the frontmost app's, wherever the user last clicked. It therefore follows the user across
-displays, which is the wrong answer for both settings and made the off case do exactly what turning it
-off was meant to stop ([#270](https://github.com/abue-ammar/tinycast/issues/270)). The menu-bar display
-is the one whose `frame.origin` is `.zero`, which is what `primary` looks for.
+The display is always the one under the pointer: `NSScreen.underCursor`, the screen holding
+`NSEvent.mouseLocation`. **Never `NSScreen.main`**, which is documented as the screen of the window
+with keyboard focus — the frontmost app's, wherever the user last clicked — so it follows focus across
+displays rather than the pointer.
 
 The cursor hit test is `NSMouseInRect(mouse, screen.frame, false)`, **not** `CGRect.contains`. A mouse
 location is the CoreGraphics cursor position flipped about the primary display's height, so a screen's
@@ -368,7 +284,7 @@ width; their hover keeps the shared 10pt menu-row corner.
 
 A menu is **not** an overlay inside the palette: `MenuPanelController` hosts it in a `MenuPanel`, a
 borderless non-activating `NSPanel` added as a **child window** of the palette's, which is what makes
-it follow a palette drag and vanish with it. Glass renders against the desktop rather than inside an
+it vanish with the palette. Glass renders against the desktop rather than inside an
 already-blurred, clipped panel, and no menu can be cropped by `RootPaletteView`'s `clipShape` however
 long it grows. The menu temporarily becomes key so its native `TextField` owns the caret and selection, while
 `MenuPanel` hands navigation and action shortcuts back to `RootPaletteView`. It restores key status
@@ -438,8 +354,7 @@ handled in `PalettePanel.sendEvent` before `super` hands the event to the respon
 - **Chords with no main menu item** — ⌘, and ⌘w, which an app with a menu bar would never see here.
 - **The physical number-row slots.** `FavoriteSlots` matches ⌘1…⌘0 by key code before fixed command
   chords, then publishes the resolved position to the active screen. Only the launcher and clipboard
-  screens intercept these slots; other screens keep their own ⌘-number shortcuts. The launcher's
-  compact visibility setting is visual only and does not disable its favorite slots.
+  screens intercept these slots; other screens keep their own ⌘-number shortcuts.
 - **Chords AppKit has already bound to a selector.** `⌘.` is the one that bites: AppKit binds it to
   `cancelOperation:` alongside Escape, so `interpretKeyEvents` hands it to the field editor and
   `onKeyPress(keys: ["."])` never fires. Pin (⌘.) therefore arrives through `onCommandShortcut`,

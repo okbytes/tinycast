@@ -31,8 +31,7 @@ glance, lists the schedule on click, and hands any event to Calendar.app.
   access. Enabling is re-offered whenever access is anything but granted — by the Calendar pane and by
   the Permissions pane — so a TCC record lost after the setting was already on never strands it.
 - **Per-calendar toggles live on `CalendarStore`, not `AppSettings`.** Calendar identifiers are
-  machine-specific, so they are deliberately outside the backup mirror — the same reasoning as
-  `palettePosition`.
+  machine-specific, so they are deliberately outside the backup mirror.
 - **`MeetingEvent` carries only what the menu bar needs.** The event's URL, location and notes are
   scanned for a link and dropped, and attendees are read only for the user's own response, so a busy
   calendar's invites never sit in the snapshot every tick diffs.

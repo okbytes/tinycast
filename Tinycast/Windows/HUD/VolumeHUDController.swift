@@ -4,15 +4,10 @@ import SwiftUI
 /// The volume readout; a box, not the pill, because a level needs a bar and a number.
 @MainActor
 final class VolumeHUDController {
-    private let settings: AppSettings
     private let presenter = HUDPresenter(
         anchor: .heightFraction(bottomFraction), dwell: Theme.Duration.volumeHUD,
         screen: { .underCursor })
     private let state = VolumeState(level: 0)
-
-    init(settings: AppSettings) {
-        self.settings = settings
-    }
 
     func show(level: Float32, muted: Bool) {
         // The view observes `state`, so a repeat animates the bar rather than replaying.
@@ -22,10 +17,9 @@ final class VolumeHUDController {
         if showing {
             presenter.extend()
         } else {
-            let metrics = settings.interfaceSize.metrics
+            let size = InterfaceMetrics.standard.size
             presenter.show(
-                VolumeHUDView(state: state).environment(\.metrics, metrics),
-                size: CGSize(width: metrics.size.hudWidth, height: metrics.size.hudHeight))
+                VolumeHUDView(state: state), size: CGSize(width: size.hudWidth, height: size.hudHeight))
         }
     }
 

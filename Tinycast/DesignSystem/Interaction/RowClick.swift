@@ -99,7 +99,7 @@ private final class RowPressView: NSView, NSDraggingSource {
         beginDrag(item, with: event)
     }
 
-    /// Tracks the press itself, like `WindowDragHandle`, until it is released or leaves the slop.
+    /// Tracks the press itself until it is released or leaves the slop.
     private func pressBecomesDrag() -> Bool {
         guard let window else { return false }
         // Deltas off `mouseLocation`, so no coordinate conversion can drift.

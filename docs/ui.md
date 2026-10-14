@@ -61,25 +61,13 @@ Source: `Tinycast/DesignSystem/Theme.swift`.
 `Theme` is the single source of truth. **Never hardcode a spacing/radius/size/color that has a token.**
 Add a token rather than a magic number when introducing a new value.
 
-### Interface Size (`InterfaceMetrics`)
+### `InterfaceMetrics`
 
-`AppSettings.interfaceSize` scales the palette and the surfaces that float with it — the ⌘K menu,
-dialogs and HUDs. Settings and Onboarding never scale.
-
-`DesignSystem/InterfaceMetrics.swift` stores **only a scale** and derives every value from the `Theme`
-literal, so `Theme` stays the one place a number is written down. **In any view a scaled surface can
-reach, read `@Environment(\.metrics)` rather than `Theme.Spacing/Radius/Size/Typography`** — the key
-defaults to `.standard`, so a shared `DesignSystem/` component renders unscaled in Settings without
-being forked. An AppKit site reads `settings.interfaceSize.metrics` where it computes its frame.
-
-A length measured against the **screen** does not scale; a length measured against **our own content**
-does. So `hairline`, `paletteTopMarginFraction`, `paletteSnapDistance`, `paletteMinimumVisible`, the
-drop-guide dashes, `hudEdgeOffset` and every row *count* stay on `Theme`, as does every chrome token.
-
-Scaling rounds to whole points, once, at the leaf accessor. A **derived** token composes already
-scaled parts (`compactHeight`, `menuRowHeight`) rather than scaling the derived result, so an AppKit
-frame can never disagree with the SwiftUI view inside it by a point. `interface-size-test` pins all of
-this, member by member, including that `.standard` is `Theme` verbatim.
+The palette and the surfaces that float with it — the ⌘K menu, dialogs and HUDs — read `Theme`
+through `DesignSystem/InterfaceMetrics.swift`, which only ever runs at `.standard`: there is no
+Interface Size setting any more, so every value is the `Theme` literal. **In any view the palette can
+reach, read `@Environment(\.metrics)`**; the key defaults to `.standard`, so nothing has to inject it.
+`interface-size-test` pins `.standard` to `Theme` verbatim, member by member.
 
 ### Spacing (`Theme.Spacing`)
 
@@ -192,11 +180,10 @@ shipped. Light is the same stop with the ink inverted, and is the only column op
 | `sheen`           | white 0.04     | black 0.04     | the wash behind the Onboarding header            |
 | `cardFill`        | white 0.05     | black 0.04     | settings/calc card fill                          |
 | `cardStroke`      | white 0.10     | black 0.10     | settings/calc card border + inset dividers       |
-| `dropGuide`       | white 0.35     | black 0.35     | the palette's drop guides while dragging         |
 
 `panelScrim` is the ramp's inverse — it darkens the dark surface and lightens the light one — so it
 is an `adaptive` pair, not a `ramp`.
-`primaryAction`, `destructive`, `success` and `dropGuideArmed` are fixed hues and adapt on their own.
+`primaryAction`, `destructive` and `success` are fixed hues and adapt on their own.
 
 Beyond these, `.secondary`/`.tertiary` foreground styles are fine for SF Symbols (they resolve against
 the environment's appearance). **Selection always beats hover** when a row is both.
@@ -486,8 +473,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   the way `SystemPromptEditor` does; dimming an editor that still accepts input is the bug, not the fix.
 - **A group is a `Section`**, with `header:` for its name and `footer:` for the caption that used to
   ride under the last row.
-- **Interface size and Emoji Skin Tone use `settingsOptionSegment`** for the same square selection
-  shape, while keeping their own content sizes.
+- **Emoji Skin Tone uses `settingsOptionSegment`** for its square selection shape.
 - **A pane scans as section → setting → control, so its words are rationed.** A subtitle is a short
   phrase, and only where the title leaves out a consequence or a limit ("Shortcuts still work when
   hidden."); a footer carries a caveat, such as privacy or cost, never a restatement of its header. A

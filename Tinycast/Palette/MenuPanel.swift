@@ -99,9 +99,7 @@ final class MenuPanelController {
         panel.ignoresMouseEvents = false
         // Open disarmed: a menu opened by click lands under the pointer, which chose no row of it.
         core.palette.disarmHoverHighlight(pointerAt: NSEvent.mouseLocation)
-        layout(
-            corner: corner, parent: parent, metrics: core.settings.interfaceSize.metrics,
-            resetMotion: true)
+        layout(corner: corner, parent: parent, resetMotion: true)
         if !wasVisible, panel.parent == nil { parent.addChildWindow(panel, ordered: .above) }
         startReveal(in: panel, transition: transition, motion: motion)
         panel.makeKey()
@@ -118,9 +116,7 @@ final class MenuPanelController {
         setContent(
             AnyView(content.paletteEnvironment(core)),
             clipPath: clipPath, in: panel)
-        layout(
-            corner: corner, parent: parent, metrics: core.settings.interfaceSize.metrics,
-            resetMotion: false)
+        layout(corner: corner, parent: parent, resetMotion: false)
     }
 
     private func setContent(
@@ -264,10 +260,9 @@ final class MenuPanelController {
     }
 
     /// Sizes to the hosted menu, then seats it against the palette's frame in screen space.
-    private func layout(
-        corner: MenuPanelCorner, parent: NSWindow, metrics: InterfaceMetrics, resetMotion: Bool
-    ) {
+    private func layout(corner: MenuPanelCorner, parent: NSWindow, resetMotion: Bool) {
         guard let panel, let hosting, let motion else { return }
+        let metrics = InterfaceMetrics.standard
         let size = hosting.intrinsicContentSize
         guard size.width > 0, size.height > 0 else { return }
         // `bottomBar`'s own padding: a menu's edge must line up with the button it hangs off.

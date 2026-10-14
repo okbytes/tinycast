@@ -32,12 +32,6 @@ enum SettingsFileSchema {
         case .popToRootTimeout: return bind(settings, \.popToRootTimeout)
         case .escapeKeyBehavior: return bind(settings, \.escapeKeyBehavior)
         case .autoSwitchInputSource: return bind(settings, \.autoSwitchInputSourceID)
-        case .appearance: return bind(settings, \.appearance)
-        case .interfaceSize: return bind(settings, \.interfaceSize)
-        case .compactMode: return bind(settings, \.compactMode)
-        case .showFavoritesInCompactMode: return bind(settings, \.showFavoritesInCompactMode)
-        case .openOnCursorScreen: return bind(settings, \.openOnCursorScreen)
-        case .paletteDraggable: return bind(settings, \.paletteDraggable)
         case .hyperKey: return bind(settings, \.hyperKey)
         case .hyperKeyIncludesShift: return bind(settings, \.hyperKeyIncludesShift)
         case .hyperKeyQuickPress: return bind(settings, \.hyperKeyQuickPress)
@@ -83,8 +77,6 @@ enum SettingsFileSchema {
 
 extension PopToRootTimeout: SettingsFileRawValue {}
 extension EscapeKeyBehavior: SettingsFileRawValue {}
-extension AppAppearance: SettingsFileRawValue {}
-extension InterfaceSize: SettingsFileRawValue {}
 extension HyperKeyPhysicalKey: SettingsFileRawValue {}
 extension HyperKeyQuickPress: SettingsFileRawValue {}
 extension CalcNumberStyle: SettingsFileRawValue {}

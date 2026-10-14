@@ -29,17 +29,10 @@ struct SettingsBackup: Codable {
         var showInMenuBar: Bool?
         var popToRootSeconds: Int?
         var escapeKeyBehavior: String?
-        var appearance: String?
         var calcNumberStyle: String?
-        var interfaceSize: String?
-        var compactMode: Bool?
-        var showFavoritesInCompactMode: Bool?
         var searchScopes: [String]?
         var launcherShowsSuggestions: Bool?
         var rootSearchSensitivity: String?
-        var openOnCursorScreen: Bool?
-        // Safe to carry: it grants no permission class, just repositions the window.
-        var paletteDraggable: Bool?
         var windowManagementEnabled: Bool?
         var windowManagementShowInLauncher: Bool?
         var windowGap: Int?
@@ -98,16 +91,10 @@ extension SettingsBackup {
             showInMenuBar: s.showInMenuBar,
             popToRootSeconds: s.popToRootTimeout.rawValue,
             escapeKeyBehavior: s.escapeKeyBehavior.rawValue,
-            appearance: s.appearance.rawValue,
             calcNumberStyle: s.calcNumberStyle.rawValue,
-            interfaceSize: s.interfaceSize.rawValue,
-            compactMode: s.compactMode,
-            showFavoritesInCompactMode: s.showFavoritesInCompactMode,
             searchScopes: s.searchScopes,
             launcherShowsSuggestions: s.launcherShowsSuggestions,
             rootSearchSensitivity: s.rootSearchSensitivity.rawValue,
-            openOnCursorScreen: s.openOnCursorScreen,
-            paletteDraggable: s.paletteDraggable,
             windowManagementEnabled: s.windowManagementEnabled,
             windowManagementShowInLauncher: s.windowManagementShowInLauncher,
             windowGap: s.windowGap,
@@ -235,24 +222,8 @@ extension SettingsBackup {
             settings.escapeKeyBehavior = behavior
             count += 1
         }
-        if let raw = s.interfaceSize, let size = InterfaceSize(rawValue: raw) {
-            settings.interfaceSize = size
-            count += 1
-        }
-        if let raw = s.appearance, let appearance = AppAppearance(rawValue: raw) {
-            settings.appearance = appearance
-            count += 1
-        }
         if let raw = s.calcNumberStyle, let style = CalcNumberStyle(rawValue: raw) {
             settings.calcNumberStyle = style
-            count += 1
-        }
-        if let flag = s.compactMode {
-            settings.compactMode = flag
-            count += 1
-        }
-        if let flag = s.showFavoritesInCompactMode {
-            settings.showFavoritesInCompactMode = flag
             count += 1
         }
         if let scopes = s.searchScopes {
@@ -265,14 +236,6 @@ extension SettingsBackup {
         }
         if let raw = s.rootSearchSensitivity, let sensitivity = SearchSensitivity(rawValue: raw) {
             settings.rootSearchSensitivity = sensitivity
-            count += 1
-        }
-        if let flag = s.openOnCursorScreen {
-            settings.openOnCursorScreen = flag
-            count += 1
-        }
-        if let flag = s.paletteDraggable {
-            settings.paletteDraggable = flag
             count += 1
         }
         // Writing through AppSettings is enough; AppCore's sinks re-project the rest.

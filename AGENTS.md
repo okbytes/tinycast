@@ -72,8 +72,8 @@ feature's doc, under its own `## Invariants`.
 - **Dark is the baseline, and a colour's dark branch is the literal it always was.** `Theme.Colors`
   resolves per appearance through `ramp`/`adaptive`; every dark value is the `Color.white.opacity(…)`
   the forced-dark build shipped, restated rather than re-derived. Retune a light branch freely — change
-  a dark one only when the task is to change Dark. `AppAppearance` drives `NSApp.appearance`, and
-  `.system` maps to `nil` so AppKit follows macOS on its own.
+  a dark one only when the task is to change Dark. Tinycast never sets `NSApp.appearance`, so AppKit
+  follows macOS on its own.
 - **Tinycast presents its own dialogs — never `NSAlert` or a system popover.** A question
   goes through `DialogController`, a report through a HUD via `HUDPresenter`.
 - **A networked feature fetches on a private `.ephemeral`, `urlCache = nil` session**, never

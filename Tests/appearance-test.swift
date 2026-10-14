@@ -58,7 +58,6 @@ struct AppearanceTests {
         dark("textTertiary", c.textTertiary, is: Color.white.opacity(0.40))
         dark("cardFill", c.cardFill, is: Color.white.opacity(0.05))
         dark("cardStroke", c.cardStroke, is: Color.white.opacity(0.10))
-        dark("dropGuide", c.dropGuide, is: Color.white.opacity(0.35))
 
         print("# tokens that absorbed a literal duplicated across views")
         dark("iconPlaceholder", c.iconPlaceholder, is: Color.white.opacity(0.06))
@@ -74,7 +73,7 @@ struct AppearanceTests {
             ("controlSurface", c.controlSurface), ("border", c.border),
             ("textPrimary", c.textPrimary), ("textSecondary", c.textSecondary),
             ("textTertiary", c.textTertiary), ("cardFill", c.cardFill),
-            ("cardStroke", c.cardStroke), ("dropGuide", c.dropGuide),
+            ("cardStroke", c.cardStroke),
             ("iconPlaceholder", c.iconPlaceholder), ("sheen", c.sheen)
         ] {
             adapts(label, token)
@@ -83,12 +82,6 @@ struct AppearanceTests {
         print("# the scrim inverts rather than ramping: it lightens the light surface")
         check("light scrim is white", components(c.panelScrim, .aqua)[0] == 255)
         check("dark scrim is black", components(c.panelScrim, .darkAqua)[0] == 0)
-
-        print("# .system hands the choice back to AppKit")
-        check("system is nil", AppAppearance.system.nsAppearance == nil)
-        check("light is aqua", AppAppearance.light.nsAppearance?.isDark == false)
-        check("dark is darkAqua", AppAppearance.dark.nsAppearance?.isDark == true)
-        check("an unknown stored value is rejected", AppAppearance(rawValue: "sepia") == nil)
 
         print("\n\(passes) passed, \(failures) failed")
         exit(failures == 0 ? 0 : 1)

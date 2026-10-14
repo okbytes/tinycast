@@ -133,24 +133,6 @@ enum SettingsSearchCatalog {
             .generalGeneral, "Auto-switch input source",
             keywords: ["keyboard", "layout", "language", "abc"]),
         .init(
-            .generalAppearance, "Theme",
-            keywords: ["dark", "light", "mode", "appearance"]),
-        .init(
-            .generalAppearance, "Interface size",
-            keywords: ["text size", "font size", "scale", "zoom", "bigger", "larger", "legible"]),
-        .init(
-            .generalAppearance, "Window mode",
-            keywords: ["compact", "expanded", "slim", "search bar", "small"]),
-        .init(
-            .generalAppearance, "Show favorites in compact mode",
-            keywords: ["pinned", "apps", "compact"]),
-        .init(
-            .generalAppearance, "Follow the cursor across displays",
-            keywords: ["monitor", "screen", "pointer", "multi display"]),
-        .init(
-            .generalAppearance, "Drag to reposition",
-            keywords: ["move", "position", "window"]),
-        .init(
             .generalHyperKey, "Hyper Key",
             keywords: ["modifier", "remap", "caps lock", "capslock"]),
         .init(

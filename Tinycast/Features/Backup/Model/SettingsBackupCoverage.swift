@@ -17,16 +17,10 @@ enum SettingsBackupCoverage {
         "emojiGridColumns": .emojiGridColumns,
         "popToRootSeconds": .popToRootTimeout,
         "escapeKeyBehavior": .escapeKeyBehavior,
-        "appearance": .appearance,
         "calcNumberStyle": .calcNumberStyle,
-        "interfaceSize": .interfaceSize,
-        "compactMode": .compactMode,
-        "showFavoritesInCompactMode": .showFavoritesInCompactMode,
         "searchScopes": .searchScopes,
         "launcherShowsSuggestions": .launcherShowsSuggestions,
         "rootSearchSensitivity": .rootSearchSensitivity,
-        "openOnCursorScreen": .openOnCursorScreen,
-        "paletteDraggable": .paletteDraggable,
         "windowManagementEnabled": .windowManagementEnabled,
         "windowManagementShowInLauncher": .windowManagementShowInLauncher,
         "windowGap": .windowGap,
@@ -49,10 +43,6 @@ enum SettingsBackupCoverage {
     static let deliberatelyExcluded: [String: String] = [
         AppSettingsKey.clipboardTextSearchEnabled.rawValue:
             "Background OCR is an opt-in processing choice on this Mac; a backup must not enable it.",
-        AppSettingsKey.palettePosition.rawValue:
-            "Machine-local geometry: every entry names a display this Mac has, and no other one.",
-        AppSettingsKey.paletteExpandedCenterDisplays.rawValue:
-            "Machine-local geometry: every entry names a display this Mac has, and no other one.",
         AppSettingsKey.autoSwitchInputSource.rawValue:
             "Names a keyboard input source installed on this Mac; another Mac may not have it.",
         AppSettingsKey.calendarEnabled.rawValue:

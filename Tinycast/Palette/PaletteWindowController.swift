@@ -16,27 +16,11 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     private(set) var isPoppedToRoot = false
     /// Resolved once per show; the top edge is the one that must not drift.
     private var anchor: CGPoint?
-    /// Live only between mouse-down and mouse-up on a drag handle; nil means a move was ours.
-    private var drag: DragSession?
-    private let dropGuides = PaletteDropGuideController()
     /// ⌘⎋: the window server claims it, so no keystroke is left for the responder chain to see.
     private lazy var commandEscapeTap = CommandEscapeTap { [weak self] in
         guard let self, self.panel?.isKeyWindow == true else { return false }
         self.core.palette.prepare(mode: .launcher)
         return true
-    }
-
-    /// The centre line and its height detents for a drag in flight.
-    private struct DragSession {
-        var home: CGPoint
-        var screenFrame: CGRect
-        var visibleFrame: CGRect
-        var displayKey: String
-        var snap: PalettePlacement.Snap
-        var verticalEntryY: CGFloat?
-        var lastRawAnchor: CGPoint
-        var lastSampleTime: TimeInterval?
-        var moved = false
     }
 
     init(core: AppCore) {
@@ -117,9 +101,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         core.clipboardStore.setTextSearchActive(false)
         // Drop the anchor, so the next summon re-resolves for the screen in use then.
         anchor = nil
-        // The guides must never outlive the panel they point at.
-        drag = nil
-        dropGuides.hide()
         // Drop the multi-MB preview bitmaps, so idle RAM returns near baseline.
         ImageThumbnail.purgePreviews()
         FilePreviewThumbnail.purgePreviews()
@@ -214,111 +195,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         }
     }
 
-    /// A drag re-anchors the session, so the next resize grows from where the user left it.
-    func windowDidMove(_ notification: Notification) {
-        guard let panel else { return }
-        let moved = CGPoint(x: panel.frame.minX, y: panel.frame.maxY)
-        guard moved != anchor else { return }
-        guard drag != nil else { anchor = moved; return }
-        let snapped = trackDrag(to: moved)
-        anchor = snapped
-        if snapped != moved {
-            panel.setFrameOrigin(CGPoint(x: snapped.x, y: snapped.y - panel.frame.height))
-        }
-    }
-
-    // MARK: - Dragging
-
-    /// A press on a drag handle passed the slop that makes it a drag; the guides follow the move.
-    func beginDrag() {
-        guard let panel, let screen = panel.screen ?? targetScreen() else { return }
-        let home = defaultAnchor(on: screen)
-        let current = CGPoint(x: panel.frame.minX, y: panel.frame.maxY)
-        let candidate = PalettePlacement.snapped(
-            current, home: home, visibleFrame: screen.visibleFrame,
-            expandedHeight: metrics.size.panelHeight,
-            within: Theme.Size.paletteSnapDistance, previous: nil, speed: 0)
-        // Mere proximity must not latch a fast drag before its first move.
-        let pixel = 1 / screen.backingScaleFactor
-        let restingSnap = PalettePlacement.Snap(
-            anchor: current,
-            centeredX: candidate.centeredX && abs(candidate.anchor.x - current.x) <= pixel,
-            height: abs(candidate.anchor.y - current.y) <= pixel ? candidate.height : nil)
-        drag = DragSession(
-            home: home, screenFrame: screen.frame, visibleFrame: screen.visibleFrame,
-            displayKey: screen.displayKey, snap: restingSnap,
-            lastRawAnchor: current, lastSampleTime: nil)
-        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
-    }
-
-    /// The home detent restores the default; other drops remember their display-relative position.
-    func endDrag() {
-        let session = drag
-        drag = nil
-        dropGuides.hide()
-        guard let session, session.moved, let anchor else { return }
-        if session.snap.centeredX && session.snap.height == .home {
-            core.settings.setPalettePosition(nil, on: session.displayKey, expandedCenter: false)
-            return
-        }
-        core.settings.setPalettePosition(
-            PalettePlacement.offset(of: anchor, on: session.visibleFrame), on: session.displayKey,
-            expandedCenter: session.snap.centeredX && session.snap.height == .expandedCenter)
-    }
-
-    /// Snap live, with height detents available only on the centre line.
-    private func trackDrag(to moved: CGPoint) -> CGPoint {
-        guard var session = drag else { return moved }
-        let now = ProcessInfo.processInfo.systemUptime
-        let travel = hypot(moved.x - session.lastRawAnchor.x, moved.y - session.lastRawAnchor.y)
-        let elapsed = session.lastSampleTime.map { now - $0 } ?? 1.0 / 60
-        let speed = travel / max(elapsed, 0.001)
-        session.lastRawAnchor = moved
-        session.lastSampleTime = now
-        if let screen = panel?.screen, screen.frame != session.screenFrame {
-            session.screenFrame = screen.frame
-            session.visibleFrame = screen.visibleFrame
-            session.displayKey = screen.displayKey
-            session.home = defaultAnchor(on: screen)
-            session.snap = PalettePlacement.Snap(anchor: moved, centeredX: false, height: nil)
-            session.verticalEntryY = nil
-        }
-        let snap = PalettePlacement.snapped(
-            moved, home: session.home, visibleFrame: session.visibleFrame,
-            expandedHeight: metrics.size.panelHeight, within: Theme.Size.paletteSnapDistance,
-            previous: session.snap, speed: speed)
-        let enteredVertical = snap.centeredX && !session.snap.centeredX
-        let enteredHome = snap.height == .home && session.snap.height != .home
-        if enteredVertical { session.verticalEntryY = moved.y }
-        if let verticalEntryY = session.verticalEntryY,
-            !snap.centeredX || abs(moved.y - verticalEntryY) > Theme.Size.dropGuideCombinedFlashTolerance
-        {
-            session.verticalEntryY = nil
-        }
-        if enteredVertical || (snap.height != nil && snap.height != session.snap.height) {
-            NSHapticFeedbackManager.defaultPerformer.perform(
-                .alignment, performanceTime: .drawCompleted)
-        }
-        if session.moved {
-            dropGuides.move(
-                home: session.home, screenFrame: session.screenFrame, dragged: snap.anchor)
-        } else {
-            dropGuides.show(
-                home: session.home, width: metrics.size.panelWidth,
-                screenFrame: session.screenFrame, dragged: snap.anchor)
-        }
-        if enteredHome {
-            dropGuides.flash(session.verticalEntryY == nil ? .horizontal : .both)
-            session.verticalEntryY = nil
-        } else if enteredVertical {
-            dropGuides.flash(.vertical)
-        }
-        session.snap = snap
-        session.moved = true
-        drag = session
-        return snap.anchor
-    }
-
     // MARK: - Private
 
     private func ensurePanel() -> PalettePanel {
@@ -379,13 +255,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         positionPanel(panel, collapsed: collapsed)
     }
 
-    /// A new width invalidates the placement the cached anchor encoded, so re-resolve it.
-    func applyInterfaceSize() {
-        guard let panel else { return }
-        anchor = nil
-        positionPanel(panel, collapsed: core.paletteCoordinator.paletteIsCollapsed)
-    }
-
     /// Size to height and place against the session anchor, so the list grows downward.
     private func positionPanel(_ panel: NSPanel, collapsed: Bool) {
         guard let anchor = resolveAnchor() else { return }
@@ -396,55 +265,16 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         panel.setFrame(frame, display: true)
     }
 
-    /// The display to anchor to; never `NSScreen.main`, which follows the focused window.
-    private func targetScreen() -> NSScreen? {
-        core.settings.openOnCursorScreen ? NSScreen.underCursor : NSScreen.primary
-    }
-
-    /// Cached until hide, so both placements read one `visibleFrame`; a drag outranks the setting.
+    /// Cached until hide, on the cursor's display — never `NSScreen.main`, which follows focus.
     private func resolveAnchor() -> CGPoint? {
         if let anchor { return anchor }
-        let resolved = targetScreen().flatMap { restoredAnchor(on: $0) ?? defaultAnchor(on: $0) }
-        anchor = resolved
-        return resolved
+        anchor = NSScreen.underCursor.map {
+            PalettePlacement.defaultAnchor(
+                in: $0.visibleFrame, width: metrics.size.panelWidth,
+                topMarginFraction: Theme.Size.paletteTopMarginFraction)
+        }
+        return anchor
     }
 
-    /// This display's own corner, unless too little of the bar would stay grabbable.
-    private func restoredAnchor(on screen: NSScreen) -> CGPoint? {
-        guard let offset = core.settings.palettePosition(on: screen.displayKey) else { return nil }
-        let stored = PalettePlacement.anchor(for: offset, on: screen.visibleFrame)
-        let position =
-            core.settings.paletteExpandedCenterDisplays.contains(screen.displayKey)
-            ? CGPoint(
-                x: defaultAnchor(on: screen).x,
-                y: PalettePlacement.expandedCenterY(
-                    in: screen.visibleFrame, expandedHeight: metrics.size.panelHeight))
-            : stored
-        return PalettePlacement.restored(
-            position,
-            graspable: CGSize(width: metrics.size.panelWidth, height: metrics.size.compactHeight),
-            visibleFrame: screen.visibleFrame,
-            minimumVisible: Theme.Size.paletteMinimumVisible)
-    }
-
-    /// The untouched placement on one display; the summon path and the drop guides share it.
-    private func defaultAnchor(on screen: NSScreen) -> CGPoint {
-        PalettePlacement.defaultAnchor(
-            in: screen.visibleFrame, width: metrics.size.panelWidth,
-            topMarginFraction: Theme.Size.paletteTopMarginFraction)
-    }
-
-    private var metrics: InterfaceMetrics { core.settings.interfaceSize.metrics }
-}
-
-extension NSScreen {
-    /// Survives a replug; the display ID is a session-only fallback.
-    fileprivate var displayKey: String {
-        let number = deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
-        guard let id = number?.uint32Value else { return "primary" }
-        guard let uuid = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue(),
-            let string = CFUUIDCreateString(nil, uuid) as String?
-        else { return String(id) }
-        return string.lowercased()
-    }
+    private let metrics = InterfaceMetrics.standard
 }

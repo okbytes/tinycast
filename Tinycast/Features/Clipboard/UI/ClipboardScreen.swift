@@ -6,7 +6,6 @@ struct ClipboardScreen: PaletteScreen {
     let core: AppCore
     let vm: PaletteState
 
-    private var metrics: InterfaceMetrics { core.settings.interfaceSize.metrics }
     let openActions: () -> Void
     let scrollToFollow: () -> Void
 
@@ -146,7 +145,7 @@ struct ClipboardScreen: PaletteScreen {
                     onDragPayload: { core.clipboardCoordinator.dragPayload(for: $0) },
                     onDropped: { core.paletteCoordinator.dragLanded() }
                 )
-                .frame(width: metrics.size.clipboardListWidth)
+                .frame(width: InterfaceMetrics.standard.size.clipboardListWidth)
                 Rectangle()
                     .fill(Theme.Colors.separator)
                     .frame(width: 1)

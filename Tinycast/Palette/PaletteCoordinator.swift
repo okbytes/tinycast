@@ -96,10 +96,9 @@ final class PaletteCoordinator {
         windowController.popToRootNow()
     }
 
-    /// True for the slim compact bar: compact on, launcher root, empty, not overflowed.
+    /// True for the slim compact bar: launcher root, empty, not overflowed.
     var paletteIsCollapsed: Bool {
-        settings.compactMode
-            && !palette.forceExpanded
+        !palette.forceExpanded
             && palette.mode == .launcher
             && palette.query.trimmingCharacters(in: .whitespaces).isEmpty
     }
@@ -112,16 +111,5 @@ final class PaletteCoordinator {
     /// Resize the panel to the current collapsed state, when it flips while open.
     func syncPaletteSize() {
         windowController.applyCollapsed(paletteIsCollapsed)
-    }
-
-    // MARK: - Dragging
-
-    /// Bracket one drag gesture; the handle tracks it from mouse-down to mouse-up itself.
-    func beginPaletteDrag() {
-        windowController.beginDrag()
-    }
-
-    func endPaletteDrag() {
-        windowController.endDrag()
     }
 }

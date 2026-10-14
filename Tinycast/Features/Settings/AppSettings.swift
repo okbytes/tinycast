@@ -173,46 +173,9 @@ final class AppSettings {
         didSet { defaults.set(escapeKeyBehavior.rawValue, forKey: Key.escapeKeyBehavior.rawValue) }
     }
 
-    /// Follow macOS, or pin Tinycast to one appearance. Applied by `AppCore.applyAppearance()`.
-    var appearance: AppAppearance {
-        didSet { defaults.set(appearance.rawValue, forKey: Key.appearance.rawValue) }
-    }
-
     /// Which separators the calculator reads and writes; `.system` follows Language & Region.
     var calcNumberStyle: CalcNumberStyle {
         didSet { defaults.set(calcNumberStyle.rawValue, forKey: Key.calcNumberStyle.rawValue) }
-    }
-
-    /// Scales the palette and its floating siblings only. Read through `InterfaceSize.metrics`.
-    var interfaceSize: InterfaceSize {
-        didSet {
-            defaults.set(interfaceSize.rawValue, forKey: Key.interfaceSize.rawValue)
-            let shift = Double(
-                (oldValue.metrics.size.panelWidth - interfaceSize.metrics.size.panelWidth) / 2)
-            if shift != 0 {
-                palettePositions = palettePositions.mapValues { offset in
-                    offset.count == 2 ? [offset[0] + shift, offset[1]] : offset
-                }
-            }
-        }
-    }
-
-    /// Summon the launcher as a slim search bar that expands into the full list on typing.
-    var compactMode: Bool {
-        didSet { defaults.set(compactMode, forKey: Key.compactMode.rawValue) }
-    }
-
-    /// Pin favorite app icons to the right of the compact search bar (⌘1–⌘5 to launch).
-    var showFavoritesInCompactMode: Bool {
-        didSet {
-            defaults.set(
-                showFavoritesInCompactMode, forKey: Key.showFavoritesInCompactMode.rawValue)
-        }
-    }
-
-    /// Summon the palette on the display under the pointer instead of the one holding the menu bar.
-    var openOnCursorScreen: Bool {
-        didSet { defaults.set(openOnCursorScreen, forKey: Key.openOnCursorScreen.rawValue) }
     }
 
     var autoSwitchInputSourceID: String? {
@@ -223,41 +186,6 @@ final class AppSettings {
             }
             defaults.set(autoSwitchInputSourceID, forKey: Key.autoSwitchInputSource.rawValue)
         }
-    }
-
-    /// Lets the panel be dragged by its top edge; off by default, so most launches never grab it.
-    var paletteDraggable: Bool {
-        didSet { defaults.set(paletteDraggable, forKey: Key.paletteDraggable.rawValue) }
-    }
-
-    /// Where a drag left the panel's top-left, per display and relative to it.
-    var palettePositions: [String: [Double]] {
-        didSet { defaults.set(palettePositions, forKey: Key.palettePosition.rawValue) }
-    }
-
-    var paletteExpandedCenterDisplays: Set<String> {
-        didSet {
-            defaults.set(
-                Array(paletteExpandedCenterDisplays),
-                forKey: Key.paletteExpandedCenterDisplays.rawValue)
-        }
-    }
-
-    func palettePosition(on display: String) -> CGPoint? {
-        palettePositions[display].flatMap { $0.count == 2 ? CGPoint(x: $0[0], y: $0[1]) : nil }
-    }
-
-    func setPalettePosition(_ offset: CGPoint?, on display: String, expandedCenter: Bool) {
-        if offset != nil && expandedCenter {
-            paletteExpandedCenterDisplays.insert(display)
-        } else {
-            paletteExpandedCenterDisplays.remove(display)
-        }
-        guard let offset else {
-            palettePositions.removeValue(forKey: display)
-            return
-        }
-        palettePositions[display] = [offset.x, offset.y]
     }
 
     /// Doubles as calendar-access consent, so only `CalendarCoordinator` may write it.
@@ -379,19 +307,9 @@ final class AppSettings {
         escapeKeyBehavior =
             defaults.string(forKey: Key.escapeKeyBehavior.rawValue).flatMap(EscapeKeyBehavior.init)
             ?? .navigateBackOrClose
-        appearance =
-            defaults.string(forKey: Key.appearance.rawValue).flatMap(AppAppearance.init) ?? .system
         calcNumberStyle =
             defaults.string(forKey: Key.calcNumberStyle.rawValue).flatMap(CalcNumberStyle.init)
             ?? .system
-        interfaceSize =
-            defaults.string(forKey: Key.interfaceSize.rawValue).flatMap(InterfaceSize.init)
-            ?? .standard
-        compactMode = defaults.bool(forKey: Key.compactMode.rawValue)
-        // Defaults to true, so absence must be distinguished from a stored `false`.
-        showFavoritesInCompactMode =
-            defaults.object(forKey: Key.showFavoritesInCompactMode.rawValue) == nil
-            || defaults.bool(forKey: Key.showFavoritesInCompactMode.rawValue)
         // Unset seeds the defaults; a stored empty array is a deliberately cleared list.
         searchScopes =
             defaults.stringArray(forKey: Key.searchScopes.rawValue) ?? SearchScopes.defaults
@@ -401,16 +319,7 @@ final class AppSettings {
         rootSearchSensitivity =
             defaults.string(forKey: Key.rootSearchSensitivity.rawValue)
             .flatMap(SearchSensitivity.init) ?? .default
-        openOnCursorScreen =
-            defaults.object(forKey: Key.openOnCursorScreen.rawValue) == nil
-            || defaults.bool(forKey: Key.openOnCursorScreen.rawValue)
         autoSwitchInputSourceID = defaults.string(forKey: Key.autoSwitchInputSource.rawValue)
-        paletteDraggable = defaults.bool(forKey: Key.paletteDraggable.rawValue)
-        palettePositions =
-            defaults.dictionary(forKey: Key.palettePosition.rawValue)
-            as? [String: [Double]] ?? [:]
-        paletteExpandedCenterDisplays =
-            Set(defaults.stringArray(forKey: Key.paletteExpandedCenterDisplays.rawValue) ?? [])
         // Opt-in: until it is asked for, EventKit is never loaded.
         calendarEnabled = defaults.bool(forKey: Key.calendarEnabled.rawValue)
         // No case is zero, so an unset key falls through to the default.

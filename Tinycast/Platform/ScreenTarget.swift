@@ -7,9 +7,4 @@ extension NSScreen {
         // NSMouseInRect, not `contains`: the topmost row otherwise reads as the display above.
         return screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? main
     }
-
-    /// The menu-bar display: the one at the global origin, which `NSScreen.main` is not.
-    static var primary: NSScreen? {
-        screens.first { $0.frame.origin == .zero } ?? screens.first
-    }
 }

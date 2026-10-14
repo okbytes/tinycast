@@ -5,7 +5,7 @@ import AppKit
 final class SystemActionCoordinator {
     private let paletteCoordinator: PaletteCoordinator
     private var isTogglingMicrophone = false
-    @ObservationIgnored private lazy var volumeHUD = VolumeHUDController(settings: core.settings)
+    @ObservationIgnored private lazy var volumeHUD = VolumeHUDController()
     /// Dialog and message-HUD presentation only — never for state this type owns.
     private unowned let core: AppCore
 

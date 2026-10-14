@@ -171,8 +171,6 @@ struct RootPaletteView: View {
                             pillLabel: screen.primaryActionTitle, showActionGroup: showActionGroup)
                     }
                 }
-                // The panel has no title bar, so this thin top margin is the only place left to grab it.
-                .overlay(alignment: .top) { topDragStrip }
                 // The menu lives in its own window; this only reports the one to hang it from.
                 .background(WindowReader { hostWindow = $0 })
                 // The window's frame is the size source, so the glass and clip stay matched.
@@ -419,22 +417,9 @@ struct RootPaletteView: View {
             }
     }
 
-    /// A thin strip along the top edge for grabbing the window; the Appearance setting gates it.
-    private var topDragStrip: some View {
-        Color.clear
-            .frame(height: metrics.size.headerPadding)
-            .windowDraggable(settings.paletteDraggable, onBegan: beginDrag, onEnded: endDrag)
-    }
-
-    /// A header sliver nothing occupies — safe to drag; the search field handles its own.
     private func headerGutter(width: CGFloat) -> some View {
-        Color.clear
-            .frame(width: width)
-            .windowDraggable(settings.paletteDraggable, onBegan: beginDrag, onEnded: endDrag)
+        Color.clear.frame(width: width)
     }
-
-    private func beginDrag() { core.paletteCoordinator.beginPaletteDrag() }
-    private func endDrag() { core.paletteCoordinator.endPaletteDrag() }
 
     private var header: some View {
         HStack(alignment: .center, spacing: 0) {
@@ -449,7 +434,6 @@ struct RootPaletteView: View {
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(.secondary)
                     .frame(width: metrics.size.headerIconSlot)
-                    .windowDraggable(settings.paletteDraggable, onBegan: beginDrag, onEnded: endDrag)
             }
             // slot + xl equals a row's icon + lg, so the query starts where the row titles do.
             headerGutter(width: metrics.spacing.xl)
@@ -471,21 +455,6 @@ struct RootPaletteView: View {
                     help: "Filter by category  ⌘P",
                     action: toggleEmojiCategory)
             }
-            // Compact pins favorites beside the field; expanded shows them as rows.
-            if isCollapsed, settings.showFavoritesInCompactMode,
-                let launcher = screen as? LauncherScreen
-            {
-                let favorites = launcher.compactFavorites
-                if !favorites.isEmpty {
-                    headerGutter(width: metrics.spacing.md)
-                    CompactFavoritesRow(
-                        favorites: favorites,
-                        showsOverflow: launcher.hasUnshownFavorites,
-                        onLaunch: { core.launcherCoordinator.launch($0) },
-                        onOverflow: { core.paletteCoordinator.expandFromCompact() }
-                    )
-                }
-            }
             headerGutter(width: metrics.spacing.md * 2)
         }
         // Identical metrics in both states, so typing can't move the search bar.
@@ -498,7 +467,6 @@ struct RootPaletteView: View {
         vm.mode.placeholder
     }
 
-    /// The one search field — empty it's a drag handle, and any text hands every press to editing.
     private var searchField: some View {
         @Bindable var vm = vm
         return TextField("", text: $vm.query)
@@ -506,7 +474,6 @@ struct RootPaletteView: View {
             .font(metrics.typography.searchField)
             .tint(Theme.Colors.textPrimary)
             .focused($searchFocused)
-            // Fills the row's height, so there's no gap above it for topDragStrip to meet.
             .frame(maxHeight: .infinity)
             .background(alignment: .leading) {
                 // An IME's marked text leaves `query` empty, so the placeholder would overlap it.
@@ -521,17 +488,6 @@ struct RootPaletteView: View {
             }
             // The prompt used to carry this; without it the field would be unlabelled.
             .accessibilityLabel(Text(searchPrompt))
-            // Never branches on query — that tore down the field editor mid-keystroke once.
-            .overlay {
-                if settings.paletteDraggable {
-                    EmptyFieldDragHandle(
-                        // Marked text leaves `query` empty, and composing it is still editing.
-                        isEmpty: vm.query.isEmpty && !vm.isComposing,
-                        onBegan: beginDrag, onEnded: endDrag,
-                        // A press that never moved was aimed at the field the handle covers.
-                        onClick: { searchFocused = true })
-                }
-            }
             // The panel resolves the pointer against this rather than hit-testing for the field.
             .onGeometryChange(for: CGRect.self) {
                 $0.frame(in: .global)

@@ -58,16 +58,6 @@ enum Theme {
         static let headerPadding: CGFloat = 10
         /// Collapsed compact bar: the search row centered in symmetric `headerPadding` slack.
         static let compactHeight: CGFloat = headerHeight + headerPadding * 2
-        /// How close a dragged palette must be to the invisible vertical centre line.
-        static let paletteSnapDistance: CGFloat = 8
-        /// A restored position needs this much bar on a display to still be grabbable.
-        static let paletteMinimumVisible: CGFloat = 44
-        static let dropGuideDash: CGFloat = 8
-        static let dropGuideGap: CGFloat = 12
-        static let dropGuideWidth: CGFloat = 2
-        static let dropGuideCombinedFlashTolerance: CGFloat = 6
-        static let dropGuideFadeThreshold: CGFloat = 36
-        static let dropGuideFadeDistance: CGFloat = 180
         static let bottomBarHeight: CGFloat = 52
         /// A `BarButton`'s hover capsule, shared by the footer group and the header's filter.
         static let barButtonHeight: CGFloat = 28
@@ -171,7 +161,6 @@ enum Theme {
         static let dialogExit: TimeInterval = 0.10
         /// Fade-in/out for a hover `Tooltip`, after a wait only a deliberate hover outlasts.
         static let tooltip: TimeInterval = 0.15
-        static let dropGuide: TimeInterval = 0.24
         static let tooltipDelay: TimeInterval = 0.4
         /// A control lighting up under the pointer; short enough to feel like a response.
         static let hover: TimeInterval = 0.12
@@ -284,9 +273,6 @@ enum Theme {
         /// The two squares of a checkerboard, behind a colour with alpha to show.
         static let checkerLight = Color(nsColor: .srgbInk(1, alpha: 0.22))
         static let checkerDark = Color(nsColor: .srgbInk(0, alpha: 0.22))
-        /// The palette's drop guides while dragging, and once a release would snap it home.
-        static let dropGuide = ramp(dark: 0.35, light: 0.35)
-        static let dropGuideArmed = Color.blue
         /// A dialog's standard default action; destructive defaults keep their semantic red.
         static let primaryAction = Color.blue
         /// Destructive tint: a destructive label, and a `.danger` dialog's glyph.
