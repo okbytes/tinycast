@@ -261,8 +261,7 @@ category's remaining entries follow under their section headers in usage order. 
 downstream. The result limit bounds ordinary matches, while whole categories remain uncapped, as they
 are for an empty query.
 
-Category queries show headers without pinning favorites or handing out their ⌘-digit slots. Opening
-a row records its visit; the query is learned only when it did not match that row's category, so
+Category queries show headers without a Suggestions section. Opening a row records its visit; the query is learned only when it did not match that row's category, so
 category browsing cannot teach every window command the same search term.
 
 ### Contextual commands
@@ -279,9 +278,8 @@ re-written so `github.com` and `https://…` mean the same thing here as in a dr
 entry is an ordinary `.command`, so `VisibilityStore` still gates it — Commands off hides the row —
 and its `url` carries the destination instead of the catalog's `tinycast://` placeholder. Nothing
 learns from it and nothing pins it: `LauncherCoordinator.launch` records no visit for a contextual
-row, since a pasted URL is not a term any row should rank under; and ⇧⌘F and ⇧⌘H are both refused,
-because a favorite — or a hidden-item key — the empty query can never resolve is dead state a backup
-would then carry.
+row, since a pasted URL is not a term any row should rank under; and ⇧⌘H is refused, because a
+hidden-item key the empty query can never resolve is dead state a backup would then carry.
 
 The row prints `AppEntry.subtitle` beside its name — the one field for an entry whose name alone
 can't say what it acts on.
@@ -289,7 +287,7 @@ can't say what it acts on.
 ### User aliases
 
 `AliasStore` (`Launcher/Service/`) keeps one user-chosen alias per entry, keyed by `preferenceKey`
-like favorites and learned ranking, so every entry kind — apps, commands, Apple Shortcuts —
+like learned ranking, so every entry kind — apps, commands, Apple Shortcuts —
 can carry one. An alias is deliberate in a way no vendor field is, so an exact hit is rule 1 and a
 prefix hit rule 5. Only a hit **from its start** earns those rules; anywhere else the alias ranks as
 an alternate title by score, so `dark` finds an alias `toggle light / dark`, while `term` inside
@@ -360,10 +358,10 @@ only while the score is above 1 and the entry was opened in the last 17 days, wh
 stale habit stop overriding the alignment.
 
 Every pick through `LauncherCoordinator.launch` is a visit, with the query as it was typed: a list
-click, a result, a favorite by ⌘-digit or from the compact bar, the ⌘K Open row. A global shortcut
+click, a result, the ⌘K Open row. A global shortcut
 is not a visit, and neither is a query-driven row. A category listing records the visit
 and not the word. `rank` reads the store once per pass through `snapshot()` — one clock read, not one
-per candidate — and the memos key on the ranking, alias, visibility, favorites and shortcut revisions
+per candidate — and the memos key on the ranking, alias, visibility and shortcut revisions
 and the sensitivity, so a launch or a reset invalidates them.
 
 Learned data stays on device in `launcher-ranking.json`; a result that has learned ranking offers a
@@ -371,15 +369,14 @@ per-item reset in its Actions menu, and users can clear all learned ranking in G
 
 ## The empty list
 
-Favorites, then Suggestions, then one section per kind. Each kind section is sorted by the tiebreak,
+Suggestions, then one section per kind. Each kind section is sorted by the tiebreak,
 so what the user opens comes first and never-used entries still read alphabetically below it. The
 sort runs within each contiguous kind run of the publication order, so the sectioned view stays 1:1
 with the flat selection.
 
 ### Suggestions
 
-`LauncherSuggestions.select` chooses at most five from every visible entry that is not a favorite or
-Tinycast itself:
+`LauncherSuggestions.select` chooses at most five from every visible entry except Tinycast itself:
 
 1. up to two apps installed in the last five minutes and never opened —
    `AppEntry.installedAt` is the bundle's added-to-directory date;
@@ -390,7 +387,7 @@ Tinycast itself:
    command whose feature is off is absent from the index, so it is never offered.
 
 A suggested entry leaves its kind section below, so no row appears twice. `AppIndex.Results` carries
-`favoriteCount`, `suggestionCount` and, for a typed query, `matchCount`, which
+`suggestionCount` and, for a typed query, `matchCount`, which
 `LauncherScreen` hands to `LauncherList` for its leading headers. **Show suggestions** in Settings › General › Search turns the section
 off (`launcherShowsSuggestions`, carried by a settings backup). `HotKeyManager.revision` is part of
 `AppIndex`'s results key, because binding a shortcut takes an entry out of the section.
@@ -409,7 +406,7 @@ System actions occupy their own launcher section and their own Settings pane. Th
 order is applications, system actions, window commands, then
 built-in commands; the sectioned view filters in that same order so the visible rows remain
 identical to the flat selection index.
-Search, favorites, visibility and learned ranking work through the normal `AppEntry` path, and every
+Search, visibility and learned ranking work through the normal `AppEntry` path, and every
 action is bindable to a global shortcut from Settings › System Actions
 (see [hotkeys.md](hotkeys.md)).
 
@@ -531,66 +528,13 @@ contents alone, so a path-only key served the bitmap decoded first for the rest 
 because it is part of `iconKey` the re-scan on the next palette open re-decodes exactly the apps
 whose icon moved.
 
-## Favorites
-
-`FavoritesStore.keys` is the order — the array *is* the ranking, and it only shows while the query is
-empty, where `AppIndex.orderedResults` pins it as a prefix of the results and counts it in
-`Results.favoriteCount`. `LauncherScreen` reads that count once in `init`, and the list, the reorder
-rows and the chord guards all read that one number, so the visible section and what a move acts on
-can't disagree.
-
-The ⌘K menu carries **Add / Remove from Favorites** (⇧⌘F) plus **Move Favorite Up / Down** (⌥⌘↑ /
-⌥⌘↓). A move row is only built in a direction that exists, so the first favorite has no Up row and
-the last has no Down.
-
-**Every one of those rows runs the same call its chord does** — the menu is handed an
-`AppActionsMenu.FavoriteActions` built by `LauncherScreen` and never touches `FavoritesStore` itself.
-A row that mutates the store directly looks identical on screen and then behaves differently from its
-chord, because the store knows nothing about where the highlight should land.
-
-`FavoritesStore.exchange` swaps two stored positions rather than removing and re-inserting. `keys`
-retains entries that `VisibilityStore` hides or that aren't currently indexed — `ordered(_:)` drops
-them with `compactMap` and never prunes them, which is how a favorite survives an unmounted volume —
-so exchanging the two *visible* keys leaves every such key on its own slot.
-
-Both actions re-ask `orderedResults` afterwards and restate `vm.selection` against it; the mutation
-already invalidated the memo, so that call warms the exact key the next render reads. Where the
-highlight lands differs on purpose: a **move** follows the entry, since the point of the action is
-where that entry now sits, while a **toggle** stays with the section rather than chasing an entry
-across the list — the top of Favorites on add, the neighbour above the one that left on remove.
-
-### ⌘-digit slots
-
-`FavoriteSlots` (`Launcher/Model/FavoriteSlots.swift`) defines ten local palette slots: **⌘1…⌘9 then
-⌘0**. They match the physical number row, not the character produced by the current keyboard layout,
-so the same positions work on QWERTY and AZERTY. The same slots address pinned Clipboard entries in
-that screen; the eleventh favorite is still listed and reorderable, and simply has no slot.
-
-Both palette sizes serve the chords from the same prefix, because `paletteIsCollapsed` already
-requires an empty query: **compact implies empty implies `favoriteCount` is the pinned prefix**. That
-is why `LauncherScreen.pinnedFavorites` feeds the strip, the chords and the numbered rows alike,
-rather than the compact bar re-deriving an empty-query order of its own. In compact the strip draws
-the first five; ⌘6–⌘0 still launch favorites it has no room for, and the "…" is a button after them
-rather than a slot, so no favorite loses its digit to the overflow.
-
-Holding ⌘ swaps each numbered row's kind label for its chord. `PalettePanel` publishes the modifier
-into `PaletteState.commandHeld` from `.flagsChanged` and clears it in `resignKey` — not in `prepare`,
-which a re-show that preserves state skips entirely. The flag flips **400 ms after** the press, not
-on it: every ⌘ chord in the palette starts as a ⌘ press, so revealing on the down edge flashed the
-numbering under ⌘↵ and ⌘K. `noteCommandHeld` schedules the reveal and any release cancels it, so a
-chord's own tap never outlives its keystroke while a deliberate hold still lights every row. **`AppRow` observes that flag itself**: reading
-it any higher would attach it to `RootPaletteView`'s body and rebuild the whole palette on every ⌘
-press, where a row-level read re-runs only the handful of rows the `LazyVStack` has realized. The
-digit each row shows is carried on its `Row` case from the section build, so no row searches for its
-own position.
-
 ## Hiding one result
 
 **Hide from Search**, on a result's ⌘K menu and on **⇧⌘H**, writes exactly what the checkbox in
 Settings writes — `VisibilityStore.setItemVisible(false,…)` against the entry's `preferenceKey` — so
 the row leaves
 every search until that checkbox is ticked again. Nothing else moves: the app stays installed, its
-favorite, alias and learned ranking survive the round trip, and its shortcut keeps firing, because
+alias and learned ranking survive the round trip, and its shortcut keeps firing, because
 `allowsHotKey` gates by category and never by item.
 
 The row is offered only where Settings can undo it, and `KindDescriptor.canHideFromSearch` is that
@@ -598,12 +542,12 @@ rule — per kind, and a new `Kind` case has to answer it to compile. Applicatio
 System Actions and Window Commands each
 draw a per-row checkbox in their pane, so they carry it: a hide nothing in Settings can visibly undo
 is a trap, not a shortcut.
-`AppActionsMenu` adds the query-driven guard the favorites row already uses: a typed URL lives only
-for its query and has no preference to write.
+`AppActionsMenu` adds a query-driven guard: a typed URL lives only for its query and has no
+preference to write.
 
 Hiding shrinks the list under the action that ran it, so `LauncherScreen.hideFromSearch(at:)`
-re-reads the order and drops the highlight into the index the row vacated, clamped to what is left —
-the move `selectFavorite` already makes. The palette stays open on the same query, with focus
+re-reads the order and drops the highlight into the index the row vacated, clamped to what is left.
+The palette stays open on the same query, with focus
 untouched. One function answers both the menu row and the chord, and it re-tests eligibility rather
 than trusting the caller, so ⇧⌘H falls through to whatever else wants the press on a row that offers
 no such menu item.

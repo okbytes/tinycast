@@ -5,7 +5,6 @@ struct SettingsBackup: Codable {
 
     var settings: SettingsData?
     var hotkeys: HotkeyBackup?
-    var favoriteApps: [String]?
     var hiddenLauncherItems: [String]?
     var hiddenLauncherKinds: [String]?
     var launcherAliases: [String: String]?
@@ -62,7 +61,6 @@ struct SettingsBackup: Codable {
     struct ApplySummary {
         var settingsFields = 0
         var hotkeys = 0
-        var favorites = 0
         var hiddenItems = 0
         var aliases = 0
         var pinnedEmoji = 0
@@ -128,7 +126,6 @@ extension SettingsBackup {
             })
         backup.hotkeys = hotkeys
 
-        backup.favoriteApps = core.favorites.keys
         backup.hiddenLauncherItems = Array(core.visibility.hiddenItemKeys)
         backup.hiddenLauncherKinds = Array(core.visibility.disabledKinds)
         backup.launcherAliases = core.aliases.aliases
@@ -141,10 +138,6 @@ extension SettingsBackup {
         var summary = ApplySummary()
         if let s = settings { summary.settingsFields = applySettings(s, to: core) }
         if let hotkeys { summary.hotkeys = applyHotkeys(hotkeys, to: core) }
-        if let favoriteApps {
-            core.favorites.replace(keys: favoriteApps)
-            summary.favorites = favoriteApps.count
-        }
         if hiddenLauncherItems != nil || hiddenLauncherKinds != nil {
             let items = hiddenLauncherItems ?? Array(core.visibility.hiddenItemKeys)
             let kinds = hiddenLauncherKinds ?? Array(core.visibility.disabledKinds)

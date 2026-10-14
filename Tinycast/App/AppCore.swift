@@ -22,7 +22,6 @@ final class AppCore {
     @ObservationIgnored private var launcherSettingsFile: LauncherSettingsFile?
     @ObservationIgnored private var appearanceObservation: NSKeyValueObservation?
     @ObservationIgnored private let iconStyle = IconStyleMonitor()
-    let favorites = FavoritesStore()
     let visibility = VisibilityStore()
     let aliases = AliasStore()
     let calcHistory = CalculatorHistoryStore()
@@ -40,8 +39,7 @@ final class AppCore {
     let uninstall = UninstallSession()
 
     @ObservationIgnored private(set) lazy var paletteCoordinator = PaletteCoordinator(
-        palette: palette, settings: settings, appIndex: appIndex,
-        windowController: windowController)
+        palette: palette, appIndex: appIndex, windowController: windowController)
     /// Its own window and lifecycle: neither coordinator shows or closes the other's surface.
     @ObservationIgnored private(set) lazy var settingsCoordinator = SettingsCoordinator(core: self)
     @ObservationIgnored private(set) lazy var onboardingCoordinator = OnboardingCoordinator(
@@ -50,16 +48,16 @@ final class AppCore {
         paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var uninstallCoordinator = UninstallCoordinator(
         session: uninstall, palette: palette, paletteCoordinator: paletteCoordinator,
-        appIndex: appIndex, runningApps: runningApps, hotKeys: hotKeys, favorites: favorites,
-        visibility: visibility, ranking: launcherRanking, aliases: aliases, core: self)
+        appIndex: appIndex, runningApps: runningApps, hotKeys: hotKeys, visibility: visibility,
+        ranking: launcherRanking, aliases: aliases, core: self)
     @ObservationIgnored private(set) lazy var windowCommandCoordinator = WindowCommandCoordinator(
         settings: settings, paletteCoordinator: paletteCoordinator, windowMover: windowMover)
     @ObservationIgnored private(set) lazy var windowShortcutPresetCoordinator =
         WindowShortcutPresetCoordinator(hotKeys: hotKeys, core: self)
     @ObservationIgnored private(set) lazy var appleShortcutCoordinator = AppleShortcutCoordinator(
-        settings: settings, appIndex: appIndex, hotKeys: hotKeys, favorites: favorites,
-        visibility: visibility, ranking: launcherRanking, aliases: aliases,
-        paletteCoordinator: paletteCoordinator, core: self)
+        settings: settings, appIndex: appIndex, hotKeys: hotKeys, visibility: visibility,
+        ranking: launcherRanking, aliases: aliases, paletteCoordinator: paletteCoordinator,
+        core: self)
 
     @ObservationIgnored private(set) lazy var launcherCoordinator = LauncherCoordinator(
         ranking: launcherRanking, windowController: windowController,

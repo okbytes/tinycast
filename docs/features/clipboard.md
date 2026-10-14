@@ -361,9 +361,19 @@ Paste and Keep Window Open (⌥↵) does not promote any entry. The rows hold st
 selection, so ↓ then ⌥↵ pastes a run of entries in order. `Paster.write` therefore only writes the
 pasteboard; `paste` and `copy` promote after it, and `pasteInPlace` does not.
 
-The ten palette slots shared with launcher favorites address this visible Pinned block too. A slot
-uses the current query and type filter, so its first entry is the first visible pin; a missing slot is
-a no-op. They are fixed to the physical number row, with ⌘1…⌘9 then ⌘0 as their labels.
+`PinSlots` (`Clipboard/Model/PinSlots.swift`) gives the visible Pinned block ten palette slots:
+**⌘1…⌘9 then ⌘0**. A slot uses the current query and type filter, so its first entry is the first
+visible pin; a missing slot is a no-op, and an eleventh pin is listed but has no chord. They match
+the physical number row, not the character the keyboard layout produces, so the same positions work
+on QWERTY and AZERTY.
+
+Holding ⌘ swaps each numbered pin's trailing label for its chord. `PalettePanel` publishes the
+modifier into `PaletteState.commandHeld` from `.flagsChanged` and clears it in `resignKey` — not in
+`prepare`, which a re-show that preserves state skips entirely. The flag flips **400 ms after** the
+press, not on it: every ⌘ chord in the palette starts as a ⌘ press, so revealing on the down edge
+flashed the numbering under ⌘↵ and ⌘K. `noteCommandHeld` schedules the reveal and any release
+cancels it. **The row observes that flag itself**: reading it any higher would rebuild the whole
+palette on every ⌘ press, where a row-level read re-runs only the rows the `LazyVStack` has realized.
 
 `load` reads every pinned row plus the newest 1000 unpinned ones as two indexed branches over a
 partial index on `pinned_at` (`Tests/clipboard-test.swift` covers the shape). The single

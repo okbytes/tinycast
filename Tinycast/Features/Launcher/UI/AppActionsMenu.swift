@@ -3,59 +3,26 @@ import SwiftUI
 /// Actions menu for a launcher app, from right-click or the Actions pill.
 @MainActor
 enum AppActionsMenu {
-    /// Resolved by the screen that owns the visible order; every row runs its chord's call.
-    @MainActor
-    struct FavoriteActions {
-        let isFavorite: Bool
-        let canMoveUp: Bool
-        let canMoveDown: Bool
-        let toggle: () -> Void
-        let move: (Int) -> Void
-    }
-
     static func content(
         app: AppEntry, searchQuery: String, core: AppCore, running: Bool,
-        favorites: FavoriteActions, onResetRanking: @escaping () -> Void,
-        onHideFromSearch: @escaping () -> Void
+        onResetRanking: @escaping () -> Void, onHideFromSearch: @escaping () -> Void
     ) -> PopoverMenuContent {
         var items = leadingItems(app: app, searchQuery: searchQuery, core: core)
-        // A query-driven row lives only for its query, so no preference could outlive it.
-        let isPersistent = !CommandCatalog.isQueryDriven(app)
-        if isPersistent {
-            items.append(
-                PopoverMenuItem(
-                    title: favorites.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                    systemImage: favorites.isFavorite ? "star.slash" : "star", startsSection: true,
-                    shortcut: "⇧⌘F", action: favorites.toggle))
-        }
-        if favorites.canMoveUp {
-            items.append(
-                PopoverMenuItem(
-                    title: "Move Favorite Up", systemImage: "arrow.up", shortcut: "⌥⌘↑"
-                ) {
-                    favorites.move(-1)
-                })
-        }
-        if favorites.canMoveDown {
-            items.append(
-                PopoverMenuItem(
-                    title: "Move Favorite Down", systemImage: "arrow.down", shortcut: "⌥⌘↓"
-                ) {
-                    favorites.move(1)
-                })
-        }
+        let preferences = items.count
         if core.launcherRanking.hasRanking(for: app.preferenceKey) {
             items.append(
                 PopoverMenuItem(title: "Reset Ranking", systemImage: "arrow.counterclockwise") {
                     onResetRanking()
                 })
         }
-        if isPersistent, app.canHideFromSearch {
+        // A query-driven row lives only for its query, so no preference could outlive it.
+        if !CommandCatalog.isQueryDriven(app), app.canHideFromSearch {
             items.append(
                 PopoverMenuItem(
                     title: "Hide from Search", systemImage: "eye.slash", shortcut: "⇧⌘H",
                     action: onHideFromSearch))
         }
+        if items.count > preferences { items[preferences].startsSection = true }
         if running, app.kind == .application {
             items.append(
                 PopoverMenuItem(

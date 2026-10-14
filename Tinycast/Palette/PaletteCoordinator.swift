@@ -4,7 +4,6 @@ import AppKit
 @MainActor
 final class PaletteCoordinator {
     private let palette: PaletteState
-    private let settings: AppSettings
     private let appIndex: AppIndex
     private let windowController: PaletteWindowController
     /// Features whose launcher rows are read from outside Tinycast re-read them on each open.
@@ -12,12 +11,10 @@ final class PaletteCoordinator {
 
     init(
         palette: PaletteState,
-        settings: AppSettings,
         appIndex: AppIndex,
         windowController: PaletteWindowController
     ) {
         self.palette = palette
-        self.settings = settings
         self.appIndex = appIndex
         self.windowController = windowController
     }

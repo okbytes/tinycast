@@ -227,7 +227,7 @@ route and drives Finder over Apple events, which raises the system Automation pr
 
 `UninstallCoordinator.performUninstall()` is the one funnel, so neither ↵ nor the menu row can skip the
 confirmation. It quits the app first if it's running, trashes, and **only clears the app's hotkey,
-favorite, visibility and ranking when the bundle itself went** — a leftovers-only cleanup leaves the
+alias, visibility and ranking when the bundle itself went** — a leftovers-only cleanup leaves the
 app installed. The bundle is trashed last: either order can leave a partial state, but with the
 bundle still in place the user can re-run the uninstall to retry, and once it's gone the launcher
 entry that reaches this screen is gone with it. Success shows the message pill; partial failure names

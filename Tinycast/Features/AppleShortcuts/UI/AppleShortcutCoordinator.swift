@@ -15,7 +15,6 @@ final class AppleShortcutCoordinator {
     private let settings: AppSettings
     private let appIndex: AppIndex
     private let hotKeys: HotKeyManager
-    private let favorites: FavoritesStore
     private let visibility: VisibilityStore
     private let ranking: LauncherRankingStore
     private let aliases: AliasStore
@@ -27,13 +26,12 @@ final class AppleShortcutCoordinator {
 
     init(
         settings: AppSettings, appIndex: AppIndex, hotKeys: HotKeyManager,
-        favorites: FavoritesStore, visibility: VisibilityStore, ranking: LauncherRankingStore,
-        aliases: AliasStore, paletteCoordinator: PaletteCoordinator, core: AppCore
+        visibility: VisibilityStore, ranking: LauncherRankingStore, aliases: AliasStore,
+        paletteCoordinator: PaletteCoordinator, core: AppCore
     ) {
         self.settings = settings
         self.appIndex = appIndex
         self.hotKeys = hotKeys
-        self.favorites = favorites
         self.visibility = visibility
         self.ranking = ranking
         self.aliases = aliases
@@ -76,7 +74,7 @@ final class AppleShortcutCoordinator {
     /// Frees what a deleted shortcut held, including one deleted while Tinycast wasn't running.
     private func removeReferences(toShortcutsMissingFrom live: [AppleShortcut]) {
         let keys =
-            Array(aliases.aliases.keys) + favorites.keys + visibility.hiddenItemKeys
+            Array(aliases.aliases.keys) + visibility.hiddenItemKeys
             + ranking.visits.keys
         let bound = Set(hotKeys.boundAppleShortcutIDs)
         let stale = AppleShortcut.staleIDs(referencedBy: keys, bound: bound, live: live)
@@ -87,7 +85,6 @@ final class AppleShortcutCoordinator {
             hotKeys.setBinding(nil, for: action)
         }
         let entryIDs = Set(stale.map(AppleShortcut.entryID(for:)))
-        favorites.remove(keys: entryIDs)
         visibility.removeItemKeys(entryIDs)
         aliases.removeKeys(entryIDs)
         for entryID in entryIDs {

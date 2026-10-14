@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// The root search: favorites, suggestions, then one section per kind, led by any card.
+/// The root search: suggestions, then one section per kind, led by any card.
 struct LauncherScreen: PaletteScreen {
     let appIndex: AppIndex
-    let favorites: FavoritesStore
     let visibility: VisibilityStore
     let core: AppCore
     let vm: PaletteState
@@ -13,29 +12,24 @@ struct LauncherScreen: PaletteScreen {
     /// Called when an action reorders the list, so the highlight scrolls back into view.
     let scrollToFollow: () -> Void
 
-    /// The one ordered result list; an empty query pins favorites above the ranked matches.
+    /// The one ordered result list; an empty query leads with suggestions.
     private let results: [AppEntry]
     private let calc: CalcResult?
     /// The colour the query itself spells, if it spells one; nil for every other query.
     private let color: ColorValue?
-    /// Only the empty query pins favorites — a category shows its sections without one of its own.
-    private let pinsFavorites: Bool
-    /// How many of `results` are pinned favorites; zero unless the section shows.
-    private let favoriteCount: Int
-    /// How many follow the favorites as Suggestions; zero unless the field is empty.
+    /// How many of `results` lead as Suggestions; zero unless the field is empty.
     private let suggestionCount: Int
     private let matchCount: Int
     /// Resolved in `init`: the palette indexes this several times per event, so it can't recompute.
     let rows: [Row]
 
     init(
-        appIndex: AppIndex, favorites: FavoritesStore, visibility: VisibilityStore,
+        appIndex: AppIndex, visibility: VisibilityStore,
         currencyRates: CurrencyRateStore, core: AppCore, vm: PaletteState, running: Bool,
         openActions: @escaping () -> Void,
         scrollToFollow: @escaping () -> Void
     ) {
         self.appIndex = appIndex
-        self.favorites = favorites
         self.visibility = visibility
         self.core = core
         self.vm = vm
@@ -44,7 +38,7 @@ struct LauncherScreen: PaletteScreen {
         self.scrollToFollow = scrollToFollow
 
         let ordered = appIndex.orderedResults(
-            query: vm.query, visibility: visibility, favorites: favorites, hotKeys: core.hotKeys)
+            query: vm.query, visibility: visibility, hotKeys: core.hotKeys)
         var results = ordered.entries
         var matchCount = ordered.matchCount
         // A typed web address leads: nothing the index holds answers it better.
@@ -58,13 +52,11 @@ struct LauncherScreen: PaletteScreen {
         // After the calculator: `#FF5733` is never arithmetic, so the two can't both answer.
         let color = calc == nil ? ColorValue.parse(vm.query) : nil
         let entries = results.map(Row.entry)
-        let pinsFavorites = vm.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let isEmptyQuery = vm.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         self.results = results
         self.calc = calc
         self.color = color
-        self.pinsFavorites = pinsFavorites
-        self.favoriteCount = pinsFavorites ? ordered.favoriteCount : 0
-        self.suggestionCount = pinsFavorites ? ordered.suggestionCount : 0
+        self.suggestionCount = isEmptyQuery ? ordered.suggestionCount : 0
         self.matchCount = matchCount
         if let calc {
             self.rows = [.calc(calc)] + entries
@@ -143,7 +135,6 @@ struct LauncherScreen: PaletteScreen {
         case .entry(let app):
             return AppActionsMenu.content(
                 app: app, searchQuery: vm.query, core: core, running: running,
-                favorites: favoriteActions(for: app, at: selection),
                 onResetRanking: {
                     core.launcherCoordinator.resetRanking(for: app)
                     // Reset can move the item; keep the highlight on the item whose action ran.
@@ -187,11 +178,9 @@ struct LauncherScreen: PaletteScreen {
 
     func perform(_ shortcut: PaletteShortcut, at selection: Int) -> Bool {
         switch shortcut {
-        case .toggleFavorite: return toggleFavorite(at: selection)
         case .hideFromSearch: return hideFromSearch(at: selection)
         case .quit, .forceQuit: return quit(at: selection, force: shortcut == .forceQuit)
         case .restart: return restart(at: selection)
-        case .favoriteSlot(let index): return launchFavorite(at: index)
         case .copyCalculation: return copyCalculation(at: selection)
         default: return false
         }
@@ -217,58 +206,6 @@ struct LauncherScreen: PaletteScreen {
         return true
     }
 
-    /// The highlight stays in Favorites: the top on add, the neighbour above on remove.
-    private func toggleFavorite(at selection: Int) -> Bool {
-        guard let app = entry(at: selection), !CommandCatalog.isQueryDriven(app) else { return false }
-        let removed = favoriteIndex(of: app)
-        favorites.toggle(app)
-        // A typed query pins no favorites, so nothing moved and the highlight stays.
-        guard pinsFavorites else { return true }
-        selectFavorite(at: removed.map { $0 - 1 } ?? 0)
-        return true
-    }
-
-    /// ⌘1–⌘9/⌘0 — launch a favorite by position, in either palette size.
-    private func launchFavorite(at index: Int) -> Bool {
-        guard let app = pinnedFavorites.dropFirst(index).first else { return false }
-        core.launcherCoordinator.launch(app)
-        return true
-    }
-
-    /// Empty while a query is typed, the only state in which the section is off screen.
-    private var pinnedFavorites: ArraySlice<AppEntry> { results.prefix(favoriteCount) }
-
-    /// ⌥⌘↑/↓ — swap with the neighbouring favorite; the ends of the section have nowhere to go.
-    func moveFavorite(_ delta: Int, at selection: Int) -> Bool {
-        guard let app = entry(at: selection), let index = favoriteIndex(of: app) else { return false }
-        let target = index + delta
-        guard target >= 0, target < favoriteCount else { return false }
-        favorites.exchange(favorites.key(for: app), with: favorites.key(for: results[target]))
-        follow(app)
-        return true
-    }
-
-    /// The ends drop the move they can't run; both rows call back here, never drifting.
-    private func favoriteActions(
-        for app: AppEntry, at selection: Int
-    )
-        -> AppActionsMenu.FavoriteActions
-    {
-        let index = favoriteIndex(of: app)
-        return AppActionsMenu.FavoriteActions(
-            isFavorite: favorites.isFavorite(app),
-            canMoveUp: index.map { $0 > 0 } ?? false,
-            canMoveDown: index.map { $0 < favoriteCount - 1 } ?? false,
-            toggle: { _ = toggleFavorite(at: selection) },
-            move: { _ = moveFavorite($0, at: selection) })
-    }
-
-    /// Position inside the Favorites section, or nil when the entry isn't reorderable there.
-    private func favoriteIndex(of app: AppEntry) -> Int? {
-        guard let index = results.firstIndex(of: app), index < favoriteCount else { return nil }
-        return index
-    }
-
     /// ⇧⌘H — the row leaves the list for good, so the highlight takes the place it vacated.
     private func hideFromSearch(at selection: Int) -> Bool {
         guard let app = entry(at: selection), !CommandCatalog.isQueryDriven(app),
@@ -283,22 +220,9 @@ struct LauncherScreen: PaletteScreen {
         return true
     }
 
-    /// The list reorders under an action; keep the highlight and the scroll on the row that moved.
-    private func follow(_ app: AppEntry) {
-        guard let index = reorderedResults().entries.firstIndex(of: app) else { return }
-        select(row: index)
-    }
-
-    /// Highlight a row of the Favorites section, clamped into what the section now holds.
-    private func selectFavorite(at index: Int) {
-        let count = reorderedResults().favoriteCount
-        select(row: min(max(index, 0), max(count - 1, 0)))
-    }
-
     /// Re-read the order the change just invalidated; this warms the key the next render reads.
     private func reorderedResults() -> AppIndex.Results {
-        appIndex.orderedResults(
-            query: vm.query, visibility: visibility, favorites: favorites, hotKeys: core.hotKeys)
+        appIndex.orderedResults(query: vm.query, visibility: visibility, hotKeys: core.hotKeys)
     }
 
     private func select(row index: Int) {
@@ -321,7 +245,6 @@ struct LauncherScreen: PaletteScreen {
         LauncherList(
             results: results,
             selectedRowID: row(at: selection)?.id,
-            favoriteCount: favoriteCount,
             suggestionCount: suggestionCount,
             matchCount: matchCount,
             scroll: scroll,

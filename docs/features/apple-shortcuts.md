@@ -1,7 +1,7 @@
 # Apple Shortcuts
 
 The shortcuts a user builds in Apple's Shortcuts app appear in the launcher as their own section,
-searchable by name and runnable with ↵, a favorite slot or a global shortcut. Tinycast lists and runs
+searchable by name and runnable with ↵ or a global shortcut. Tinycast lists and runs
 them and nothing else: creating, editing, permissions and the actions themselves stay with Shortcuts.
 
 The feature ships **off**. **Settings → Apple Shortcuts** carries the one switch, and lists the
@@ -12,13 +12,13 @@ registered, so re-enabling restores every global shortcut.
 ## Invariants
 
 - **Shortcuts owns the library.** Nothing about a shortcut is stored except what every launcher entry
-  already keys by `preferenceKey` — alias, visibility, favorite, ranking — and its hotkey binding.
+  already keys by `preferenceKey` — alias, visibility, ranking — and its hotkey binding.
 - **`run(id:)` is the single funnel** for a launcher row and a global shortcut alike, so the switch
   can't be bypassed.
 - **A failed read keeps the last good library.** Emptying the launcher because one spawn failed would
   look like every shortcut was deleted.
 - **Only a successful read frees anything.** A shortcut missing from one loses its binding, alias,
-  visibility, favorite slot and ranking; a failed read changes nothing, since it can't tell deleted
+  visibility and ranking; a failed read changes nothing, since it can't tell deleted
   from unreadable. An empty read and turning the feature off free nothing either.
 - **`Model/` stays Foundation-only and pure** for `apple-shortcut-test`.
 
@@ -46,7 +46,7 @@ unchanged list publishes nothing.
 
 A read that differs from the last one — and the first read after launch, so a shortcut deleted while
 Tinycast wasn't running is caught too — sweeps. `AppleShortcut.staleIDs` collects every
-`apple-shortcut:` key the alias, favorite, visibility and ranking stores hold, plus
+`apple-shortcut:` key the alias, visibility and ranking stores hold, plus
 `boundAppleShortcutIDs`, and returns those the library no longer names. Each is unbound and its
 per-entry preferences removed. A shortcut renamed in Shortcuts keeps its UUID, so a rename is never a
 deletion.

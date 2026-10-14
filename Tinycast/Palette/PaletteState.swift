@@ -37,9 +37,9 @@ final class PaletteState {
     /// AppKit binds ⌘. to `cancelOperation:`, so the field editor eats it before `onKeyPress`.
     private(set) var pinChordToken = UUID()
     /// Bumped when AppKit resolves ⌘1…⌘0 to a slot index from the physical number row.
-    private(set) var favoriteSlotToken = UUID()
-    /// The last slot index from `noteFavoriteSlot`, consumed by the SwiftUI layer.
-    private(set) var favoriteSlotIndex: Int?
+    private(set) var pinSlotToken = UUID()
+    /// The last slot index from `notePinSlot`, consumed by the SwiftUI layer.
+    private(set) var pinSlotIndex: Int?
     /// Bumped for ⌘0 / ⌘+ / ⌘-, which the panel claims before the field editor can.
     private(set) var emojiGridZoomToken = UUID()
     /// The last zoom from `noteEmojiGridZoom`, consumed by the SwiftUI layer.
@@ -48,7 +48,7 @@ final class PaletteState {
     var forceExpanded = false
     /// The paste target, mirrored on every show; `prepare` resets the screen, not this.
     var pasteTarget: PasteTarget?
-    /// True once ⌘ has been *held*, which numbers the favorite rows. The panel is the only writer.
+    /// True once ⌘ has been *held*, which numbers the pinned rows. The panel is the only writer.
     private(set) var commandHeld = false
     /// A chord is a tap, so the numbering waits out the tap before it claims the trailing labels.
     @ObservationIgnored private var commandHoldTask: Task<Void, Never>?
@@ -152,9 +152,9 @@ final class PaletteState {
         queryRewriteToken = UUID()
     }
 
-    func noteFavoriteSlot(_ index: Int) {
-        favoriteSlotIndex = index
-        favoriteSlotToken = UUID()
+    func notePinSlot(_ index: Int) {
+        pinSlotIndex = index
+        pinSlotToken = UUID()
     }
 
     func noteEmojiGridZoom(_ zoom: EmojiGridZoom) {

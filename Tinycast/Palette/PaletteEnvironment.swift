@@ -9,7 +9,6 @@ extension View {
             .environment(core.palette)
             .environment(core.appIndex)
             .environment(core.clipboardStore)
-            .environment(core.favorites)
             .environment(core.visibility)
             .environment(core.aliases)
             .environment(core.calcHistory)

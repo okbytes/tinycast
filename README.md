@@ -22,7 +22,7 @@ source, and staying that way.
 
 ## Features
 
-- **App launcher** — fuzzy-search and launch anything, pin favorites, see what's running, quit an app
+- **App launcher** — fuzzy-search and launch anything, see what's running, quit an app
   or every app at once.
 - **Global hotkey** — one shortcut summons the palette from anywhere.
 - **Per-app hotkeys** — bind a key to an app; press it to toggle (focus/hide).

@@ -123,7 +123,6 @@ run scopes-test            $L/SearchScopes.swift
 run app-name-test          Tinycast/Platform/AppDisplayName.swift \
                            Tinycast/Platform/BundleLocalization.swift \
                            $L/FuzzyMatch.swift
-run favorites-test         $L/FavoriteSlots.swift
 run launcher-file-test     $L/LauncherFileFormat.swift \
                            Tinycast/Features/Settings/Model/SettingsFileJSON.swift
 run launcher-settings-file-test \
@@ -155,6 +154,7 @@ run clipboard-test         Tinycast/Features/Clipboard/Model/ClipboardStore.swif
                            Tinycast/Features/Clipboard/Model/ColorValue.swift \
                            Tinycast/Features/Clipboard/Model/ColorFormat.swift \
                            Tinycast/Features/Clipboard/Model/ColorSpaces.swift
+run pin-slots-test         Tinycast/Features/Clipboard/Model/PinSlots.swift
 # `LINK` is the URL detector a drag payload builds its link with, rather than a second one.
 LINK=Tinycast/Platform/LinkDestination.swift
 run clipboard-search-test  Tinycast/Features/Clipboard/Model/*.swift $LINK

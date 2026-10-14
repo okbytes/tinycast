@@ -9,7 +9,6 @@ final class UninstallCoordinator {
     private let appIndex: AppIndex
     private let runningApps: RunningAppsMonitor
     private let hotKeys: HotKeyManager
-    private let favorites: FavoritesStore
     private let visibility: VisibilityStore
     private let ranking: LauncherRankingStore
     private let aliases: AliasStore
@@ -23,7 +22,6 @@ final class UninstallCoordinator {
         appIndex: AppIndex,
         runningApps: RunningAppsMonitor,
         hotKeys: HotKeyManager,
-        favorites: FavoritesStore,
         visibility: VisibilityStore,
         ranking: LauncherRankingStore,
         aliases: AliasStore,
@@ -35,7 +33,6 @@ final class UninstallCoordinator {
         self.appIndex = appIndex
         self.runningApps = runningApps
         self.hotKeys = hotKeys
-        self.favorites = favorites
         self.visibility = visibility
         self.ranking = ranking
         self.aliases = aliases
@@ -112,7 +109,6 @@ final class UninstallCoordinator {
             if hotKeys.recordingAction == action { hotKeys.recordingAction = nil }
             hotKeys.setBinding(nil, for: action)
         }
-        favorites.remove(keys: [app.preferenceKey])
         visibility.removeItemKeys([app.preferenceKey])
         ranking.reset(itemKey: app.preferenceKey)
         aliases.removeKeys([app.preferenceKey])

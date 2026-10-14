@@ -1,6 +1,6 @@
 import Foundation
 
-/// The user's per-entry aliases, keyed like favorites and ranking by `preferenceKey`.
+/// The user's per-entry aliases, keyed like ranking by `preferenceKey`.
 @MainActor
 @Observable
 final class AliasStore {

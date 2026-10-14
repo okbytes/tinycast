@@ -57,10 +57,6 @@ struct PaletteShortcutTests {
         expect(resolve("x", command: true, control: true), .delete, "an extra ⌘ still reads ⌃X")
         expect(resolve("x", command: true), nil, "⌘X stays with the search field")
 
-        expect(resolve("f", command: true, shift: true), .toggleFavorite, "⇧⌘F toggles a favorite")
-        expect(
-            resolve("f", command: true, shift: true, control: true), .toggleFavorite,
-            "an extra Control still reads ⇧⌘F")
         expect(resolve("h", command: true, shift: true), .hideFromSearch, "⇧⌘H hides the row")
         expect(resolve("h", command: true), nil, "⌘H is not the hide chord")
         expect(resolve("q", shift: true, control: true), .quit, "⌃⇧Q quits the app")
@@ -77,12 +73,9 @@ struct PaletteShortcutTests {
         expect(resolve("p", command: true), nil, "⌘P belongs to the header filter")
         expect(resolve("a"), nil, "typing is never a chord")
 
-        let expanded: [PaletteShortcut] = [
-            .copyText, .toggleFavorite, .hideFromSearch, .quit,
-            .forceQuit, .restart
-        ]
+        let expanded: [PaletteShortcut] = [.copyText, .hideFromSearch, .quit, .forceQuit, .restart]
         let anywhere: [PaletteShortcut] = [
-            .commandDelete, .delete, .deleteAll, .pin, .favoriteSlot(0), .copyCalculation
+            .commandDelete, .delete, .deleteAll, .pin, .pinSlot(0), .copyCalculation
         ]
         for shortcut in expanded {
             expect(shortcut.requiresExpanded, "\(shortcut) is skipped in the compact bar")
@@ -92,11 +85,10 @@ struct PaletteShortcutTests {
         }
 
         let closing: [PaletteShortcut] = [
-            .delete, .deleteAll, .copyText, .copyCalculation,
-            .toggleFavorite, .hideFromSearch
+            .delete, .deleteAll, .copyText, .copyCalculation, .hideFromSearch
         ]
         let leaving: [PaletteShortcut] = [
-            .commandDelete, .quit, .forceQuit, .restart, .pin, .favoriteSlot(0)
+            .commandDelete, .quit, .forceQuit, .restart, .pin, .pinSlot(0)
         ]
         for shortcut in closing {
             expect(shortcut.closesMenu, "\(shortcut) closes an open menu")

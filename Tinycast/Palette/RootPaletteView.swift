@@ -5,7 +5,6 @@ struct RootPaletteView: View {
     @Environment(PaletteState.self) private var vm
     @Environment(AppIndex.self) private var appIndex
     @Environment(ClipboardStore.self) private var store
-    @Environment(FavoritesStore.self) private var favorites
     @Environment(VisibilityStore.self) private var visibility
     @Environment(CalculatorHistoryStore.self) private var calcHistory
     /// Observed so the card re-evaluates when a snapshot lands or consent changes.
@@ -37,7 +36,7 @@ struct RootPaletteView: View {
         switch vm.mode {
         case .launcher:
             return LauncherScreen(
-                appIndex: appIndex, favorites: favorites, visibility: visibility,
+                appIndex: appIndex, visibility: visibility,
                 currencyRates: currencyRates, core: core, vm: vm, running: selectionIsRunning,
                 openActions: openActions,
                 scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
@@ -263,8 +262,8 @@ struct RootPaletteView: View {
                 Task { @MainActor in (hostWindow as? PalettePanel)?.moveFieldEditorCaretToEnd() }
             }
             // ⌘1…⌘0 arrives as a slot index from AppKit keyCode matching.
-            .onChange(of: vm.favoriteSlotToken) {
-                if let index = vm.favoriteSlotIndex { performShortcut(.favoriteSlot(index)) }
+            .onChange(of: vm.pinSlotToken) {
+                if let index = vm.pinSlotIndex { performShortcut(.pinSlot(index)) }
             }
             // One optional makes "exactly one menu" structural; this only presents it.
             .onChange(of: openMenu) {
@@ -292,7 +291,7 @@ struct RootPaletteView: View {
         content
             // Repeat included: holding the key keeps stepping, as the bare-key form does.
             .onKeyPress(keys: [.downArrow], phases: [.down, .repeat]) { press in
-                if let reorder = movePinnedOrFavorite(1, modifiers: press.modifiers) { return reorder }
+                if let reorder = movePin(1, modifiers: press.modifiers) { return reorder }
                 if isCollapsed {
                     // The compact bar shows no selection, so Down reveals the list's first row.
                     vm.selection = 0
@@ -306,7 +305,7 @@ struct RootPaletteView: View {
                 return moveVertically(1)
             }
             .onKeyPress(keys: [.upArrow], phases: [.down, .repeat]) { press in
-                if let reorder = movePinnedOrFavorite(-1, modifiers: press.modifiers) { return reorder }
+                if let reorder = movePin(-1, modifiers: press.modifiers) { return reorder }
                 if isCollapsed { return .ignored }
                 if menuOpen {
                     moveMenu(-1)
@@ -789,16 +788,12 @@ struct RootPaletteView: View {
         return true
     }
 
-    /// Claimed whole on the launcher and emoji grid, so a press at an end cannot reach the caret.
-    private func movePinnedOrFavorite(
+    /// Claimed whole on the emoji grid, so a press at an end cannot reach the caret.
+    private func movePin(
         _ delta: Int, modifiers: SwiftUI.EventModifiers
     ) -> KeyPress.Result? {
         guard modifiers.contains(.command), modifiers.contains(.option), !isCollapsed else {
             return nil
-        }
-        if let launcher = screen as? LauncherScreen {
-            if launcher.moveFavorite(delta, at: selection(in: launcher)), menuOpen { closeMenus() }
-            return .handled
         }
         guard let emoji = screen as? EmojiScreen else { return nil }
         emoji.movePin(delta, at: selection(in: emoji))

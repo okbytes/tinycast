@@ -5,7 +5,6 @@ struct LauncherList: View {
     @Environment(\.metrics) private var metrics
     let results: [AppEntry]
     let selectedRowID: String?
-    let favoriteCount: Int
     let suggestionCount: Int
     let matchCount: Int
     /// Changes only when the list should scroll, so mouse selection never yanks it.
@@ -43,13 +42,12 @@ struct LauncherList: View {
     private enum Row: Identifiable {
         case header(String)
         case card(LeadCard)
-        /// `slot` is the row's ⌘-digit, carried from the section build rather than searched.
-        case app(AppEntry, slot: Character?)
+        case app(AppEntry)
         var id: String {
             switch self {
             case .header(let title): return "header-" + title
             case .card(let card): return card.rowID
-            case .app(let app, _): return app.id
+            case .app(let app): return app.id
             }
         }
     }
@@ -62,27 +60,18 @@ struct LauncherList: View {
     private var rows: [Row] {
         var rows: [Row] = []
         if let card { rows = [.header(card.sectionTitle), .card(card)] }
-        let favorites = results.prefix(favoriteCount)
-        let suggestions = results.dropFirst(favoriteCount).prefix(suggestionCount)
-        let pinnedCount = favoriteCount + suggestionCount
-        let matches = results.dropFirst(pinnedCount).prefix(matchCount)
-        let rest = results.dropFirst(pinnedCount + matchCount)
+        let suggestions = results.prefix(suggestionCount)
+        let matches = results.dropFirst(suggestionCount).prefix(matchCount)
+        let rest = results.dropFirst(suggestionCount + matchCount)
         var grouped: [AppEntry.Kind: [AppEntry]] = [:]
         for app in rest { grouped[app.kind, default: []].append(app) }
-        if !favorites.isEmpty {
-            rows.append(.header("Favorites"))
-            rows.append(
-                contentsOf: favorites.enumerated().map {
-                    .app($1, slot: FavoriteSlots.digit(at: $0))
-                })
-        }
         if !suggestions.isEmpty {
             rows.append(.header("Suggestions"))
-            rows.append(contentsOf: suggestions.map { .app($0, slot: nil) })
+            rows.append(contentsOf: suggestions.map(Row.app))
         }
         if !matches.isEmpty {
             rows.append(.header("Results"))
-            rows.append(contentsOf: matches.map { .app($0, slot: nil) })
+            rows.append(contentsOf: matches.map(Row.app))
         }
         // Publication order, so rows match the flat index.
         let kinds: [AppEntry.Kind] = [
@@ -93,7 +82,7 @@ struct LauncherList: View {
         for kind in kinds {
             guard let group = grouped[kind], !group.isEmpty else { continue }
             rows.append(.header(kind.descriptor.sectionTitle))
-            rows.append(contentsOf: group.map { .app($0, slot: nil) })
+            rows.append(contentsOf: group.map(Row.app))
         }
         // A missing kind would make every later row activate its neighbour: assert instead.
         assert(
@@ -123,12 +112,11 @@ struct LauncherList: View {
                                         .onRightClick(perform: onCardActions)
                                         .padding(.bottom, metrics.spacing.xs)
                                         .selectionFrame(cardSelected)
-                                case .app(let app, let slot):
+                                case .app(let app):
                                     AppRow(
                                         app: app,
                                         selected: app.id == selectedRowID,
-                                        running: runningApps.isRunning(app),
-                                        slot: slot
+                                        running: runningApps.isRunning(app)
                                     )
                                     .contentShape(Rectangle())
                                     .onRowTap(drag: drag(for: app)) { onActivate(app) }
@@ -183,14 +171,10 @@ private struct AppRow: View {
     let app: AppEntry
     let selected: Bool
     let running: Bool
-    /// This row's ⌘-digit, or nil for a row no chord launches.
-    let slot: Character?
     /// Observed so a hotkey set/cleared in Settings re-renders the row's keycaps immediately.
     @Environment(HotKeyManager.self) private var hotKeys
     /// Observed for the same reason: an alias edit re-renders the row's badge at once.
     @Environment(AliasStore.self) private var aliases
-    /// Observed here rather than up in the list, so a ⌘ press re-renders rows and not the palette.
-    @Environment(PaletteState.self) private var palette
     @State private var hovered = false
 
     /// Selection wins over hover when a row is both; otherwise hover shows its fainter layer.
@@ -246,17 +230,9 @@ private struct AppRow: View {
                 }
             }
             Spacer()
-            // Holding ⌘ turns the trailing label into the chord that launches this row.
-            if let slot, palette.commandHeld {
-                HStack(spacing: metrics.spacing.xxs) {
-                    KeyCapChip(text: "⌘", style: .outline)
-                    KeyCapChip(text: String(slot), style: .outline)
-                }
-            } else {
-                Text(app.kindLabel)
-                    .font(metrics.typography.rowTrailing)
-                    .foregroundStyle(.secondary)
-            }
+            Text(app.kindLabel)
+                .font(metrics.typography.rowTrailing)
+                .foregroundStyle(.secondary)
         }
         .padding(.horizontal, metrics.spacing.md)
         .padding(.vertical, metrics.spacing.sm)

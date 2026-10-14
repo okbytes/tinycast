@@ -65,7 +65,7 @@ window consumes the pending reset first.
 Each `PaletteMode` maps to one type conforming to `PaletteScreen`, and the protocol is what keeps the
 selection invariant honest: a screen exposes `rows` as its single source of visible order, and the
 palette indexes into it. Adding a mode means adding a conformer, not a branch in `RootPaletteView`.
-A chord aimed at the selected row — ⌃X, ⇧⌘F and the rest — follows the same rule:
+A chord aimed at the selected row — ⌃X, ⇧⌘H and the rest — follows the same rule:
 `PaletteShortcut` recognises the key and carries its compact-bar and open-menu guards, and the screen
 answers through `perform(_:at:)`, so a new chord never adds a cast to the shell.
 
@@ -259,7 +259,7 @@ and the next click reaches its control normally. The menu controller installs th
 only while the menu is open and clears it before restoring the palette's key status.
 
 Every row closes the menu behind it — `activateMenuItem` is the one path, and a row that reorders the
-list under itself (Move Favorite Up/Down) is no exception, so no row ever runs against a rebuilt menu.
+list under itself is no exception, so no row ever runs against a rebuilt menu.
 
 `PopoverMenuItem.startsSection` draws a separator with the list inset (8pt) above and below it, so a
 row sits as far from it as from the search field's hairline. That height joins the menu's exact
@@ -352,9 +352,9 @@ handled in `PalettePanel.sendEvent` before `super` hands the event to the respon
 
 - **A bare backspace** — the field editor consumes it as an edit (`onBareBackspace`).
 - **Chords with no main menu item** — ⌘, and ⌘w, which an app with a menu bar would never see here.
-- **The physical number-row slots.** `FavoriteSlots` matches ⌘1…⌘0 by key code before fixed command
-  chords, then publishes the resolved position to the active screen. Only the launcher and clipboard
-  screens intercept these slots; other screens keep their own ⌘-number shortcuts.
+- **The physical number-row slots.** `PinSlots` matches ⌘1…⌘0 by key code before fixed command
+  chords, then publishes the resolved position to the clipboard screen, the only one that intercepts
+  them; other screens keep their own ⌘-number shortcuts.
 - **Chords AppKit has already bound to a selector.** `⌘.` is the one that bites: AppKit binds it to
   `cancelOperation:` alongside Escape, so `interpretKeyEvents` hands it to the field editor and
   `onKeyPress(keys: ["."])` never fires. Pin (⌘.) therefore arrives through `onCommandShortcut`,

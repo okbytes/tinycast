@@ -191,32 +191,32 @@ struct PaletteRowIndexTests {
             "the last row of the last section is the last index")
         expectRoundTrip(launcher, "launcher shape")
 
-        // The empty-query launcher: favourites, then one section per kind in AppIndex slice order.
+        // The empty-query launcher: suggestions, then one section per kind in AppIndex slice order.
         let launcherSections = PaletteRowIndex(sectionCounts: [3, 12, 5, 2, 4, 6, 8, 1, 7])
         expect(launcherSections.sectionCounts.count == 9, "the empty-query launcher has nine sections")
         expect(launcherSections.count == 48, "every section's rows are selectable, its header is not")
         expect(
             launcherSections.row(at: 0), .element(section: 0, offset: 0),
-            "a pinned favourite is the first row of the whole list")
+            "a suggestion is the first row of the whole list")
         expect(
             launcherSections.row(at: 2), .element(section: 0, offset: 2),
-            "the last favourite still precedes Applications")
+            "the last suggestion still precedes Applications")
         expect(
             launcherSections.row(at: 3), .element(section: 1, offset: 0),
-            "Applications begins where Favorites ends, with no index spent on the header")
+            "Applications begins where Suggestions ends, with no index spent on the header")
         expect(launcherSections.index(section: 8, offset: 6), 47, "the last command is the last index")
         expect(launcherSections.index(section: 9, offset: 0), nil, "there is no tenth section")
         expectRoundTrip(launcherSections, "launcher nine sections")
 
-        // No favourites: Applications leads and every later section shifts up.
-        let launcherNoFavorites = PaletteRowIndex(sectionCounts: [0, 12, 5, 2, 4, 6, 8, 1, 7])
+        // No suggestions: Applications leads and every later section shifts up.
+        let launcherNoSuggestions = PaletteRowIndex(sectionCounts: [0, 12, 5, 2, 4, 6, 8, 1, 7])
         expect(
-            launcherNoFavorites.row(at: 0), .element(section: 1, offset: 0),
-            "an empty Favorites section is stepped over, not landed in")
+            launcherNoSuggestions.row(at: 0), .element(section: 1, offset: 0),
+            "an empty Suggestions section is stepped over, not landed in")
         expect(
-            launcherNoFavorites.index(section: 8, offset: 6), 44,
-            "dropping three favourites moves every later row up by three")
-        expectRoundTrip(launcherNoFavorites, "launcher without favourites")
+            launcherNoSuggestions.index(section: 8, offset: 6), 44,
+            "dropping three suggestions moves every later row up by three")
+        expectRoundTrip(launcherNoSuggestions, "launcher without suggestions")
 
         // Hidden categories drop whole sections; the rows that remain keep their order.
         let launcherHidden = PaletteRowIndex(sectionCounts: [3, 12, 0, 2, 0, 6, 0, 1, 7])

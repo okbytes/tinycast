@@ -75,7 +75,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     /// The searchable form of every field above, built at publish by `buildSearchProfile`.
     var search = SearchProfile.unnamed
 
-    /// Stable identity for learned ranking, favorites, and other per-entry preferences.
+    /// Stable identity for learned ranking and other per-entry preferences.
     var preferenceKey: String { bundleID ?? id }
 
     /// What this entry is called, in the shape `EntryNaming` reads.
@@ -199,7 +199,6 @@ final class AppIndex {
     /// The launcher's rows in order, with the size of each leading section at their head.
     struct Results: Equatable {
         var entries: [AppEntry] = []
-        var favoriteCount = 0
         var suggestionCount = 0
         var matchCount = 0
     }
@@ -216,7 +215,6 @@ final class AppIndex {
     private struct ResultsKey: Equatable {
         let match: MatchKey
         let visibilityRevision: Int
-        let favoritesRevision: Int
         let hotKeysRevision: Int
         let showsSuggestions: Bool
         /// Suggestions and usage order age with the clock, which no revision tracks.
@@ -453,17 +451,16 @@ final class AppIndex {
         return byUsage(listed, usage: ranking.snapshot())
     }
 
-    /// The launcher's rows: ranked matches, or favorites, suggestions and each kind by usage.
+    /// The launcher's rows: ranked matches, or suggestions and each kind by usage.
     func orderedResults(
-        query: String, visibility: VisibilityStore, favorites: FavoritesStore, hotKeys: HotKeyManager
+        query: String, visibility: VisibilityStore, hotKeys: HotKeyManager
     ) -> Results {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let showsSuggestions = settings?.launcherShowsSuggestions ?? true
         let usage = ranking.snapshot()
         let key = ResultsKey(
             match: matchKey(q, limit: 200), visibilityRevision: visibility.revision,
-            favoritesRevision: favorites.revision, hotKeysRevision: hotKeys.revision,
-            showsSuggestions: showsSuggestions, minute: Int(usage.now.timeIntervalSince1970 / 60))
+            hotKeysRevision: hotKeys.revision, showsSuggestions: showsSuggestions, minute: Int(usage.now.timeIntervalSince1970 / 60))
         return resultsMemo.value(for: key) {
             // Filtering stays downstream of `matches` so that memo is never keyed on hidden state.
             let matched = searchResults(q)
@@ -472,14 +469,11 @@ final class AppIndex {
                 let matchCount = matched.entries.prefix(matched.matchCount).count(where: visibility.isVisible)
                 return Results(entries: visible, matchCount: matchCount)
             }
-            let split = favorites.ordered(visible)
             let suggested =
-                showsSuggestions ? suggestions(from: split.rest, usage: usage, hotKeys: hotKeys) : []
+                showsSuggestions ? suggestions(from: visible, usage: usage, hotKeys: hotKeys) : []
             let shown = Set(suggested.map(\.id))
-            let rest = byUsage(split.rest.filter { !shown.contains($0.id) }, usage: usage)
-            return Results(
-                entries: split.favorites + suggested + rest,
-                favoriteCount: split.favorites.count, suggestionCount: suggested.count)
+            let rest = byUsage(visible.filter { !shown.contains($0.id) }, usage: usage)
+            return Results(entries: suggested + rest, suggestionCount: suggested.count)
         }
     }
 
