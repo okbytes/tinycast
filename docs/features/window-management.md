@@ -1,6 +1,6 @@
 # Window Management
 
-Rectangle-style window actions — halves, quarters, fourths, thirds, sizing, nudging, display moves,
+Rectangle-style window actions — halves, quarters, fourths, thirds, sizing, edge moves, display moves,
 native fullscreen and Space switching — searchable in the palette and bindable to global shortcuts.
 35 commands, no new dependencies and no new permission: they reuse the Accessibility grant
 clipboard paste already needs.
@@ -94,8 +94,13 @@ sharing a fractional boundary (480.333 for thirds of 1441) round it identically 
 one-point seams.
 
 **Free-floating commands** (Maximize, Almost Maximize, Reasonable Size, Center, Make Larger/Smaller,
-the nudges) work in
-`canvas = usableFrame.insetBy(gap)` instead: a centred window has no neighbour to gutter against.
+the four moves) work in `canvas = usableFrame.insetBy(gap)` instead: a centred window has no neighbour
+to gutter against.
+
+**Move Left / Right / Up / Down** push the window flush against that edge of the canvas, keeping its
+size and its position on the other axis — a vertically centred window moved left stays vertically
+centred, a top-aligned one stays top-aligned. A second press is a no-op, and neither the size nor the
+display ever changes.
 
 **Make Larger / Make Smaller** step by 5% of the _screen_, not of the window, and the step is forced
 even so each edge moves a whole point. That makes the two commands exactly invertible — `size × 0.95 ×
@@ -338,9 +343,9 @@ and every shortcut stays editable afterwards.
 
 ## Testing
 
-`Tests/window-command-test.swift` (507 assertions) covers the catalog, the AX-space convention lock,
+`Tests/window-command-test.swift` (499 assertions) covers the catalog, the AX-space convention lock,
 tiling on divisible and non-divisible screens, off-origin and negative-coordinate displays, gap
-arithmetic including degenerate values, sizing, the Make Larger/Smaller round trip, nudges, display
+arithmetic including degenerate values, sizing, the Make Larger/Smaller round trip, edge moves, display
 moves and wrapping, both cycling modes including the strip walk, its wrap and a run of real presses
 across displays, restore recovery, every `WindowActionMemory` rule, and a fuzz sweep over every
 command × gap × screen × cycle × step × degenerate window frame checking for non-finite output,

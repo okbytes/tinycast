@@ -103,7 +103,7 @@ struct WindowCommandTests {
         testGaps()
         testSizing()
         testLargerSmaller()
-        testNudges()
+        testMoves()
         testDisplays()
         testDisplayCycle()
         testRestore()
@@ -150,7 +150,7 @@ struct WindowCommandTests {
         let moveOnly = Set(commands.filter { !$0.resizes }.map(\.id))
         expect(
             moveOnly == [.moveLeft, .moveRight, .moveUp, .moveDown],
-            "only the four nudges leave the size alone")
+            "only the four moves leave the size alone")
         expect(
             Set(commands.filter { $0.kind == .fullscreen }.map(\.id)) == [.toggleFullscreen],
             "only Toggle Fullscreen is a fullscreen command")
@@ -609,38 +609,28 @@ struct WindowCommandTests {
         expectRect(gapped, frame(.maximize, gap: 12)!, "growing respects the gap")
     }
 
-    // MARK: - Nudges
+    // MARK: - Moves
 
-    static func testNudges() {
+    static func testMoves() {
         let start = CGRect(x: 300, y: 300, width: 600, height: 400)
-        for command in [WindowCommand.ID.moveLeft, .moveRight, .moveUp, .moveDown] {
-            let moved = frame(command, window: start)!
-            expect(moved.size == start.size, "\(command.rawValue) leaves the size untouched")
-        }
         expectRect(
-            frame(.moveLeft, window: start)!, CGRect(x: 228, y: 300, width: 600, height: 400),
-            "move left nudges by 5% of the screen width")
+            frame(.moveLeft, window: start)!, CGRect(x: 0, y: 300, width: 600, height: 400),
+            "move left pushes flush left and keeps the vertical position")
         expectRect(
-            frame(.moveUp, window: start)!, CGRect(x: 300, y: 255, width: 600, height: 400),
-            "move up nudges by 5% of the screen height")
+            frame(.moveRight, window: start)!, CGRect(x: 840, y: 300, width: 600, height: 400),
+            "move right pushes flush right and keeps the vertical position")
         expectRect(
-            frame(.moveRight, window: frame(.moveLeft, window: start)!)!, start,
-            "left then right returns the original position")
+            frame(.moveUp, window: start)!, CGRect(x: 300, y: 0, width: 600, height: 400),
+            "move up pushes flush to the top and keeps the horizontal position")
         expectRect(
-            frame(.moveDown, window: frame(.moveUp, window: start)!)!, start,
-            "up then down returns the original position")
-
-        var sliding = start
-        for _ in 0..<30 { sliding = frame(.moveLeft, window: sliding)! }
-        expect(sliding.minX == 0, "30 nudges left end flush against the canvas edge")
-        expect(sliding.size == start.size, "nudging to the edge never resizes")
-        expectRect(frame(.moveLeft, window: sliding)!, sliding, "a flush window nudges no further")
+            frame(.moveDown, window: start)!, CGRect(x: 300, y: 500, width: 600, height: 400),
+            "move down pushes flush to the bottom and keeps the horizontal position")
 
         // A window wider than the canvas pins its leading edge rather than sliding off.
         let overWide = CGRect(x: 100, y: 100, width: 2000, height: 400)
-        let pinned = frame(.moveLeft, window: overWide)!
-        expect(pinned.minX == 0, "an oversized window pins to the canvas edge")
-        expect(pinned.size == overWide.size, "an oversized nudge never resizes")
+        expectRect(
+            frame(.moveRight, window: overWide)!, CGRect(x: 0, y: 100, width: 2000, height: 400),
+            "an oversized window pins to the leading edge without resizing")
     }
 
     // MARK: - Displays

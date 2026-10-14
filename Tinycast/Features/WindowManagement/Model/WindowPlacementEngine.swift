@@ -86,7 +86,7 @@ enum WindowPlacementEngine {
 
     // MARK: - Tuning
 
-    /// Make Larger / Make Smaller and the four nudges all step by this fraction of the screen.
+    /// Make Larger and Make Smaller step by this fraction of the screen.
     private static let stepFraction: CGFloat = 0.05
     private static let almostMaximizeFraction: CGFloat = 0.9
     private static let reasonableSizeFraction: CGFloat = 0.6
@@ -187,7 +187,7 @@ enum WindowPlacementEngine {
 
         case .moveLeft, .moveRight, .moveUp, .moveDown:
             return Placement(
-                frame: nudged(current, in: canvas, command: input.command), screenID: host.id,
+                frame: pushed(current, in: canvas, command: input.command), screenID: host.id,
                 anchor: .topLeading, resizes: false)
 
         default:
@@ -488,19 +488,18 @@ enum WindowPlacementEngine {
         return rounded(clamped(centred, into: canvas))
     }
 
-    private static func nudged(
+    /// Flush against one canvas edge; the size and the other axis's position stay put.
+    private static func pushed(
         _ frame: CGRect, in canvas: CGRect, command: WindowCommand.ID
     )
         -> CGRect
     {
-        let dx = (canvas.width * stepFraction).rounded()
-        let dy = (canvas.height * stepFraction).rounded()
         var moved = frame
         switch command {
-        case .moveLeft: moved.origin.x -= dx
-        case .moveRight: moved.origin.x += dx
-        case .moveUp: moved.origin.y -= dy
-        case .moveDown: moved.origin.y += dy
+        case .moveLeft: moved.origin.x = canvas.minX
+        case .moveRight: moved.origin.x = canvas.maxX - frame.width
+        case .moveUp: moved.origin.y = canvas.minY
+        case .moveDown: moved.origin.y = canvas.maxY - frame.height
         default: break
         }
         return rounded(clamped(moved, into: canvas))
