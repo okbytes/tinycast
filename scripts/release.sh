@@ -1,8 +1,8 @@
 #!/bin/bash
-# Build, notarize and publish a Tinycast release on this repo. Usage: ./Scripts/release.sh <version>
+# Build, notarize and publish a Tinycast release on this repo. Usage: ./scripts/release.sh <version>
 #
 # Needs a Developer ID Application certificate and the `tinycast` notarytool profile, both made once
-# (docs/signing.md). The release is tagged v<version> at HEAD; Scripts/install.sh puts it on a Mac.
+# (docs/signing.md). The release is tagged v<version> at HEAD; scripts/install.sh puts it on a Mac.
 set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
@@ -35,7 +35,7 @@ xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Release \
     -derivedDataPath "$DERIVED" \
     MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$(git rev-list --count HEAD)" \
     clean build -quiet
-./Scripts/verify-signature.sh "$APP"
+./scripts/verify-signature.sh "$APP"
 
 echo "▸ Notarizing…"
 rm -f "$ZIP"
@@ -61,4 +61,4 @@ else
     notes="$(git log --format='- %s' "$latest..$TAG")"
 fi
 gh release create "$TAG" "$ZIP" --repo "$REPO" --title "Tinycast $VERSION" --notes "$notes"
-echo "✓ Tinycast $VERSION is released; ./Scripts/install.sh installs it"
+echo "✓ Tinycast $VERSION is released; ./scripts/install.sh installs it"

@@ -5,7 +5,7 @@
 // hand and its targets are matched to the panes textually. An entry with nothing to scroll to still
 // compiles, reads fine, and fails only at runtime — as a result that navigates and then sits there.
 //
-// Usage: bun Scripts/check-settings-search.js   (run by ./Scripts/lint.sh)
+// Usage: bun scripts/check-settings-search.js   (run by ./scripts/lint.sh)
 "use strict";
 
 const fs = require("fs");

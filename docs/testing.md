@@ -9,8 +9,8 @@ The mechanical bar, in one place so it cannot drift. All five pass before a chan
 
 | Check | Command |
 | --- | --- |
-| The harnesses | `./Scripts/run-tests.sh` |
-| Lint | `./Scripts/lint.sh` |
+| The harnesses | `./scripts/run-tests.sh` |
+| Lint | `./scripts/lint.sh` |
 | Pure-layer purity | `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Tinycast/Features/*/Model/` |
 | A clean build | `xcodebuild … -configuration Debug CODE_SIGNING_ALLOWED=NO`, zero **new** warnings |
 | Docs still true | any doc your change made wrong, fixed in the same commit |
@@ -21,8 +21,8 @@ what you touched.
 ## The harnesses
 
 ```sh
-./Scripts/run-tests.sh              # all of them
-./Scripts/run-tests.sh calc-test    # just one, while iterating
+./scripts/run-tests.sh              # all of them
+./scripts/run-tests.sh calc-test    # just one, while iterating
 ```
 
 The suite runs four harnesses at a time by default to reduce CPU usage. `TINYCAST_TEST_JOBS` overrides
@@ -89,7 +89,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `clipboard-test` | `Clipboard/Model/ClipboardStore.swift`, `ClipboardFilter.swift`, `ClipboardFileKind.swift`, the colour trio |
 | `pasteboard-test` | `Clipboard/Service/ClipboardManager.swift` capture and `Paster.write` — what a Finder copy reads as, and what a file entry writes back |
 | `emoji-test` | `Emoji/Model/EmojiCatalog.swift`, `EmojiGridGeometry.swift`, the generated data and keyword packs |
-| `emoji-search-test` | `Emoji/Service/EmojiIndex.swift`, `FrequentEmojiStore.swift`, `Scripts/gen-emoji.js`'s keyword format, multilingual search |
+| `emoji-search-test` | `Emoji/Service/EmojiIndex.swift`, `FrequentEmojiStore.swift`, `scripts/gen-emoji.js`'s keyword format, multilingual search |
 | `palette-navigation-test` | `Palette/PaletteState.swift`'s screen motions — `prepare`, `replace`, `push`, `pop` — and hover arming, pointer drift, scroll disarming and highlight tokens |
 | `palette-selection-test` | `Features/PaletteRowIndex.swift` |
 | `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift` |
@@ -157,7 +157,7 @@ find ~/Library/Developer/Xcode/DerivedData -name "Tinycast*.app" -maxdepth 6 -pr
 ### Lint
 
 ```sh
-./Scripts/lint.sh
+./scripts/lint.sh
 ```
 
 SwiftLint owns the rules that catch defects, including the two checkable comment rules — the
@@ -165,7 +165,7 @@ SwiftLint owns the rules that catch defects, including the two checkable comment
 formatter, deliberately — the configuration and the measurements behind that are in
 [development.md](development.md#formatting).
 
-The script then runs `Scripts/check-settings-search.js`, one check SwiftLint can't: every
+The script then runs `scripts/check-settings-search.js`, one check SwiftLint can't: every
 `SettingsAnchor` must be claimed by a section, and every row in `SettingsSearchCatalog` must be
 marked by a `SettingsRowTitle`. Either gap compiles and reads fine, and fails only at runtime as a
 search result that navigates and then sits there.

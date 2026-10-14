@@ -32,4 +32,4 @@ if [ ! -s .compile ] || ! grep -q '"command"' .compile 2>/dev/null; then
 fi
 rm -f "$backup"
 
-./Scripts/run-tests.sh --index
+./scripts/run-tests.sh --index

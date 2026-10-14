@@ -220,7 +220,7 @@ Tinycast/
                     (Model/, Service/, SettingsFileSchema), and Panes/ for the two panes no feature
                     owns
 Tests/              the standalone harnesses, one Swift file each
-Scripts/            run-tests.sh, the two data generators, packaging, formatting, editor setup
+scripts/            run-tests.sh, the two data generators, packaging, formatting, editor setup
 ```
 
 A larger feature splits into all four sub-folders; a small one stays flat, as `Onboarding/` does. `HotKeys/` has no `Settings/` because its Shortcuts pane is part of the Settings

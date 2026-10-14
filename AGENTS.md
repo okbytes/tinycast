@@ -45,7 +45,7 @@ system-wide chord, and HIToolbox's TIS APIs remain the public input-source mecha
 | `Tinycast/Windows/` | the non-palette AppKit surfaces: `Dialog/`, `HUD/`, `AppWindowController` |
 | `Tinycast/Features/` | one folder per feature; larger ones split `Model/` `Service/` `UI/` `Settings/` |
 | `Tests/` | the standalone harnesses — one Swift file each, no XCTest target |
-| `Scripts/` | every executable script: test runner, data generators, packaging, linting, editor setup |
+| `scripts/` | every executable script: test runner, data generators, packaging, linting, editor setup |
 
 | Read it before you | Doc |
 | --- | --- |
@@ -84,9 +84,9 @@ feature's doc, under its own `## Invariants`.
   per `VisibilityStore` category — never re-derive a category by sniffing an entry ID. Which *pane*
   lists a command is a separate fact, and `SettingsTab.ownedCommands` is the only place that states it.
 - **Generated files are never hand-edited.** `EmojiData.generated.swift` and
-  `Resources/EmojiKeywords/` come from `bun Scripts/gen-emoji.js`, `CurrencyData.generated.swift`
-  from `bun Scripts/gen-currencies.js` and `CountryZoneData.generated.swift` from
-  `bun Scripts/gen-countries.js`.
+  `Resources/EmojiKeywords/` come from `bun scripts/gen-emoji.js`, `CurrencyData.generated.swift`
+  from `bun scripts/gen-currencies.js` and `CountryZoneData.generated.swift` from
+  `bun scripts/gen-countries.js`.
 - **`DesignSystem/Scrolling/EdgeDissolve.swift` and `ThinScrollbar.swift` are off-limits.** Both are
   tuned by eye against the palette's floating bars, so any edit is a visual regression. Needing to touch
   one to fix a scroll bug means the real fix belongs elsewhere.
@@ -116,8 +116,8 @@ feature's doc, under its own `## Invariants`.
 
 Each item is explained in [testing.md](docs/testing.md#definition-of-done).
 
-- `./Scripts/run-tests.sh` passes.
+- `./scripts/run-tests.sh` passes.
 - The Debug build compiles with **no new warnings**.
-- `./Scripts/lint.sh` is clean.
+- `./scripts/lint.sh` is clean.
 - `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Tinycast/Features/*/Model/` returns nothing.
 - Any doc your change made wrong is fixed in the same commit.

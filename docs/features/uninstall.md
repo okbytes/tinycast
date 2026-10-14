@@ -236,7 +236,7 @@ what stayed behind.
 ## Tests
 
 ```sh
-./Scripts/run-tests.sh uninstall-test
+./scripts/run-tests.sh uninstall-test
 ```
 
 No filesystem, no temp directories — every input is a `String` or a `PathFacts`. `testStreamedSizes`

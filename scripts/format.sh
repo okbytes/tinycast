@@ -13,7 +13,7 @@ FORMAT=$(xcrun --find swift-format 2>/dev/null)
 }
 
 # Generated files are never hand-edited, and formatting one is exactly that — the next
-# `bun Scripts/gen-emoji.js` would revert it.
+# `bun scripts/gen-emoji.js` would revert it.
 # Built with a read loop rather than `mapfile`, which is bash 4 — macOS ships bash 3.2.
 files=()
 while IFS= read -r f; do files+=("$f"); done < <(
@@ -30,7 +30,7 @@ if [ "${1:-}" = "--check" ]; then
     if [ ${#dirty[@]} -gt 0 ]; then
         printf '%s\n' "${dirty[@]}"
         echo
-        echo "${#dirty[@]} file(s) need formatting. Run ./Scripts/format.sh" >&2
+        echo "${#dirty[@]} file(s) need formatting. Run ./scripts/format.sh" >&2
         exit 1
     fi
     echo "✓ format-clean (${#files[@]} files)"

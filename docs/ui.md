@@ -545,8 +545,8 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   nothing else. **A catalog entry is `.init(anchor, title)` for one row and `.init(group:_:)` when
   no single row answers it** — a list, a section's master switch, a button that lives in another
   row's trailing edge. The half the compiler can't reach — a target nothing declares, which
-  navigates and then sits there — is caught by `Scripts/check-settings-search.js`, run from
-  `Scripts/lint.sh`. **Add the entry and its marker together, or lint will say so.**
+  navigates and then sits there — is caught by `scripts/check-settings-search.js`, run from
+  `scripts/lint.sh`. **Add the entry and its marker together, or lint will say so.**
 - **The reveal lives in two modifiers, never in a pane** (`SettingsScrollTarget.swift`).
   `.settingsScrollTarget()` on a pane's `Form` holds the `ScrollViewReader` and one `.task(id:)` keyed
   on the request, so a second jump cancels the first mid-pulse and the pane releases the request when

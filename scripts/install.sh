@@ -2,7 +2,7 @@
 # Install or update Tinycast from this repo's latest release, or from <tag>. Usage: install.sh [tag]
 #
 # Needs only `gh`, logged in to an account that can read the repo. On a Mac without a checkout:
-#   gh api repos/okbytes/tinycast/contents/Scripts/install.sh \
+#   gh api repos/okbytes/tinycast/contents/scripts/install.sh \
 #     -H "Accept: application/vnd.github.raw" | bash -s [tag]
 # The install path is fixed because the Accessibility and Input Monitoring grants follow it.
 set -euo pipefail

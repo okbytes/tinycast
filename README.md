@@ -46,12 +46,12 @@ Releases are notarized builds attached to this private repo's GitHub releases. O
 `gh` logged in, this installs the latest into `~/Applications`, or updates it in place:
 
 ```sh
-gh api repos/okbytes/tinycast/contents/Scripts/install.sh -H "Accept: application/vnd.github.raw" | bash
+gh api repos/okbytes/tinycast/contents/scripts/install.sh -H "Accept: application/vnd.github.raw" | bash
 ```
 
-In a checkout, `./Scripts/install.sh` does the same. Cutting a release and the one-time signing setup
+In a checkout, `./scripts/install.sh` does the same. Cutting a release and the one-time signing setup
 are in [docs/signing.md](docs/signing.md); a Dev build from the checkout is
-`./Scripts/install-dev.sh` ([docs/development.md](docs/development.md)).
+`./scripts/install-dev.sh` ([docs/development.md](docs/development.md)).
 
 ## Permissions
 

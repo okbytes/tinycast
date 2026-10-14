@@ -80,5 +80,5 @@ shortcut the user built grants no permission class. Bindings are not in
 ## Standalone harness
 
 ```sh
-./Scripts/run-tests.sh apple-shortcut-test
+./scripts/run-tests.sh apple-shortcut-test
 ```

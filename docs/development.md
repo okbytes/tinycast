@@ -53,15 +53,15 @@ by the team: both sides of its XPC connection require the same team ID. See
 ### A team-signed Dev build
 
 ```sh
-./Scripts/install-dev.sh            # pull, build, swap into ~/Applications, relaunch
-./Scripts/install-dev.sh --no-pull  # the checkout as it is
+./scripts/install-dev.sh            # pull, build, swap into ~/Applications, relaunch
+./scripts/install-dev.sh --no-pull  # the checkout as it is
 ```
 
 It signs Tinycast Dev with the **Apple Development** certificate `project.yml` names, and pulls only
 when the branch has an upstream and the tree is clean. The install path is fixed on purpose: the
 Accessibility and Input Monitoring grants are keyed to it, so they survive every update, and the
 running keyboard helper exits by itself once its executable is replaced. The everyday app on each
-Mac is the released build instead: `./Scripts/install.sh` ([signing.md](signing.md#releasing)).
+Mac is the released build instead: `./scripts/install.sh` ([signing.md](signing.md#releasing)).
 
 ### The dev channel
 
@@ -100,7 +100,7 @@ and the flag database:
 brew install xcode-build-server
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
     -derivedDataPath build/DerivedData build 2>&1 | tee /tmp/tinycast-build.log
-./Scripts/sync-lsp.sh /tmp/tinycast-build.log
+./scripts/sync-lsp.sh /tmp/tinycast-build.log
 ```
 
 Both files are git-ignored because they embed absolute paths, and `sourcekit-lsp` looks for
@@ -113,7 +113,7 @@ renamed files keep resolving.
 cache is only refreshed when `LogStoreManifest.plist` advances, and when the manifest stops updating
 (it does) the editor silently pins itself to the source list from some older build: every reference to a
 file added since reads *cannot find type X in scope*, in every file, until you restart the server. It
-also mixes Release entries in with Debug and lets them win. `Scripts/sync-lsp.sh` keeps the mode
+also mixes Release entries in with Debug and lets them win. `scripts/sync-lsp.sh` keeps the mode
 `manual`, where `.compile` is the single source of truth.
 
 ### Symbols in `Tests/`
@@ -123,11 +123,11 @@ compile command for them, and without one an open harness reports every shipped 
 find in scope*. Measured on `fuzz-test.swift`: 60 errors with no entry, 0 with one.
 
 ```sh
-./Scripts/run-tests.sh --index    # merge the harness compile commands into .compile
+./scripts/run-tests.sh --index    # merge the harness compile commands into .compile
 ```
 
 It reads the source lists from `run-tests.sh` itself, so they cannot drift from what the suite actually
-compiles. `Scripts/sync-lsp.sh` runs it too. Three things it has to get right, all of which fail
+compiles. `scripts/sync-lsp.sh` runs it too. Three things it has to get right, all of which fail
 silently otherwise: every path is absolute, because `sourcekit-lsp` resolves the command itself and does
 not apply `directory` to relative arguments; the command carries an explicit `-sdk`; and each entry
 claims **only files under `Tests/`** — its harness plus any helper compiled beside it. The command
@@ -144,8 +144,8 @@ already-running server does not re-read `.compile`.
 ## Linting
 
 ```sh
-./Scripts/lint.sh          # lint the whole project
-./Scripts/lint.sh --fix    # auto-correct the mechanical subset first
+./scripts/lint.sh          # lint the whole project
+./scripts/lint.sh --fix    # auto-correct the mechanical subset first
 ```
 
 [SwiftLint](https://github.com/realm/SwiftLint) is the only code-quality tool here. `.swiftlint.yml` at
@@ -155,8 +155,8 @@ The comment policy in [standards.md](standards.md#comments) is deliberately not 
 ## Formatting
 
 ```sh
-./Scripts/format.sh            # format Tinycast/ and Tests/ in place
-./Scripts/format.sh --check    # report what would change, write nothing (exit 1 if any)
+./scripts/format.sh            # format Tinycast/ and Tests/ in place
+./scripts/format.sh --check    # report what would change, write nothing (exit 1 if any)
 ```
 
 `swift-format` from the Xcode toolchain — the same binary sourcekit-lsp formats with, so ⌘S in VS Code
@@ -164,7 +164,7 @@ and this script cannot disagree. `.swift-format` at the repo root tunes it to th
 stock config defaults to 2-space indent and rewrites all 200 files.
 
 Every `*.generated.swift` file is excluded: formatting one is hand-editing it, and the next
-`bun Scripts/gen-emoji.js` would revert it. swift-format also refuses any file that does not parse, so
+`bun scripts/gen-emoji.js` would revert it. swift-format also refuses any file that does not parse, so
 a failure from either command is a syntax error rather than a tooling problem — and it is why ⌘S looks
 like it does nothing while a file is mid-edit with unbalanced braces.
 The two protected scrolling primitives, `EdgeDissolve.swift` and `ThinScrollbar.swift`, are also excluded.
@@ -190,15 +190,15 @@ Three Swift files are emitted by scripts and must never be hand-edited. Each dow
 run them online, then commit the result:
 
 ```sh
-bun Scripts/gen-emoji.js            # -> Tinycast/Features/Emoji/Model/EmojiData.generated.swift
+bun scripts/gen-emoji.js            # -> Tinycast/Features/Emoji/Model/EmojiData.generated.swift
                                      #    + Tinycast/Resources/EmojiKeywords/<language>.txt
-bun Scripts/gen-currencies.js       # -> Tinycast/Features/Calculator/Model/CurrencyData.generated.swift
-bun Scripts/gen-countries.js        # -> Tinycast/Features/Calculator/Model/CountryZoneData.generated.swift
+bun scripts/gen-currencies.js       # -> Tinycast/Features/Calculator/Model/CurrencyData.generated.swift
+bun scripts/gen-countries.js        # -> Tinycast/Features/Calculator/Model/CountryZoneData.generated.swift
 ```
 
 `gen-emoji.js` also writes one CLDR keyword pack per language in its `KEYWORD_LOCALES`; adding a
 language is one line there. Pass a directory to keep the downloads between runs:
-`bun Scripts/gen-emoji.js /tmp/emoji-sources`.
+`bun scripts/gen-emoji.js /tmp/emoji-sources`.
 
 `gen-countries.js` joins IANA's `zone.tab` with CLDR's `en` territory names on the ISO 3166 code. Re-run
 it when IANA adds or moves a country's zone; see [calculator.md](features/calculator.md#time-zones).

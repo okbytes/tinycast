@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pull, build a team-signed Tinycast Dev and swap it into ~/Applications. Usage: ./Scripts/install-dev.sh
+# Pull, build a team-signed Tinycast Dev and swap it into ~/Applications. Usage: ./scripts/install-dev.sh
 #
 # Team-signed because the keyboard helper's XPC check requires a team ID (docs/features/key-remap.md).
 # A fixed install path keeps the Accessibility and Input Monitoring grants across updates, and the

@@ -102,7 +102,7 @@ governed by this table.
 - One top-level type per file, named for it. A `View` file is named for its view; a namespace `enum` for
   the namespace.
 - Private nested helpers are free to be named for their job — the table governs top-level types only.
-- `*.generated.swift` is emitted by a script in `Scripts/` and never hand-edited.
+- `*.generated.swift` is emitted by a script in `scripts/` and never hand-edited.
 
 ## Swift style
 

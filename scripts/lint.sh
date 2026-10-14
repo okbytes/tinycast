@@ -1,6 +1,6 @@
 #!/bin/bash
 # Lint the whole project. `--fix` auto-corrects the mechanical subset first.
-# Formatting is a separate tool with its own caveats — see ./Scripts/format.sh.
+# Formatting is a separate tool with its own caveats — see ./scripts/format.sh.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -18,7 +18,7 @@ if ! swiftlint lint --quiet; then
 fi
 # A `Form` can't be asked what it holds, so an unclaimed anchor or an unmarked row is a silent
 # no-op: the search result navigates and then nothing scrolls or lights up. Nothing else catches it.
-if ! bun Scripts/check-settings-search.js; then
+if ! bun scripts/check-settings-search.js; then
     exit 1
 fi
 
