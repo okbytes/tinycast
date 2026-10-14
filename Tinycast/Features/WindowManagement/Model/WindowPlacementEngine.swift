@@ -8,7 +8,8 @@ enum WindowPlacementEngine {
         /// `CGDirectDisplayID` in the app; any stable value in tests.
         let id: Int
         let frame: CGRect
-        let visibleFrame: CGRect
+        /// Everything below the menu bar; the Dock is deliberately not subtracted.
+        let usableFrame: CGRect
     }
 
     /// Where a window that refused to shrink sits in its slot; a left half stays left-aligned.
@@ -104,10 +105,10 @@ enum WindowPlacementEngine {
         if command.kind == .restore { return restorePlacement(input) }
 
         guard let host = screen(containing: input.windowFrame, in: input.screens),
-            host.visibleFrame.width > 0, host.visibleFrame.height > 0
+            host.usableFrame.width > 0, host.usableFrame.height > 0
         else { return nil }
 
-        let gap = sanitizedGap(input.gap, in: host.visibleFrame)
+        let gap = sanitizedGap(input.gap, in: host.usableFrame)
 
         switch input.command {
         case .nextDisplay, .previousDisplay:
@@ -131,7 +132,7 @@ enum WindowPlacementEngine {
             return tilePlacement(fractions, on: host, gap: gap)
         }
 
-        let canvas = canvas(host.visibleFrame, gap: gap)
+        let canvas = canvas(host.usableFrame, gap: gap)
         guard canvas.width > 0, canvas.height > 0 else { return nil }
         let current = input.windowFrame
 
@@ -242,13 +243,13 @@ enum WindowPlacementEngine {
         // Exactness beats proportion: an untouched tile re-derives instead of being scaled.
         if let lastTile, let fractions = tileFractions(lastTile) {
             return tile(
-                to.visibleFrame, x0: fractions.x0, x1: fractions.x1, y0: fractions.y0,
-                y1: fractions.y1, gap: sanitizedGap(gap, in: to.visibleFrame))
+                to.usableFrame, x0: fractions.x0, x1: fractions.x1, y0: fractions.y0,
+                y1: fractions.y1, gap: sanitizedGap(gap, in: to.usableFrame))
         }
-        let source = from.visibleFrame
-        let target = to.visibleFrame
+        let source = from.usableFrame
+        let target = to.usableFrame
         guard source.width > 0, source.height > 0 else { return frame }
-        // Relative to `visibleFrame`, so a window tucked against the Dock lands tucked again.
+        // Relative to `usableFrame`, so a window tucked under the menu bar lands tucked again.
         let relativeX = (frame.minX - source.minX) / source.width
         let relativeY = (frame.minY - source.minY) / source.height
         let scaled = CGRect(
@@ -265,15 +266,15 @@ enum WindowPlacementEngine {
         guard let restoreFrame = input.restoreFrame,
             let host = screen(containing: restoreFrame, in: input.screens)
         else { return nil }
-        let overlap = host.visibleFrame.intersection(restoreFrame)
+        let overlap = host.usableFrame.intersection(restoreFrame)
         // A restore point stranded off every display comes back centred, not unreachable.
         let stranded = overlap.isNull || overlap.width < 40 || overlap.height < 40
         let frame =
             stranded
             ? rounded(
                 clamped(
-                    Anchor.centered.place(restoreFrame.size, in: host.visibleFrame),
-                    into: host.visibleFrame))
+                    Anchor.centered.place(restoreFrame.size, in: host.usableFrame),
+                    into: host.usableFrame))
             : restoreFrame
         return Placement(frame: frame, screenID: host.id, anchor: .centered, resizes: true)
     }
@@ -371,8 +372,8 @@ enum WindowPlacementEngine {
         _ fractions: Fractions, on screen: Screen, gap: CGFloat
     ) -> Placement {
         let frame = tile(
-            screen.visibleFrame, x0: fractions.x0, x1: fractions.x1, y0: fractions.y0,
-            y1: fractions.y1, gap: sanitizedGap(gap, in: screen.visibleFrame))
+            screen.usableFrame, x0: fractions.x0, x1: fractions.x1, y0: fractions.y0,
+            y1: fractions.y1, gap: sanitizedGap(gap, in: screen.usableFrame))
         return Placement(
             frame: frame, screenID: screen.id, anchor: fractions.anchor, resizes: true)
     }

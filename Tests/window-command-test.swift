@@ -31,7 +31,7 @@ struct WindowCommandTests {
     /// The reference display: origin at the AX origin, evenly divisible by halves and thirds.
     static let mainScreen = WindowPlacementEngine.Screen(
         id: 1, frame: CGRect(x: 0, y: 0, width: 1440, height: 900),
-        visibleFrame: CGRect(x: 0, y: 0, width: 1440, height: 900))
+        usableFrame: CGRect(x: 0, y: 0, width: 1440, height: 900))
 
     static func screens(_ list: WindowPlacementEngine.Screen...) -> [WindowPlacementEngine.Screen] { list }
 
@@ -202,13 +202,13 @@ struct WindowCommandTests {
     static func testConventionLock() {
         // AX space: +Y points down, so the top half starts at the visible frame's minY.
         expect(
-            frame(.topHalf)?.minY == mainScreen.visibleFrame.minY,
-            "top half is anchored at visibleFrame.minY (AX space, +Y down)")
+            frame(.topHalf)?.minY == mainScreen.usableFrame.minY,
+            "top half is anchored at usableFrame.minY (AX space, +Y down)")
         expect(
-            frame(.bottomHalf)?.maxY == mainScreen.visibleFrame.maxY,
-            "bottom half is anchored at visibleFrame.maxY")
+            frame(.bottomHalf)?.maxY == mainScreen.usableFrame.maxY,
+            "bottom half is anchored at usableFrame.maxY")
         expect(
-            frame(.topLeftQuarter)?.minY == mainScreen.visibleFrame.minY,
+            frame(.topLeftQuarter)?.minY == mainScreen.usableFrame.minY,
             "top left quarter sits at the top")
     }
 
@@ -238,7 +238,7 @@ struct WindowCommandTests {
             frame(.bottomRightQuarter)!
         ]
         expect(
-            quarters.reduce(CGRect.null) { $0.union($1) } == mainScreen.visibleFrame,
+            quarters.reduce(CGRect.null) { $0.union($1) } == mainScreen.usableFrame,
             "the four quarters union to the visible frame")
         var overlapping = false
         for i in quarters.indices {
@@ -255,7 +255,7 @@ struct WindowCommandTests {
             frame(.lastThreeFourths)!, CGRect(x: 360, y: 0, width: 1080, height: 900),
             "last three fourths")
         expect(
-            frame(.firstThreeFourths)!.union(frame(.lastThreeFourths)!) == mainScreen.visibleFrame,
+            frame(.firstThreeFourths)!.union(frame(.lastThreeFourths)!) == mainScreen.usableFrame,
             "the two three-fourths cover the screen between them")
         expect(
             frame(.firstThreeFourths)!.intersection(frame(.lastThreeFourths)!) == frame(.centerHalf)!,
@@ -271,10 +271,10 @@ struct WindowCommandTests {
             frame(.lastTwoThirds)!, CGRect(x: 480, y: 0, width: 960, height: 900), "last two thirds")
 
         expect(
-            frame(.firstThird)!.union(frame(.lastTwoThirds)!) == mainScreen.visibleFrame,
+            frame(.firstThird)!.union(frame(.lastTwoThirds)!) == mainScreen.usableFrame,
             "first third and last two thirds partition the screen")
         expect(
-            frame(.firstTwoThirds)!.union(frame(.lastThird)!) == mainScreen.visibleFrame,
+            frame(.firstTwoThirds)!.union(frame(.lastThird)!) == mainScreen.usableFrame,
             "first two thirds and last third partition the screen")
 
         // Size cycling: the five halves only, ½ → ⅓ → ⅔, wrapping.
@@ -345,20 +345,20 @@ struct WindowCommandTests {
         for width in [1441, 1000, 1367, 1366] as [CGFloat] {
             let screen = WindowPlacementEngine.Screen(
                 id: 9, frame: CGRect(x: 0, y: 0, width: width, height: 901),
-                visibleFrame: CGRect(x: 0, y: 0, width: width, height: 901))
+                usableFrame: CGRect(x: 0, y: 0, width: width, height: 901))
             let first = frame(.firstThird, on: screen)!
             let center = frame(.centerThird, on: screen)!
             let last = frame(.lastThird, on: screen)!
             expect(first.maxX == center.minX, "\(width): first/center thirds share an edge exactly")
             expect(center.maxX == last.minX, "\(width): center/last thirds share an edge exactly")
             expect(
-                first.union(center).union(last) == screen.visibleFrame,
+                first.union(center).union(last) == screen.usableFrame,
                 "\(width): thirds still cover the whole screen")
 
             let left = frame(.leftHalf, on: screen)!
             let right = frame(.rightHalf, on: screen)!
             expect(left.maxX == right.minX, "\(width): halves share an edge exactly")
-            expect(left.union(right) == screen.visibleFrame, "\(width): halves cover the screen")
+            expect(left.union(right) == screen.usableFrame, "\(width): halves cover the screen")
             expect(abs(left.width - right.width) <= 1, "\(width): halves differ by at most a point")
 
             let top = frame(.topHalf, on: screen)!
@@ -374,7 +374,7 @@ struct WindowCommandTests {
                 abs(firstFourths.width - width * 0.75) <= 1,
                 "\(width): three fourths is three quarters of the screen")
             expect(
-                firstFourths.union(lastFourths) == screen.visibleFrame,
+                firstFourths.union(lastFourths) == screen.usableFrame,
                 "\(width): the two three-fourths still cover the screen")
         }
     }
@@ -385,7 +385,7 @@ struct WindowCommandTests {
         // A display up and to the right of the primary — negative Y in AX space.
         let high = WindowPlacementEngine.Screen(
             id: 2, frame: CGRect(x: 1920, y: -300, width: 2560, height: 1440),
-            visibleFrame: CGRect(x: 1920, y: -300, width: 2560, height: 1440))
+            usableFrame: CGRect(x: 1920, y: -300, width: 2560, height: 1440))
         expectRect(
             frame(.leftHalf, on: high, window: CGRect(x: 2000, y: 0, width: 400, height: 300))!,
             CGRect(x: 1920, y: -300, width: 1280, height: 1440), "left half on an off-origin display")
@@ -396,23 +396,23 @@ struct WindowCommandTests {
         // A display left of and below the primary.
         let low = WindowPlacementEngine.Screen(
             id: 3, frame: CGRect(x: -1440, y: 200, width: 1440, height: 900),
-            visibleFrame: CGRect(x: -1440, y: 200, width: 1440, height: 900))
+            usableFrame: CGRect(x: -1440, y: 200, width: 1440, height: 900))
         expectRect(
             frame(.rightHalf, on: low, window: CGRect(x: -1000, y: 300, width: 400, height: 300))!,
             CGRect(x: -720, y: 200, width: 720, height: 900), "right half on a negative-X display")
         expectRect(
             frame(.maximize, on: low, window: CGRect(x: -1000, y: 300, width: 400, height: 300))!,
-            low.visibleFrame, "maximize on a negative-X display")
+            low.usableFrame, "maximize on a negative-X display")
 
         // A visible frame smaller than the full frame (menu bar and Dock reserved).
         let reserved = WindowPlacementEngine.Screen(
             id: 4, frame: CGRect(x: 0, y: 0, width: 1440, height: 900),
-            visibleFrame: CGRect(x: 0, y: 25, width: 1440, height: 800))
+            usableFrame: CGRect(x: 0, y: 25, width: 1440, height: 800))
         expectRect(
             frame(.topHalf, on: reserved)!, CGRect(x: 0, y: 25, width: 1440, height: 400),
             "tiles respect a reserved visible frame")
         expectRect(
-            frame(.maximize, on: reserved)!, reserved.visibleFrame, "maximize never covers the menu bar")
+            frame(.maximize, on: reserved)!, reserved.usableFrame, "maximize never covers the menu bar")
     }
 
     // MARK: - Gaps
@@ -473,7 +473,7 @@ struct WindowCommandTests {
             let rect = frame(.leftHalf, gap: gap)!
             expect(rect.width > 0 && rect.height > 0, "gap \(gap) still yields a positive tile")
             expect(
-                mainScreen.visibleFrame.contains(rect), "gap \(gap) keeps the tile on screen")
+                mainScreen.usableFrame.contains(rect), "gap \(gap) keeps the tile on screen")
         }
         expectRect(frame(.leftHalf, gap: -5)!, frame(.leftHalf)!, "a negative gap reads as zero")
         // Every non-finite value reads as zero, so NaN and infinity behave alike.
@@ -489,15 +489,15 @@ struct WindowCommandTests {
     // MARK: - Sizing
 
     static func testSizing() {
-        expectRect(frame(.maximize)!, mainScreen.visibleFrame, "maximize fills the visible frame")
+        expectRect(frame(.maximize)!, mainScreen.usableFrame, "maximize fills the usable frame")
 
         let almost = frame(.almostMaximize)!
         expectRect(almost, CGRect(x: 72, y: 45, width: 1296, height: 810), "almost maximize")
         expectRect(
             frame(.almostMaximize, window: almost)!, almost, "almost maximize is idempotent")
         expect(
-            almost.midX == mainScreen.visibleFrame.midX
-                && almost.midY == mainScreen.visibleFrame.midY,
+            almost.midX == mainScreen.usableFrame.midX
+                && almost.midY == mainScreen.usableFrame.midY,
             "almost maximize stays centred")
 
         let reasonable = frame(.reasonableSize)!
@@ -509,7 +509,7 @@ struct WindowCommandTests {
         // Small displays never reach the cap, so the fraction is what shows.
         let small = WindowPlacementEngine.Screen(
             id: 7, frame: CGRect(x: 0, y: 0, width: 1280, height: 800),
-            visibleFrame: CGRect(x: 0, y: 0, width: 1280, height: 800))
+            usableFrame: CGRect(x: 0, y: 0, width: 1280, height: 800))
         expectRect(
             frame(.reasonableSize, on: small)!, CGRect(x: 256, y: 160, width: 768, height: 480),
             "reasonable size is uncapped on a small display")
@@ -517,14 +517,14 @@ struct WindowCommandTests {
         // Large ones do, which is what keeps the command display-independent.
         let large = WindowPlacementEngine.Screen(
             id: 8, frame: CGRect(x: 0, y: 0, width: 3840, height: 2160),
-            visibleFrame: CGRect(x: 0, y: 0, width: 3840, height: 2160))
+            usableFrame: CGRect(x: 0, y: 0, width: 3840, height: 2160))
         let capped = frame(.reasonableSize, on: large)!
         expect(
             capped.width == 1025 && capped.height == 900, "reasonable size caps at 1025×900")
-        expect(large.visibleFrame.contains(capped), "a capped reasonable size stays on screen")
+        expect(large.usableFrame.contains(capped), "a capped reasonable size stays on screen")
         expect(
-            abs(capped.midX - large.visibleFrame.midX) <= 0.5
-                && abs(capped.midY - large.visibleFrame.midY) <= 0.5,
+            abs(capped.midX - large.usableFrame.midX) <= 0.5
+                && abs(capped.midY - large.usableFrame.midY) <= 0.5,
             "a capped reasonable size stays centred")
 
         let window = CGRect(x: 100, y: 200, width: 300, height: 400)
@@ -543,12 +543,12 @@ struct WindowCommandTests {
         let strayTall = frame(.maximizeHeight, window: stray)!
         expect(strayTall.minX == 0 && strayTall.width == 200, "maximize height clamps a stray x")
         expect(
-            !strayTall.intersection(mainScreen.visibleFrame).isNull,
+            !strayTall.intersection(mainScreen.usableFrame).isNull,
             "maximize height brings a stray window back on screen")
         let strayWide = frame(.maximizeWidth, window: stray)!
         expect(strayWide.minY == 0 && strayWide.height == 150, "maximize width clamps a stray y")
         expect(
-            !strayWide.intersection(mainScreen.visibleFrame).isNull,
+            !strayWide.intersection(mainScreen.usableFrame).isNull,
             "maximize width brings a stray window back on screen")
 
         expectRect(
@@ -563,7 +563,7 @@ struct WindowCommandTests {
         let centred = frame(.center, window: huge)!
         expect(
             centred.width <= 1440 && centred.height <= 900, "center clamps an oversized window")
-        expect(mainScreen.visibleFrame.contains(centred), "a clamped center stays on screen")
+        expect(mainScreen.usableFrame.contains(centred), "a clamped center stays on screen")
 
         expectRect(
             frame(.centerHalf)!, CGRect(x: 360, y: 0, width: 720, height: 900),
@@ -600,7 +600,7 @@ struct WindowCommandTests {
         // Repeated growing converges on the canvas.
         var growing = start
         for _ in 0..<40 { growing = frame(.makeLarger, window: growing)! }
-        expectRect(growing, mainScreen.visibleFrame, "40 grows converge on the maximized frame")
+        expectRect(growing, mainScreen.usableFrame, "40 grows converge on the maximized frame")
         expectRect(frame(.makeLarger, window: growing)!, growing, "growing saturates into a no-op")
 
         // With a gap, growing converges on the gapped canvas rather than the raw visible frame.
@@ -652,7 +652,7 @@ struct WindowCommandTests {
         let left = mainScreen
         let right = WindowPlacementEngine.Screen(
             id: 2, frame: CGRect(x: 1440, y: 0, width: 2560, height: 1440),
-            visibleFrame: CGRect(x: 1440, y: 0, width: 2560, height: 1440))
+            usableFrame: CGRect(x: 1440, y: 0, width: 2560, height: 1440))
         // Deliberately out of order, to prove the ordering is derived and not inherited.
         let both = screens(right, left)
         expect(WindowPlacementEngine.ordered(both).map(\.id) == [1, 2], "displays order left-to-right")
@@ -663,7 +663,7 @@ struct WindowCommandTests {
         expectRect(
             onRight, CGRect(x: 1440, y: 0, width: 1280, height: 1440),
             "a left half maps proportionally onto the larger display")
-        expect(right.visibleFrame.contains(onRight), "the moved window stays inside the destination")
+        expect(right.usableFrame.contains(onRight), "the moved window stays inside the destination")
 
         expectRect(
             frame(.previousDisplay, window: onRight, allScreens: both)!, leftHalfOnLeft,
@@ -713,7 +713,7 @@ struct WindowCommandTests {
         let left = mainScreen
         let right = WindowPlacementEngine.Screen(
             id: 2, frame: CGRect(x: 1440, y: 0, width: 1440, height: 900),
-            visibleFrame: CGRect(x: 1440, y: 0, width: 1440, height: 900))
+            usableFrame: CGRect(x: 1440, y: 0, width: 1440, height: 900))
         let both = screens(right, left)
         let onLeft = CGRect(x: 100, y: 100, width: 600, height: 400)
 
@@ -814,7 +814,7 @@ struct WindowCommandTests {
         // The gap belongs to the destination, not to the display the window started on.
         let narrow = WindowPlacementEngine.Screen(
             id: 3, frame: CGRect(x: 1440, y: 0, width: 200, height: 900),
-            visibleFrame: CGRect(x: 1440, y: 0, width: 200, height: 900))
+            usableFrame: CGRect(x: 1440, y: 0, width: 200, height: 900))
         expectRect(
             frame(
                 .leftHalf, window: onLeft, gap: 100, step: 2, cycle: .displays,
@@ -847,9 +847,9 @@ struct WindowCommandTests {
         let recovered = frame(.restore, restore: stranded)!
         expect(recovered.size == stranded.size, "a stranded restore keeps its size")
         expect(
-            mainScreen.visibleFrame.contains(recovered), "a stranded restore lands back on screen")
+            mainScreen.usableFrame.contains(recovered), "a stranded restore lands back on screen")
         expect(
-            recovered.midX == mainScreen.visibleFrame.midX,
+            recovered.midX == mainScreen.usableFrame.midX,
             "a stranded restore is re-centred horizontally")
     }
 
@@ -957,7 +957,7 @@ struct WindowCommandTests {
 
         // A non-cycling command never advances even with cycling on.
         var nonCycling = WindowActionMemory<Int>()
-        let maximized = mainScreen.visibleFrame
+        let maximized = mainScreen.usableFrame
         var nonDecision = nonCycling.decide(
             key: 1, command: .maximize, currentFrame: original, currentScreenID: 1,
             cycleLength: length(.maximize, .sizes), now: clock)
@@ -1064,15 +1064,15 @@ struct WindowCommandTests {
                 mainScreen,
                 WindowPlacementEngine.Screen(
                     id: 2, frame: CGRect(x: 1440, y: -200, width: 2560, height: 1440),
-                    visibleFrame: CGRect(x: 1440, y: -175, width: 2560, height: 1390))
+                    usableFrame: CGRect(x: 1440, y: -175, width: 2560, height: 1390))
             ],
             [
                 WindowPlacementEngine.Screen(
                     id: 5, frame: CGRect(x: 0, y: 0, width: 1024, height: 640),
-                    visibleFrame: CGRect(x: 0, y: 25, width: 1024, height: 590)),
+                    usableFrame: CGRect(x: 0, y: 25, width: 1024, height: 590)),
                 WindowPlacementEngine.Screen(
                     id: 6, frame: CGRect(x: -3840, y: 0, width: 3840, height: 2160),
-                    visibleFrame: CGRect(x: -3840, y: 25, width: 3840, height: 2060))
+                    usableFrame: CGRect(x: -3840, y: 25, width: 3840, height: 2060))
             ]
         ]
         let windows: [CGRect] = [
@@ -1118,7 +1118,7 @@ struct WindowCommandTests {
                                     problems.append("unknown screen id: \(label)")
                                     continue
                                 }
-                                if rect.intersection(host.visibleFrame).isNull {
+                                if rect.intersection(host.usableFrame).isNull {
                                     problems.append("off-screen frame: \(label)")
                                 }
                                 // Determinism, and no drift when a command is applied twice at step 0.

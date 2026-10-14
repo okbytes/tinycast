@@ -62,7 +62,7 @@ a `Group` case and its `title` arm; `ID.allCases` stays in group order.
 
 **`WindowPlacementEngine` works exclusively in AX space**: global coordinates, top-left origin, +Y pointing
 _down_. `WindowMover.AXGeometry` is the only place that converts to and from Cocoa's bottom-left space.
-The visible consequence is that Top Half has `minY == visibleFrame.minY`, which the harness asserts
+The visible consequence is that Top Half has `minY == usableFrame.minY`, which the harness asserts
 specifically to stop a bottom-left convention creeping back in.
 
 The flip is anchored on the **primary** display's height — the display whose Cocoa frame origin is
@@ -76,11 +76,17 @@ wake or a resolution change, and mixing two anchors inside one command corrupts 
 
 Nothing here touches `backingScaleFactor`. `NSScreen.frame`, `NSScreen.visibleFrame` and AX
 coordinates are all in points, so mixed-DPI correctness is automatic; a scale factor appearing anywhere
-in this feature is a bug. `visibleFrame` already excludes the menu bar, the Dock and the notch.
+in this feature is a bug.
+
+**The Dock is ignored.** Each display's `usableFrame` is its full frame minus only the menu bar (and
+the notch inside it): `AXScreens` keeps `visibleFrame`'s top edge, which the Dock never occupies, and
+takes the other three from `frame`. With the Dock auto-hidden, tiles occasionally came up a Dock's
+height short; a Dock that stays shown is simply covered. Avoiding it again would be a new feature,
+not a fix.
 
 ## Geometry
 
-**Tiles** come from fractional bounds of `visibleFrame`. Gaps use one rule that composes across every
+**Tiles** come from fractional bounds of `usableFrame`. Gaps use one rule that composes across every
 family: an edge sitting on the screen boundary takes the full gap, an interior edge takes half. Two
 adjacent tiles therefore leave exactly `gap` between them and every screen edge is inset by `gap`, with
 no per-family special cases. Rects are rounded on their four **edges**, not origin + size, so two tiles
@@ -89,7 +95,7 @@ one-point seams.
 
 **Free-floating commands** (Maximize, Almost Maximize, Reasonable Size, Center, Make Larger/Smaller,
 the nudges) work in
-`canvas = visibleFrame.insetBy(gap)` instead: a centred window has no neighbour to gutter against.
+`canvas = usableFrame.insetBy(gap)` instead: a centred window has no neighbour to gutter against.
 
 **Make Larger / Make Smaller** step by 5% of the _screen_, not of the window, and the step is forced
 even so each edge moves a whole point. That makes the two commands exactly invertible — `size × 0.95 ×

@@ -227,8 +227,8 @@ final class WindowMover {
         let destination = screens.first { $0.id == placement.screenID }
         let canvas = destination.map {
             WindowPlacementEngine.canvas(
-                $0.visibleFrame,
-                gap: WindowPlacementEngine.sanitizedGap(gap, in: $0.visibleFrame))
+                $0.usableFrame,
+                gap: WindowPlacementEngine.sanitizedGap(gap, in: $0.usableFrame))
         }
         let restoreEnhancedUI = canResize ? surface.suppressEnhancedUserInterface() : {}
         defer { restoreEnhancedUI() }

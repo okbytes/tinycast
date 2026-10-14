@@ -30,8 +30,16 @@ enum AXScreens {
             return WindowPlacementEngine.Screen(
                 id: displayID(screen).map(Int.init) ?? -(index + 1),
                 frame: geometry.flip(screen.frame),
-                visibleFrame: geometry.flip(screen.visibleFrame))
+                usableFrame: geometry.flip(belowMenuBar(screen)))
         }
+    }
+
+    /// Tiles cover the Dock, which never sits on the top edge, so only the menu bar is kept clear.
+    private static func belowMenuBar(_ screen: NSScreen) -> CGRect {
+        let frame = screen.frame
+        return CGRect(
+            x: frame.minX, y: frame.minY, width: frame.width,
+            height: screen.visibleFrame.maxY - frame.minY)
     }
 
     private static func displayID(_ screen: NSScreen) -> CGDirectDisplayID? {
