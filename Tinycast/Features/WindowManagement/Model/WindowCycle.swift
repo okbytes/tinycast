@@ -1,6 +1,6 @@
 import Foundation
 
-/// What a repeat press of a half does. docs/features/window-management.md#cycling-and-restore
+/// What a repeat press of a half does. docs/features/window-management.md#cycling
 enum WindowCycle: String, CaseIterable, Identifiable, Sendable {
     /// Re-apply the same half — the shortcut is idempotent.
     case off

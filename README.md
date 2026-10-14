@@ -31,8 +31,8 @@ source, and staying that way.
 - **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
 - **Apple Shortcuts** — search and run the shortcuts you built in the Shortcuts app, with aliases and
   global hotkeys.
-- **Window management** — 36 Rectangle-style actions: halves, quarters, fourths, thirds, sizing,
-  edge moves, display moves, fullscreen and Spaces.
+- **Window management** — 15 Rectangle-style actions: halves, quarters, three fourths, Maximize,
+  Center and edge moves.
 - **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, mute, hidden
   files, and more.
 - **Calendar** — what's coming up next in the menu bar, the schedule on click, and one click to open

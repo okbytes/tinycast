@@ -19,8 +19,6 @@ Findings from the initial survey that still shape the plan:
   where new wiring lands, so touch them surgically.
 - Persistence is mixed (SQLite, UserDefaults JSON, loose JSON, `.md` files) and most writes are
   `try?`, so failures are silent.
-- Space switching synthesizes a trackpad-swipe `CGEvent` with undocumented fields; expect it to
-  break on OS updates.
 
 ## Done
 
@@ -30,8 +28,10 @@ Findings from the initial survey that still shape the plan:
 - Removed About: its Settings pane, the About command and both menu items.
 - Removed Navigation, the window switcher.
 - Removed Notes.
-- Removed window Layouts, Rooms and Custom Sizes; window commands, cycling, gaps, presets and
-  Spaces stay.
+- Removed window Layouts, Rooms and Custom Sizes; window commands, cycling, gaps and presets stay.
+- Trimmed window commands to Left/Right Half, the quarters, the three fourths, Maximize, Center and
+  the four moves. Top/Bottom Half, thirds, the other sizing commands, Restore, display moves,
+  Toggle Fullscreen and Space switching are gone.
 - Trimmed Calendar to the menu-bar item: next event, the agenda on click, Open in Calendar. Joining,
   auto join, the camera preview, launcher rows, My Schedule, event details, Create Event and the
   calendar commands are gone.
@@ -90,11 +90,6 @@ on two Macs; the old event tap eventually went dead, so long uptime is the test 
 - The driver protocol is pinned to 7 (driver v8.x); a driver update can break remapping.
 - More than Hyper and Meh: per-key chords, tap-versus-hold roles, external keyboards.
 - `HyperKeyPhysicalKey` now names the Meh key's choice too; rename it to say so.
-
-## Window management
-
-- Multi-level undo; action memory that survives a relaunch.
-- Decide whether the synthesized trackpad-swipe Space switching stays or the Space commands go.
 
 ## Cross-cutting
 

@@ -149,7 +149,7 @@ in `commands.builtIn` — by their ID after `command:`. App Launcher is `general
 
 ## Window management
 
-- **`shortcuts`** lists all 36 commands by ID, `null` when unbound; one left out is unbound too.
+- **`shortcuts`** lists all 15 commands by ID, `null` when unbound; one left out is unbound too.
 - **`aliases`** lists only the commands that have one.
 
 ## Adding a setting

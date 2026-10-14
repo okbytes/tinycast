@@ -155,16 +155,7 @@ final class WindowMover {
     func perform(
         _ command: WindowCommand.ID, target: WindowTarget?, gap: CGFloat, cycle: WindowCycle
     ) -> Bool {
-        guard let catalogued = WindowCommandCatalog.command(id: command),
-            let focused = focusedWindow(of: target)
-        else { return false }
-
-        if catalogued.kind == .fullscreen {
-            guard toggleFullScreen(focused.surface) else { return false }
-            // The size chain is moot, but the pre-Tinycast frame is still the Restore target.
-            memory.forgetCycle(key: focused.key)
-            return true
-        }
+        guard let focused = focusedWindow(of: target) else { return false }
         return place(focused, command: command, gap: gap, cycle: cycle)
     }
 
@@ -215,9 +206,7 @@ final class WindowMover {
             now: now)
         let input = WindowPlacementEngine.Input(
             command: command, windowFrame: current, screens: screens, gap: gap, step: decision.step,
-            cycle: cycle, originScreenID: decision.originScreenID,
-            restoreFrame: decision.canRestore ? decision.restoreFrame : nil,
-            lastTileCommand: decision.lastTileCommand)
+            cycle: cycle, originScreenID: decision.originScreenID)
         guard let placement = WindowPlacementEngine.placement(for: input) else { return false }
 
         // Checked before any write, so an unpositionable window is left untouched.
@@ -246,35 +235,5 @@ final class WindowMover {
             key: focused.key, command: command, decision: decision, appliedFrame: applied,
             screenID: landedOn, now: now)
         return !applied.equalTo(current)
-    }
-
-    // MARK: - Fullscreen
-
-    /// `AXFullScreen`, then the green button. docs/features/window-management.md
-    private func toggleFullScreen(_ surface: Surface) -> Bool {
-        switch surface {
-        case .own(let window):
-            // AppKit fullscreens any resizable window unless it opts out of fullscreen.
-            guard window.styleMask.contains(.resizable),
-                window.collectionBehavior.isDisjoint(with: [.fullScreenAuxiliary, .fullScreenNone])
-            else { return false }
-            window.toggleFullScreen(nil)
-            return true
-        case .external(_, let window):
-            let target: CFBoolean =
-                AXWindowAccess.isFullScreen(window) ? kCFBooleanFalse : kCFBooleanTrue
-            if AXWindowAccess.isSettable(
-                AXWindowAccess.fullScreenAttribute as String, on: window),
-                AXUIElementSetAttributeValue(
-                    window, AXWindowAccess.fullScreenAttribute, target) == .success
-            {
-                return true
-            }
-            guard
-                let button = AXWindowAccess.element(
-                    window, AXWindowAccess.fullScreenButtonAttribute as String)
-            else { return false }
-            return AXUIElementPerformAction(button, kAXPressAction as CFString) == .success
-        }
     }
 }

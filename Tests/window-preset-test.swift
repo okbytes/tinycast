@@ -53,8 +53,8 @@ struct WindowPresetTests {
                 == combo(kVK_LeftArrow, controlKey | optionKey),
             "Rectangle's Left Half is ⌃⌥←")
         expect(
-            WindowShortcutPreset.spectacle.bindings[.restore] == combo(kVK_ANSI_Z, optionKey | cmdKey),
-            "Spectacle's undo is ⌥⌘Z")
+            WindowShortcutPreset.spectacle.bindings[.maximize] == combo(kVK_ANSI_F, optionKey | cmdKey),
+            "Spectacle's Fullscreen is ⌥⌘F")
     }
 
     static func testEmptyCurrent() {

@@ -11,7 +11,6 @@ enum AXWindowAccess {
     static let clampTolerance: CGFloat = 2
 
     static let fullScreenAttribute = "AXFullScreen" as CFString
-    static let fullScreenButtonAttribute = "AXFullScreenButton" as CFString
 
     // MARK: - Finding windows
 

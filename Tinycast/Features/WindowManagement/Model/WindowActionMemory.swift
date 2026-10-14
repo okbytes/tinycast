@@ -1,11 +1,9 @@
 import CoreGraphics
 import Foundation
 
-/// What Tinycast remembers per moved window. docs/features/window-management.md#cycling-and-restore
+/// What Tinycast remembers per moved window. docs/features/window-management.md#cycling
 struct WindowActionMemory<Key: Hashable> {
     struct Record: Equatable, Sendable {
-        /// Where the window was before Tinycast first touched it.
-        var restoreFrame: CGRect
         /// Where we *observed* it after our last write — not what we asked for. See `decide`.
         var appliedFrame: CGRect
         var command: WindowCommand.ID
@@ -21,12 +19,6 @@ struct WindowActionMemory<Key: Hashable> {
         var step: Int
         /// The display the chain started on, which the display cycle counts `step` from.
         var originScreenID: Int
-        /// The frame `commit` should persist as this window's restore point.
-        var restoreFrame: CGRect
-        /// False on first sight: there is nothing to go back to, so Restore must do nothing.
-        var canRestore: Bool
-        /// Set only when the window still sits exactly where a tile command left it.
-        var lastTileCommand: WindowCommand.ID?
     }
 
     /// Tolerance for "still the frame we left it at": subpixel drift in, a real drag out.
@@ -50,27 +42,15 @@ struct WindowActionMemory<Key: Hashable> {
 
     func record(for key: Key) -> Record? { records[key] }
 
-    /// Resolves the cycle step and restore point; `commit` writes once the mover knows what landed.
+    /// Resolves the cycle step; `commit` writes once the mover knows what landed.
     func decide(
         key: Key, command: WindowCommand.ID, currentFrame: CGRect, currentScreenID: Int,
         cycleLength: Int, now: Date
     ) -> Decision {
-        // First sight: capture where it was, so Restore works for a never-moved window.
-        guard let record = records[key] else {
-            return Decision(
-                step: 0, originScreenID: currentScreenID, restoreFrame: currentFrame,
-                canRestore: false, lastTileCommand: nil)
-        }
-
         // Against the observed frame, never the requested one. docs/features/window-management.md
-        guard approximatelyEqual(currentFrame, record.appliedFrame) else {
-            return Decision(
-                step: 0, originScreenID: currentScreenID, restoreFrame: currentFrame,
-                canRestore: true, lastTileCommand: nil)
-        }
+        guard let record = records[key], approximatelyEqual(currentFrame, record.appliedFrame)
+        else { return Decision(step: 0, originScreenID: currentScreenID) }
 
-        let lastTileCommand =
-            WindowPlacementEngine.isTileCommand(record.command) ? record.command : nil
         let expired = cycleTimeout.map { now.timeIntervalSince(record.at) > $0 } ?? false
         // A length of 1 covers both a non-cycling command and cycling switched off entirely.
         let continues =
@@ -78,8 +58,7 @@ struct WindowActionMemory<Key: Hashable> {
             && currentScreenID == record.screenID && !expired
         return Decision(
             step: continues ? (record.step + 1) % cycleLength : 0,
-            originScreenID: continues ? record.originScreenID : currentScreenID,
-            restoreFrame: record.restoreFrame, canRestore: true, lastTileCommand: lastTileCommand)
+            originScreenID: continues ? record.originScreenID : currentScreenID)
     }
 
     /// Records what actually landed. `appliedFrame` must be read back from the window, not assumed.
@@ -88,18 +67,9 @@ struct WindowActionMemory<Key: Hashable> {
         screenID: Int, now: Date
     ) {
         records[key] = Record(
-            restoreFrame: decision.restoreFrame, appliedFrame: appliedFrame, command: command,
-            step: decision.step, screenID: screenID, originScreenID: decision.originScreenID,
-            at: now)
+            appliedFrame: appliedFrame, command: command, step: decision.step, screenID: screenID,
+            originScreenID: decision.originScreenID, at: now)
         touch(key)
-    }
-
-    /// Breaks the cycle chain while keeping the restore point, which is what fullscreen needs.
-    mutating func forgetCycle(key: Key) {
-        guard var record = records[key] else { return }
-        record.step = 0
-        record.originScreenID = record.screenID
-        records[key] = record
     }
 
     mutating func forget(where predicate: (Key) -> Bool) {

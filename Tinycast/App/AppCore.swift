@@ -14,7 +14,6 @@ final class AppCore {
     let hotKeys = HotKeyManager()
     let keyRemap = KeyRemapManager()
     let windowMover = WindowMover()
-    let spaceSwitcher = SpaceSwitcher()
     let inputSourceSwitcher = InputSourceSwitcher()
     let settings: AppSettings
     /// Mirrors settings into settings.json; nil while the Backup pane's switch is off.
@@ -54,8 +53,7 @@ final class AppCore {
         appIndex: appIndex, runningApps: runningApps, hotKeys: hotKeys, favorites: favorites,
         visibility: visibility, ranking: launcherRanking, aliases: aliases, core: self)
     @ObservationIgnored private(set) lazy var windowCommandCoordinator = WindowCommandCoordinator(
-        settings: settings, paletteCoordinator: paletteCoordinator, windowMover: windowMover,
-        spaceSwitcher: spaceSwitcher)
+        settings: settings, paletteCoordinator: paletteCoordinator, windowMover: windowMover)
     @ObservationIgnored private(set) lazy var windowShortcutPresetCoordinator =
         WindowShortcutPresetCoordinator(hotKeys: hotKeys, core: self)
     @ObservationIgnored private(set) lazy var appleShortcutCoordinator = AppleShortcutCoordinator(

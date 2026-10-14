@@ -285,8 +285,6 @@ run window-preset-test     Tinycast/Features/WindowManagement/Model/WindowComman
                            Tinycast/Features/HotKeys/Model/HyperKey.swift \
                            Tinycast/Platform/ASCIIKeyboardLayout.swift \
                            Tinycast/Features/HotKeys/Service/KeyShortcut.swift
-run space-gesture-test     Tinycast/Features/WindowManagement/Model/WindowCommand.swift \
-                           Tinycast/Features/WindowManagement/Model/SpaceGesture.swift
 run window-file-test       Tinycast/Features/WindowManagement/Model/WindowCommand.swift \
                            Tinycast/Features/WindowManagement/Model/WindowManagementFileFormat.swift \
                            Tinycast/Features/Settings/Model/SettingsFileJSON.swift

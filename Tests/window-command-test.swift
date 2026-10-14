@@ -38,26 +38,24 @@ struct WindowCommandTests {
     static func placement(
         _ command: WindowCommand.ID, on screen: WindowPlacementEngine.Screen = mainScreen,
         window: CGRect = CGRect(x: 100, y: 100, width: 600, height: 400), gap: CGFloat = 0,
-        step: Int = 0, cycle: WindowCycle = .off, restore: CGRect? = nil,
-        lastTile: WindowCommand.ID? = nil,
+        step: Int = 0, cycle: WindowCycle = .off,
         allScreens: [WindowPlacementEngine.Screen]? = nil
     ) -> WindowPlacementEngine.Placement? {
         WindowPlacementEngine.placement(
             for: WindowPlacementEngine.Input(
                 command: command, windowFrame: window, screens: allScreens ?? [screen], gap: gap,
-                step: step, cycle: cycle, restoreFrame: restore, lastTileCommand: lastTile))
+                step: step, cycle: cycle))
     }
 
     static func frame(
         _ command: WindowCommand.ID, on screen: WindowPlacementEngine.Screen = mainScreen,
         window: CGRect = CGRect(x: 100, y: 100, width: 600, height: 400), gap: CGFloat = 0,
-        step: Int = 0, cycle: WindowCycle = .off, restore: CGRect? = nil,
-        lastTile: WindowCommand.ID? = nil,
+        step: Int = 0, cycle: WindowCycle = .off,
         allScreens: [WindowPlacementEngine.Screen]? = nil
     ) -> CGRect? {
         placement(
             command, on: screen, window: window, gap: gap, step: step, cycle: cycle,
-            restore: restore, lastTile: lastTile, allScreens: allScreens)?.frame
+            allScreens: allScreens)?.frame
     }
 
     /// Presses `command` like `WindowMover`: each press starts from where the last one landed.
@@ -102,11 +100,9 @@ struct WindowCommandTests {
         testOffOriginScreens()
         testGaps()
         testSizing()
-        testLargerSmaller()
         testMoves()
-        testDisplays()
+        testScreens()
         testDisplayCycle()
-        testRestore()
         testMemory()
         testFuzz()
 
@@ -118,7 +114,7 @@ struct WindowCommandTests {
 
     static func testCatalog() {
         let commands = WindowCommandCatalog.all
-        expect(commands.count == 36, "catalog contains all 36 agreed commands")
+        expect(commands.count == 15, "catalog contains all 15 agreed commands")
         expect(commands.map(\.id) == WindowCommand.ID.allCases, "catalog covers every ID once")
         expect(
             Set(commands.map { $0.name.lowercased() }).count == commands.count, "names are unique")
@@ -144,30 +140,11 @@ struct WindowCommandTests {
             "system-action entry IDs are not claimed")
 
         let cycling = Set(commands.filter(\.cyclesOnRepeat).map(\.id))
-        expect(
-            cycling == [.leftHalf, .rightHalf, .topHalf, .bottomHalf, .centerHalf],
-            "only the five halves cycle on repeat")
+        expect(cycling == [.leftHalf, .rightHalf], "only the two halves cycle on repeat")
         let moveOnly = Set(commands.filter { !$0.resizes }.map(\.id))
         expect(
             moveOnly == [.moveLeft, .moveRight, .moveUp, .moveDown],
             "only the four moves leave the size alone")
-        expect(
-            Set(commands.filter { $0.kind == .fullscreen }.map(\.id)) == [.toggleFullscreen],
-            "only Toggle Fullscreen is a fullscreen command")
-        expect(
-            Set(commands.filter { $0.kind == .restore }.map(\.id)) == [.restore],
-            "only Restore is a restore command")
-        expect(
-            Set(commands.filter { $0.kind == .space }.map(\.id)) == [.previousSpace, .nextSpace],
-            "only the two Space switches are space commands")
-        expect(
-            commands.filter { $0.kind == .space }.allSatisfy {
-                WindowPlacementEngine.placement(
-                    for: WindowPlacementEngine.Input(
-                        command: $0.id, windowFrame: mainScreen.frame, screens: [mainScreen],
-                        gap: 0, step: 0, restoreFrame: nil, lastTileCommand: nil)) == nil
-            },
-            "a space command resolves no placement, so the mover writes nothing")
 
         // Grouping drives the Settings list; every command must land in exactly one group.
         let grouped = WindowCommandCatalog.grouped()
@@ -176,40 +153,23 @@ struct WindowCommandTests {
         expect(
             grouped.map(\.group) == WindowCommand.Group.allCases,
             "every group is represented, in declaration order")
-        expect(grouped.first { $0.group == .halves }?.commands.count == 4, "four halves")
+        expect(grouped.first { $0.group == .halves }?.commands.count == 2, "two halves")
         expect(grouped.first { $0.group == .quarters }?.commands.count == 4, "four quarters")
         expect(grouped.first { $0.group == .fourths }?.commands.count == 3, "three fourths commands")
-        expect(grouped.first { $0.group == .thirds }?.commands.count == 5, "five thirds")
-        expect(grouped.first { $0.group == .sizing }?.commands.count == 11, "eleven sizing commands")
-        expect(grouped.first { $0.group == .moving }?.commands.count == 6, "six moving commands")
-        expect(grouped.first { $0.group == .spaces }?.commands.count == 2, "two space commands")
-
-        expect(
-            WindowPlacementEngine.isTileCommand(.leftHalf)
-                && WindowPlacementEngine.isTileCommand(.centerHalf),
-            "halves and center half are tiles")
-        expect(
-            !WindowPlacementEngine.isTileCommand(.maximize)
-                && !WindowPlacementEngine.isTileCommand(.moveLeft),
-            "free-floating commands are not tiles")
-
-        // Fullscreen has no geometry: the mover branches before asking for a placement.
-        expect(frame(.toggleFullscreen) == nil, "Toggle Fullscreen produces no placement")
+        expect(grouped.first { $0.group == .sizing }?.commands.count == 2, "two sizing commands")
+        expect(grouped.first { $0.group == .moving }?.commands.count == 4, "four moving commands")
     }
 
     // MARK: - Convention lock
 
     static func testConventionLock() {
-        // AX space: +Y points down, so the top half starts at the visible frame's minY.
-        expect(
-            frame(.topHalf)?.minY == mainScreen.usableFrame.minY,
-            "top half is anchored at usableFrame.minY (AX space, +Y down)")
-        expect(
-            frame(.bottomHalf)?.maxY == mainScreen.usableFrame.maxY,
-            "bottom half is anchored at usableFrame.maxY")
+        // AX space: +Y points down, so a top quarter starts at the usable frame's minY.
         expect(
             frame(.topLeftQuarter)?.minY == mainScreen.usableFrame.minY,
-            "top left quarter sits at the top")
+            "top left quarter is anchored at usableFrame.minY (AX space, +Y down)")
+        expect(
+            frame(.bottomLeftQuarter)?.maxY == mainScreen.usableFrame.maxY,
+            "bottom left quarter is anchored at usableFrame.maxY")
     }
 
     // MARK: - Tiling
@@ -217,9 +177,6 @@ struct WindowCommandTests {
     static func testTiling() {
         expectRect(frame(.leftHalf)!, CGRect(x: 0, y: 0, width: 720, height: 900), "left half")
         expectRect(frame(.rightHalf)!, CGRect(x: 720, y: 0, width: 720, height: 900), "right half")
-        expectRect(frame(.topHalf)!, CGRect(x: 0, y: 0, width: 1440, height: 450), "top half")
-        expectRect(
-            frame(.bottomHalf)!, CGRect(x: 0, y: 450, width: 1440, height: 450), "bottom half")
 
         expectRect(
             frame(.topLeftQuarter)!, CGRect(x: 0, y: 0, width: 720, height: 450), "top left quarter")
@@ -258,72 +215,32 @@ struct WindowCommandTests {
             frame(.firstThreeFourths)!.union(frame(.lastThreeFourths)!) == mainScreen.usableFrame,
             "the two three-fourths cover the screen between them")
         expect(
-            frame(.firstThreeFourths)!.intersection(frame(.lastThreeFourths)!) == frame(.centerHalf)!,
+            frame(.firstThreeFourths)!.intersection(frame(.lastThreeFourths)!)
+                == CGRect(x: 360, y: 0, width: 720, height: 900),
             "they overlap on exactly the centre half, so all three share the quarter grid")
 
-        expectRect(frame(.firstThird)!, CGRect(x: 0, y: 0, width: 480, height: 900), "first third")
+        // Size cycling: the two halves only, ½ → ⅓ → ⅔, wrapping.
+        let firstThird = CGRect(x: 0, y: 0, width: 480, height: 900)
+        let firstTwoThirds = CGRect(x: 0, y: 0, width: 960, height: 900)
         expectRect(
-            frame(.centerThird)!, CGRect(x: 480, y: 0, width: 480, height: 900), "center third")
-        expectRect(frame(.lastThird)!, CGRect(x: 960, y: 0, width: 480, height: 900), "last third")
+            frame(.leftHalf, step: 1, cycle: .sizes)!, firstThird, "left half step 1 is a third")
         expectRect(
-            frame(.firstTwoThirds)!, CGRect(x: 0, y: 0, width: 960, height: 900), "first two thirds")
-        expectRect(
-            frame(.lastTwoThirds)!, CGRect(x: 480, y: 0, width: 960, height: 900), "last two thirds")
-
-        expect(
-            frame(.firstThird)!.union(frame(.lastTwoThirds)!) == mainScreen.usableFrame,
-            "first third and last two thirds partition the screen")
-        expect(
-            frame(.firstTwoThirds)!.union(frame(.lastThird)!) == mainScreen.usableFrame,
-            "first two thirds and last third partition the screen")
-
-        // Size cycling: the five halves only, ½ → ⅓ → ⅔, wrapping.
-        expectRect(
-            frame(.leftHalf, step: 1, cycle: .sizes)!, frame(.firstThird)!,
-            "left half step 1 is a third")
-        expectRect(
-            frame(.leftHalf, step: 2, cycle: .sizes)!, frame(.firstTwoThirds)!,
+            frame(.leftHalf, step: 2, cycle: .sizes)!, firstTwoThirds,
             "left half step 2 is two thirds")
         expectRect(
             frame(.leftHalf, step: 3, cycle: .sizes)!, frame(.leftHalf)!,
             "left half step 3 wraps to the half")
         expectRect(
-            frame(.rightHalf, step: 1, cycle: .sizes)!, frame(.lastThird)!,
-            "right half step 1 is a third")
+            frame(.rightHalf, step: 1, cycle: .sizes)!,
+            CGRect(x: 960, y: 0, width: 480, height: 900), "right half step 1 is a third")
         expectRect(
-            frame(.rightHalf, step: 2, cycle: .sizes)!, frame(.lastTwoThirds)!,
-            "right half step 2 is two thirds")
-        expectRect(
-            frame(.topHalf, step: 1, cycle: .sizes)!, CGRect(x: 0, y: 0, width: 1440, height: 300),
-            "top half step 1 is a vertical third")
-        expectRect(
-            frame(.topHalf, step: 2, cycle: .sizes)!, CGRect(x: 0, y: 0, width: 1440, height: 600),
-            "top half step 2 is vertical two thirds")
-        expectRect(
-            frame(.bottomHalf, step: 1, cycle: .sizes)!,
-            CGRect(x: 0, y: 600, width: 1440, height: 300),
-            "bottom half step 1 is a vertical third")
-        expectRect(
-            frame(.bottomHalf, step: 2, cycle: .sizes)!,
-            CGRect(x: 0, y: 300, width: 1440, height: 600),
-            "bottom half step 2 is vertical two thirds")
-        expectRect(
-            frame(.centerHalf, step: 1, cycle: .sizes)!, frame(.centerThird)!,
-            "center half step 1 is the center third")
-        expectRect(
-            frame(.centerHalf, step: 2, cycle: .sizes)!, frame(.centerTwoThirds)!,
-            "center half step 2 is the center two thirds")
-        expectRect(
-            frame(.centerHalf, step: 3, cycle: .sizes)!, frame(.centerHalf)!,
-            "center half step 3 wraps to the half")
-        expectRect(
-            frame(.centerHalf, gap: 10, step: 1, cycle: .sizes)!,
-            frame(.centerThird, gap: 10)!, "center half step 1 shares the center third's gaps")
+            frame(.rightHalf, step: 2, cycle: .sizes)!,
+            CGRect(x: 480, y: 0, width: 960, height: 900), "right half step 2 is two thirds")
 
         // A step handed to a command that doesn't cycle must be ignored outright.
         for step in 0...5 {
             expectRect(
-                frame(.firstThird, step: step, cycle: .sizes)!, frame(.firstThird)!,
+                frame(.firstThreeFourths, step: step, cycle: .sizes)!, frame(.firstThreeFourths)!,
                 "non-cycling commands ignore step \(step)")
             expectRect(
                 frame(.maximize, step: step, cycle: .sizes)!, frame(.maximize)!,
@@ -334,8 +251,7 @@ struct WindowCommandTests {
         }
         // Negative steps can't crash or escape the cycle.
         expectRect(
-            frame(.leftHalf, step: -1, cycle: .sizes)!, frame(.firstTwoThirds)!,
-            "negative steps normalize")
+            frame(.leftHalf, step: -1, cycle: .sizes)!, firstTwoThirds, "negative steps normalize")
     }
 
     // MARK: - Non-divisible widths
@@ -346,24 +262,18 @@ struct WindowCommandTests {
             let screen = WindowPlacementEngine.Screen(
                 id: 9, frame: CGRect(x: 0, y: 0, width: width, height: 901),
                 usableFrame: CGRect(x: 0, y: 0, width: width, height: 901))
-            let first = frame(.firstThird, on: screen)!
-            let center = frame(.centerThird, on: screen)!
-            let last = frame(.lastThird, on: screen)!
-            expect(first.maxX == center.minX, "\(width): first/center thirds share an edge exactly")
-            expect(center.maxX == last.minX, "\(width): center/last thirds share an edge exactly")
+            let third = frame(.leftHalf, on: screen, step: 1, cycle: .sizes)!
+            let twoThirds = frame(.rightHalf, on: screen, step: 2, cycle: .sizes)!
+            expect(third.maxX == twoThirds.minX, "\(width): a third and two thirds share an edge exactly")
             expect(
-                first.union(center).union(last) == screen.usableFrame,
-                "\(width): thirds still cover the whole screen")
+                third.union(twoThirds) == screen.usableFrame,
+                "\(width): a third and two thirds still cover the whole screen")
 
             let left = frame(.leftHalf, on: screen)!
             let right = frame(.rightHalf, on: screen)!
             expect(left.maxX == right.minX, "\(width): halves share an edge exactly")
             expect(left.union(right) == screen.usableFrame, "\(width): halves cover the screen")
             expect(abs(left.width - right.width) <= 1, "\(width): halves differ by at most a point")
-
-            let top = frame(.topHalf, on: screen)!
-            let bottom = frame(.bottomHalf, on: screen)!
-            expect(top.maxY == bottom.minY, "\(width): vertical halves share an edge exactly")
 
             let firstFourths = frame(.firstThreeFourths, on: screen)!
             let lastFourths = frame(.lastThreeFourths, on: screen)!
@@ -390,8 +300,8 @@ struct WindowCommandTests {
             frame(.leftHalf, on: high, window: CGRect(x: 2000, y: 0, width: 400, height: 300))!,
             CGRect(x: 1920, y: -300, width: 1280, height: 1440), "left half on an off-origin display")
         expect(
-            frame(.topHalf, on: high, window: CGRect(x: 2000, y: 0, width: 400, height: 300))!.minY
-                == -300, "top half honours a negative minY")
+            frame(.topLeftQuarter, on: high, window: CGRect(x: 2000, y: 0, width: 400, height: 300))!
+                .minY == -300, "top left quarter honours a negative minY")
 
         // A display left of and below the primary.
         let low = WindowPlacementEngine.Screen(
@@ -404,13 +314,13 @@ struct WindowCommandTests {
             frame(.maximize, on: low, window: CGRect(x: -1000, y: 300, width: 400, height: 300))!,
             low.usableFrame, "maximize on a negative-X display")
 
-        // A visible frame smaller than the full frame (menu bar and Dock reserved).
+        // A usable frame smaller than the full frame, with the menu bar reserved.
         let reserved = WindowPlacementEngine.Screen(
             id: 4, frame: CGRect(x: 0, y: 0, width: 1440, height: 900),
             usableFrame: CGRect(x: 0, y: 25, width: 1440, height: 800))
         expectRect(
-            frame(.topHalf, on: reserved)!, CGRect(x: 0, y: 25, width: 1440, height: 400),
-            "tiles respect a reserved visible frame")
+            frame(.topLeftQuarter, on: reserved)!, CGRect(x: 0, y: 25, width: 720, height: 400),
+            "tiles respect a reserved usable frame")
         expectRect(
             frame(.maximize, on: reserved)!, reserved.usableFrame, "maximize never covers the menu bar")
     }
@@ -427,9 +337,6 @@ struct WindowCommandTests {
         expect(
             frame(.leftHalf, gap: 10)!.maxX + 10 == frame(.rightHalf, gap: 10)!.minX,
             "the gutter between halves is exactly the gap")
-        expect(
-            frame(.topHalf, gap: 10)!.maxY + 10 == frame(.bottomHalf, gap: 10)!.minY,
-            "the gutter between vertical halves is exactly the gap")
 
         // Every outer edge is inset by the full gap, every gutter is exactly one gap.
         let quarters = [
@@ -451,13 +358,11 @@ struct WindowCommandTests {
             frame(.lastThreeFourths, gap: 10)!, CGRect(x: 365, y: 10, width: 1065, height: 880),
             "last three fourths with a 10pt gap")
 
-        // Thirds: two gutters, both exact.
+        // A third's fractional boundary still leaves an exact gutter.
         expect(
-            frame(.firstThird, gap: 10)!.maxX + 10 == frame(.centerThird, gap: 10)!.minX,
-            "thirds: first/center gutter is the gap")
-        expect(
-            frame(.centerThird, gap: 10)!.maxX + 10 == frame(.lastThird, gap: 10)!.minX,
-            "thirds: center/last gutter is the gap")
+            frame(.leftHalf, gap: 10, step: 1, cycle: .sizes)!.maxX + 10
+                == frame(.rightHalf, gap: 10, step: 2, cycle: .sizes)!.minX,
+            "a cycled third and two thirds leave an exact gutter")
 
         // An odd gap must not drift when halved and rounded.
         expect(
@@ -491,66 +396,7 @@ struct WindowCommandTests {
     static func testSizing() {
         expectRect(frame(.maximize)!, mainScreen.usableFrame, "maximize fills the usable frame")
 
-        let almost = frame(.almostMaximize)!
-        expectRect(almost, CGRect(x: 72, y: 45, width: 1296, height: 810), "almost maximize")
-        expectRect(
-            frame(.almostMaximize, window: almost)!, almost, "almost maximize is idempotent")
-        expect(
-            almost.midX == mainScreen.usableFrame.midX
-                && almost.midY == mainScreen.usableFrame.midY,
-            "almost maximize stays centred")
-
-        let reasonable = frame(.reasonableSize)!
-        expectRect(
-            reasonable, CGRect(x: 288, y: 180, width: 864, height: 540), "reasonable size is 60%")
-        expectRect(
-            frame(.reasonableSize, window: reasonable)!, reasonable, "reasonable size is idempotent")
-
-        // Small displays never reach the cap, so the fraction is what shows.
-        let small = WindowPlacementEngine.Screen(
-            id: 7, frame: CGRect(x: 0, y: 0, width: 1280, height: 800),
-            usableFrame: CGRect(x: 0, y: 0, width: 1280, height: 800))
-        expectRect(
-            frame(.reasonableSize, on: small)!, CGRect(x: 256, y: 160, width: 768, height: 480),
-            "reasonable size is uncapped on a small display")
-
-        // Large ones do, which is what keeps the command display-independent.
-        let large = WindowPlacementEngine.Screen(
-            id: 8, frame: CGRect(x: 0, y: 0, width: 3840, height: 2160),
-            usableFrame: CGRect(x: 0, y: 0, width: 3840, height: 2160))
-        let capped = frame(.reasonableSize, on: large)!
-        expect(
-            capped.width == 1025 && capped.height == 900, "reasonable size caps at 1025×900")
-        expect(large.usableFrame.contains(capped), "a capped reasonable size stays on screen")
-        expect(
-            abs(capped.midX - large.usableFrame.midX) <= 0.5
-                && abs(capped.midY - large.usableFrame.midY) <= 0.5,
-            "a capped reasonable size stays centred")
-
         let window = CGRect(x: 100, y: 200, width: 300, height: 400)
-        let tall = frame(.maximizeHeight, window: window)!
-        expect(
-            tall.minX == 100 && tall.width == 300, "maximize height preserves minX and width exactly")
-        expect(tall.minY == 0 && tall.height == 900, "maximize height fills the canvas vertically")
-
-        let wide = frame(.maximizeWidth, window: window)!
-        expect(
-            wide.minY == 200 && wide.height == 400, "maximize width preserves minY and height exactly")
-        expect(wide.minX == 0 && wide.width == 1440, "maximize width fills the canvas horizontally")
-
-        // An off-screen window must not come back full-height and still off-screen.
-        let stray = CGRect(x: -900, y: -900, width: 200, height: 150)
-        let strayTall = frame(.maximizeHeight, window: stray)!
-        expect(strayTall.minX == 0 && strayTall.width == 200, "maximize height clamps a stray x")
-        expect(
-            !strayTall.intersection(mainScreen.usableFrame).isNull,
-            "maximize height brings a stray window back on screen")
-        let strayWide = frame(.maximizeWidth, window: stray)!
-        expect(strayWide.minY == 0 && strayWide.height == 150, "maximize width clamps a stray y")
-        expect(
-            !strayWide.intersection(mainScreen.usableFrame).isNull,
-            "maximize width brings a stray window back on screen")
-
         expectRect(
             frame(.center, window: window)!, CGRect(x: 570, y: 200, width: 300, height: 400),
             "center preserves the size and vertical position and centres it horizontally")
@@ -564,49 +410,6 @@ struct WindowCommandTests {
         expect(
             centred.width <= 1440 && centred.height <= 900, "center clamps an oversized window")
         expect(mainScreen.usableFrame.contains(centred), "a clamped center stays on screen")
-
-        expectRect(
-            frame(.centerHalf)!, CGRect(x: 360, y: 0, width: 720, height: 900),
-            "center half is half the screen's area")
-        expectRect(
-            frame(.centerTwoThirds)!, CGRect(x: 240, y: 0, width: 960, height: 900),
-            "center two thirds is two thirds of the width, centred")
-    }
-
-    // MARK: - Make Larger / Make Smaller
-
-    static func testLargerSmaller() {
-        let start = CGRect(x: 100, y: 100, width: 600, height: 400)
-        let larger = frame(.makeLarger, window: start)!
-        expect(larger.width > start.width && larger.height > start.height, "make larger grows")
-        // The assertion that justifies screen-relative steps: size-relative ones cannot round-trip.
-        expectRect(
-            frame(.makeSmaller, window: larger)!, start,
-            "larger then smaller returns the exact original rect")
-        let smaller = frame(.makeSmaller, window: start)!
-        expectRect(
-            frame(.makeLarger, window: smaller)!, start,
-            "smaller then larger returns the exact original rect")
-        expect(larger.midX == start.midX && larger.midY == start.midY, "growing keeps the centre")
-        expect(smaller.midX == start.midX && smaller.midY == start.midY, "shrinking keeps the centre")
-
-        // Repeated shrinking saturates at the floor instead of collapsing.
-        var shrinking = start
-        for _ in 0..<40 { shrinking = frame(.makeSmaller, window: shrinking)! }
-        expect(shrinking.width > 0 && shrinking.height > 0, "40 shrinks never collapse the window")
-        expectRect(
-            frame(.makeSmaller, window: shrinking)!, shrinking, "shrinking saturates into a no-op")
-
-        // Repeated growing converges on the canvas.
-        var growing = start
-        for _ in 0..<40 { growing = frame(.makeLarger, window: growing)! }
-        expectRect(growing, mainScreen.usableFrame, "40 grows converge on the maximized frame")
-        expectRect(frame(.makeLarger, window: growing)!, growing, "growing saturates into a no-op")
-
-        // With a gap, growing converges on the gapped canvas rather than the raw visible frame.
-        var gapped = start
-        for _ in 0..<40 { gapped = frame(.makeLarger, window: gapped, gap: 12)! }
-        expectRect(gapped, frame(.maximize, gap: 12)!, "growing respects the gap")
     }
 
     // MARK: - Moves
@@ -633,54 +436,15 @@ struct WindowCommandTests {
             "an oversized window pins to the leading edge without resizing")
     }
 
-    // MARK: - Displays
+    // MARK: - Screens
 
-    static func testDisplays() {
-        expect(frame(.nextDisplay) == nil, "a single display makes Next Display a no-op")
-        expect(frame(.previousDisplay) == nil, "a single display makes Previous Display a no-op")
-
-        let left = mainScreen
+    static func testScreens() {
         let right = WindowPlacementEngine.Screen(
             id: 2, frame: CGRect(x: 1440, y: 0, width: 2560, height: 1440),
             usableFrame: CGRect(x: 1440, y: 0, width: 2560, height: 1440))
         // Deliberately out of order, to prove the ordering is derived and not inherited.
-        let both = screens(right, left)
+        let both = screens(right, mainScreen)
         expect(WindowPlacementEngine.ordered(both).map(\.id) == [1, 2], "displays order left-to-right")
-
-        let leftHalfOnLeft = frame(.leftHalf, on: left)!
-        let onRight = frame(
-            .nextDisplay, window: leftHalfOnLeft, allScreens: both)!
-        expectRect(
-            onRight, CGRect(x: 1440, y: 0, width: 1280, height: 1440),
-            "a left half maps proportionally onto the larger display")
-        expect(right.usableFrame.contains(onRight), "the moved window stays inside the destination")
-
-        expectRect(
-            frame(.previousDisplay, window: onRight, allScreens: both)!, leftHalfOnLeft,
-            "next then previous round-trips to the original frame")
-
-        // Wrapping in both directions.
-        expect(
-            WindowPlacementEngine.placement(
-                for: WindowPlacementEngine.Input(
-                    command: .previousDisplay, windowFrame: leftHalfOnLeft, screens: both)
-            )?.screenID == 2, "previous from the first display wraps to the last")
-        expect(
-            WindowPlacementEngine.placement(
-                for: WindowPlacementEngine.Input(command: .nextDisplay, windowFrame: onRight, screens: both)
-            )?.screenID == 1, "next from the last display wraps to the first")
-
-        // A remembered tile is re-derived exactly on the destination, gaps included.
-        expectRect(
-            frame(.nextDisplay, window: leftHalfOnLeft, gap: 10, lastTile: .leftHalf, allScreens: both)!,
-            frame(.leftHalf, on: right, gap: 10)!,
-            "a remembered tile is re-derived exactly on the destination")
-        expectRect(
-            frame(
-                .nextDisplay, window: frame(.firstThird, on: left)!, lastTile: .firstThird,
-                allScreens: both)!,
-            frame(.firstThird, on: right)!,
-            "a remembered third is re-derived exactly on the destination")
 
         // Screen resolution by overlap.
         expect(
@@ -712,8 +476,6 @@ struct WindowCommandTests {
         expect(length(.leftHalf, .sizes, both) == 3, "the size cycle is three steps")
         expect(length(.leftHalf, .displays, both) == 4, "two displays give four slots")
         expect(length(.maximize, .displays, both) == 1, "a non-cycling command never cycles")
-        expect(length(.centerHalf, .sizes, both) == 3, "center half cycles sizes")
-        expect(length(.centerHalf, .displays, both) == 1, "center half has no strip slot to walk")
         expect(
             length(.leftHalf, .displays) == 1,
             "one display makes the display leg a no-op")
@@ -745,27 +507,12 @@ struct WindowCommandTests {
                 want, "right half display step \(step)")
         }
 
-        // Top and Bottom walk the same strip, keeping their own axis.
-        expectRect(
-            frame(.topHalf, window: onLeft, step: 1, cycle: .displays, allScreens: both)!,
-            frame(.bottomHalf, on: right)!, "top half step 1 is the bottom half of the next display")
-        expectRect(
-            frame(.bottomHalf, window: onLeft, step: 1, cycle: .displays, allScreens: both)!,
-            frame(.topHalf, on: right)!, "bottom half step 1 is the top half of the next display")
-
         // The size cycle stays on the host display, whatever else is plugged in.
         for step in 0..<3 {
             expectRect(
                 frame(.leftHalf, window: onLeft, step: step, cycle: .sizes, allScreens: both)!,
                 frame(.leftHalf, on: left, step: step, cycle: .sizes)!,
                 "the size cycle ignores the other display at step \(step)")
-        }
-
-        // Center Half hugs no edge, so the display cycle leaves it centred on its own display.
-        for step in 0..<4 {
-            expectRect(
-                frame(.centerHalf, window: onLeft, step: step, cycle: .displays, allScreens: both)!,
-                frame(.centerHalf, on: left)!, "center half ignores the display cycle at step \(step)")
         }
 
         // Real presses: from the second one on, the window sits on a display it was just moved to.
@@ -823,26 +570,6 @@ struct WindowCommandTests {
         }
     }
 
-    // MARK: - Restore
-
-    static func testRestore() {
-        expect(frame(.restore) == nil, "restore with no recorded frame does nothing")
-
-        let recorded = CGRect(x: 123, y: 234, width: 456, height: 321)
-        expectRect(
-            frame(.restore, restore: recorded)!, recorded, "a valid restore frame comes back untouched")
-
-        // A restore point stranded off every display is recovered.
-        let stranded = CGRect(x: 9000, y: 9000, width: 400, height: 300)
-        let recovered = frame(.restore, restore: stranded)!
-        expect(recovered.size == stranded.size, "a stranded restore keeps its size")
-        expect(
-            mainScreen.usableFrame.contains(recovered), "a stranded restore lands back on screen")
-        expect(
-            recovered.midX == mainScreen.usableFrame.midX,
-            "a stranded restore is re-centred horizontally")
-    }
-
     // MARK: - Action memory
 
     static func testMemory() {
@@ -850,28 +577,24 @@ struct WindowCommandTests {
         let half = CGRect(x: 0, y: 0, width: 720, height: 900)
         let original = CGRect(x: 100, y: 100, width: 600, height: 400)
 
-        // A fresh window: step 0, nothing to restore, the current frame is the anchor.
+        // A fresh window starts its chain at step 0 on its own display.
         var memory = WindowActionMemory<Int>()
         var decision = memory.decide(
             key: 1, command: .leftHalf, currentFrame: original, currentScreenID: 1,
             cycleLength: 3, now: clock)
         expect(decision.step == 0, "a first press starts at step 0")
-        expect(!decision.canRestore, "a never-seen window has nothing to restore to")
-        expectRect(decision.restoreFrame, original, "the first press captures the original frame")
         expect(decision.originScreenID == 1, "a first press starts its chain on its own display")
         memory.commit(
             key: 1, command: .leftHalf, decision: decision, appliedFrame: half, screenID: 1,
             now: clock)
 
-        // Repeats advance the cycle and never disturb the restore point.
+        // Repeats advance the cycle.
         for expected in [1, 2, 0, 1] {
             let applied = frame(.leftHalf, step: expected)!
             decision = memory.decide(
                 key: 1, command: .leftHalf, currentFrame: memory.record(for: 1)!.appliedFrame,
                 currentScreenID: 1, cycleLength: 3, now: clock)
             expect(decision.step == expected, "the cycle advances to step \(expected)")
-            expectRect(decision.restoreFrame, original, "the restore point survives step \(expected)")
-            expect(decision.canRestore, "a seen window can be restored")
             memory.commit(
                 key: 1, command: .leftHalf, decision: decision, appliedFrame: applied, screenID: 1,
                 now: clock)
@@ -882,7 +605,6 @@ struct WindowCommandTests {
             key: 1, command: .rightHalf, currentFrame: memory.record(for: 1)!.appliedFrame,
             currentScreenID: 1, cycleLength: 3, now: clock)
         expect(decision.step == 0, "a different command restarts the cycle")
-        expectRect(decision.restoreFrame, original, "a different command keeps the restore point")
         decision = memory.decide(
             key: 1, command: .leftHalf, currentFrame: memory.record(for: 1)!.appliedFrame,
             currentScreenID: 2, cycleLength: 3, now: clock)
@@ -891,7 +613,7 @@ struct WindowCommandTests {
         decision = memory.decide(
             key: 99, command: .leftHalf, currentFrame: original, currentScreenID: 1,
             cycleLength: 3, now: clock)
-        expect(decision.step == 0 && !decision.canRestore, "another window has its own chain")
+        expect(decision.step == 0, "another window has its own chain")
 
         // A chain the display cycle carried elsewhere keeps counting from where it started.
         var crossing = WindowActionMemory<Int>()
@@ -907,7 +629,7 @@ struct WindowCommandTests {
         expect(decision.step == 1, "a press on the display the chain landed on continues it")
         expect(decision.originScreenID == 1, "a continued chain keeps its origin display")
 
-        // A user drag resets the cycle and re-anchors the restore point.
+        // A user drag resets the cycle.
         var dragged = WindowActionMemory<Int>()
         let seed = dragged.decide(
             key: 1, command: .leftHalf, currentFrame: original, currentScreenID: 1,
@@ -919,8 +641,6 @@ struct WindowCommandTests {
             key: 1, command: .leftHalf, currentFrame: movedByUser, currentScreenID: 1,
             cycleLength: 3, now: clock)
         expect(decision.step == 0, "a user drag restarts the cycle")
-        expectRect(decision.restoreFrame, movedByUser, "a user drag re-anchors the restore point")
-        expect(decision.lastTileCommand == nil, "a user drag forgets the remembered tile")
 
         // A quantising app that lands a point off its target must NOT read as a user drag.
         let quantised = CGRect(x: half.minX + 1, y: half.minY, width: half.width - 1, height: half.height)
@@ -928,7 +648,6 @@ struct WindowCommandTests {
             key: 1, command: .leftHalf, currentFrame: quantised, currentScreenID: 1,
             cycleLength: 3, now: clock)
         expect(decision.step == 1, "a sub-tolerance difference keeps the cycle running")
-        expect(decision.lastTileCommand == .leftHalf, "an untouched tile is remembered")
 
         // The cycle switch pins everything to step 0.
         var pinned = WindowActionMemory<Int>()
@@ -978,50 +697,6 @@ struct WindowCommandTests {
                 key: 1, command: .leftHalf, currentFrame: half, currentScreenID: 1,
                 cycleLength: 3, now: clock.addingTimeInterval(120)
             ).step == 0, "a cycle past the timeout restarts")
-
-        // The restore point survives a run of different commands, then Restore is idempotent.
-        var run = WindowActionMemory<Int>()
-        var runDecision = run.decide(
-            key: 1, command: .leftHalf, currentFrame: original, currentScreenID: 1,
-            cycleLength: 3, now: clock)
-        run.commit(
-            key: 1, command: .leftHalf, decision: runDecision, appliedFrame: half, screenID: 1,
-            now: clock)
-        var applied = half
-        for command in [WindowCommand.ID.maximize, .topRightQuarter, .centerThird] {
-            runDecision = run.decide(
-                key: 1, command: command, currentFrame: applied, currentScreenID: 1,
-                cycleLength: 3, now: clock)
-            applied = frame(command)!
-            run.commit(
-                key: 1, command: command, decision: runDecision, appliedFrame: applied, screenID: 1,
-                now: clock)
-        }
-        runDecision = run.decide(
-            key: 1, command: .restore, currentFrame: applied, currentScreenID: 1, cycleLength: 3,
-            now: clock)
-        expectRect(
-            runDecision.restoreFrame, original, "the restore point survives three other commands")
-        expect(runDecision.canRestore, "the window can be restored after a run of commands")
-        let restored = frame(.restore, restore: runDecision.restoreFrame)!
-        expectRect(restored, original, "restore returns the true original frame")
-        run.commit(
-            key: 1, command: .restore, decision: runDecision, appliedFrame: restored, screenID: 1,
-            now: clock)
-        let second = run.decide(
-            key: 1, command: .restore, currentFrame: restored, currentScreenID: 1,
-            cycleLength: 3, now: clock)
-        expectRect(
-            frame(.restore, restore: second.restoreFrame)!, original, "a second restore is idempotent")
-
-        // Fullscreen breaks the cycle chain but keeps the restore point.
-        run.forgetCycle(key: 1)
-        expect(run.record(for: 1)?.step == 0, "forgetCycle resets the step")
-        expect(
-            run.record(for: 1)?.originScreenID == run.record(for: 1)?.screenID,
-            "forgetCycle restarts the chain on the window's current display")
-        expectRect(
-            run.record(for: 1)!.restoreFrame, original, "forgetCycle keeps the restore point")
 
         // Bounded growth, most-recently-used retained.
         var bounded = WindowActionMemory<Int>(capacity: 64)
@@ -1086,7 +761,7 @@ struct WindowCommandTests {
                             for command in WindowCommand.ID.allCases {
                                 let input = WindowPlacementEngine.Input(
                                     command: command, windowFrame: window, screens: screens, gap: gap,
-                                    step: step, cycle: cycle, restoreFrame: window, lastTileCommand: nil)
+                                    step: step, cycle: cycle)
                                 // A nil placement is a legitimate quiet no-op, not a failure.
                                 guard let placement = WindowPlacementEngine.placement(for: input) else {
                                     continue
@@ -1120,9 +795,8 @@ struct WindowCommandTests {
                                 // Only step 0 is meant to be idempotent: a cycle exists to move the window.
                                 if step == 0,
                                     let again = WindowPlacementEngine.placement(for: repeated)?.frame,
-                                    command != .makeLarger, command != .makeSmaller, command != .moveLeft,
-                                    command != .moveRight, command != .moveUp, command != .moveDown,
-                                    command != .nextDisplay, command != .previousDisplay,
+                                    command != .moveLeft, command != .moveRight, command != .moveUp,
+                                    command != .moveDown,
                                     again != rect
                                 {
                                     problems.append("drifts on repeat: \(label) — \(rect) then \(again)")
