@@ -356,7 +356,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 ### Hotkeys
 
-- The palette, clipboard and emoji shortcuts fire; a per-app shortcut toggles that app
+- The palette, clipboard and emoji shortcuts fire; a per-app shortcut focuses that app
+  and never hides it, even when it is already frontmost
 - Recording captures a shortcut, and the old binding does not fire while recording
 - A conflicting binding is rejected and names its current owner
 - A double-tap binding fires; Hyper Key remaps and its status dot is green

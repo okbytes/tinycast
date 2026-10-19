@@ -201,7 +201,7 @@ final class HotKeyManager {
         switch action {
         case .togglePalette: onTogglePalette?()
         case .command(let id): onRunCommand?(id)
-        case .app(let bundleID): AppLauncher.toggle(bundleID: bundleID)
+        case .app(let bundleID): AppLauncher.focus(bundleID: bundleID)
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)
         case .appleShortcut(let id): onRunAppleShortcut?(id)

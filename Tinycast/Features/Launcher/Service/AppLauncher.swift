@@ -50,15 +50,11 @@ enum AppLauncher {
         }.value
     }
 
-    /// Focus the app if it isn't frontmost, hide it if it is, launch it if it isn't running.
+    /// Focuses the app, launching it first if it isn't running.
     @MainActor
-    static func toggle(bundleID: String) {
+    static func focus(bundleID: String) {
         let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
             .first
-        if let running, running.isActive {
-            running.hide()
-            return
-        }
         if let url = running?.bundleURL
             ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
         {

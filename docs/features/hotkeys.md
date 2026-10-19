@@ -29,6 +29,8 @@ Carbon's dispatcher enters through an explicit `@MainActor` callback. The press 
 - **A command that opens a palette mode toggles it.** Every one of them enters through
   `PaletteCoordinator.togglePalette(mode:)`, so a second press closes what the first opened. From a
   launcher row the palette is in `.launcher`, so the row always re-points instead.
+- **A per-app shortcut only ever brings its app forward.** `AppLauncher.focus(bundleID:)` launches or
+  focuses and never hides, so a press aimed at the wrong app costs nothing.
 - **`HotKeyBinding` is the one thing an action is bound to, with two engines.** A
   `.combo` is a Carbon registration; all modifier-only bindings are recognized by
   `ModifierTapMonitor`, because Carbon cannot see a lone modifier at all. Its `Codable` is the

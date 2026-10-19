@@ -25,7 +25,7 @@ source, and staying that way.
 - **App launcher** — fuzzy-search and launch anything, see what's running, quit an app
   or every app at once.
 - **Global hotkey** — one shortcut summons the palette from anywhere.
-- **Per-app hotkeys** — bind a key to an app; press it to toggle (focus/hide).
+- **Per-app hotkeys** — bind a key to an app; press it to focus the app, launching it if needed.
 - **Dictionary** — look a word up with the Define Word command, read from the Mac's own dictionaries.
 - **Clipboard history** — text and images, searchable, pasted back into the app you were using.
 - **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
