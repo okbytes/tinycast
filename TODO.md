@@ -101,8 +101,19 @@ Caught live on 2026-10-19: with auto-hide on and no Dock window on screen, `NSSc
 on the 1920×1080 display read `(0, 67, 1920×983)`, and the Claude window ended at y 1013, exactly
 1080 − 67. A fresh read about a minute later was back to `(0, 0, 1920×1050)`. So macOS briefly
 reserves a hidden Dock's space, and any app that fits itself to the usable area during that time
-stays shrunk afterwards. Rectangle's `DockUtil` works around the same stale `visibleFrame`
-(rxhanson/Rectangle#467).
+stays shrunk afterwards.
+
+Again on 2026-10-20 at work, which showed what an episode is like from the inside: Chrome shrank
+while frontmost with no command pressed; while it lasted neither dragging the bottom edge nor
+Maximize could get past the line, and Helium, activated by hotkey during it, came up short too;
+Slack, untouched behind them, kept its height; once it cleared both browsers could be dragged to
+full height again. So while the reservation stands AppKit clamps every drag and, presumably, every
+AX write to it, and when it lifts nothing puts a window back.
+
+Rectangle users see the same thing: rxhanson/Rectangle#1922 (2026-10-17, macOS 27 stable and 27.2
+beta) ties it to the Dock showing momentarily while an app opens. Rectangle's `DockUtil` (#1823)
+only corrects the frame it places with, which Tinycast already does by ignoring the Dock; nothing
+in Rectangle prevents the re-fit or undoes it, and its maintainer calls it a macOS bug.
 
 - Done: tiles ignore the Dock (`40cad3fd`), and `DockShrinkGuard` puts back a window Tinycast tiled
   if an app later shortens it (`2b1d4c28`, v0.15.0). Windows sized by hand are not covered.
@@ -110,14 +121,23 @@ stays shrunk afterwards. Rectangle's `DockUtil` works around the same stale `vis
   window un-minimized directly or through the reopen route, intact on both Macs; Helium's own
   restore, intact here; third-party window tools, none running at work; revealing the Dock and
   pulling away mid-animation; about 40 Helium ↔ Claude switches. A monitor ran for about 40 minutes
-  of normal use without catching another episode.
+  of normal use without catching another episode. The unified log shows nothing from the Dock
+  process across the 2026-10-20 episode.
+- Gaps in the guard, from the 2026-10-20 episode: its restore writes land clamped while the
+  reservation stands, so its two tries are spent before the reservation lifts; a command pressed
+  during an episode holds the clamped `applied` frame rather than the intended one; and its
+  `logger.info` lines are not persisted, so nothing says afterwards what it did.
 - Unknown: what starts an episode, how long one lasts, and whether `didChangeScreenParameters` fires
   at its start and end.
-- Next: catch an episode with a long-running monitor that logs each screen's `visibleFrame`, the Dock's
-  on-screen windows, the frontmost app, the pointer at the bottom edge, and windows whose bottom edge
-  rises off a screen's bottom with no mouse button held. With the trigger known, a repair pass:
-  note window frames when the reservation appears, then put back any window whose bottom edge was
-  pulled up to it once it clears. File it with Apple too.
+- Running: a monitor started 2026-10-20 09:00 at work, from the session scratchpad, logging each
+  `didChangeScreenParameters`, the in-process and fresh-process `visibleFrame`, the Dock's windows,
+  app launches and activations, space changes, and any window whose bottom edge rises with no mouse
+  button held.
+- Next, once the monitor answers the unknowns: make the guard episode-aware. Treat a bottom
+  reservation appearing on a screen as the start of an episode and its clearing as the end; during
+  one, write nothing and remember every window whose bottom edge was pulled up to the line, held or
+  not; at the end, put each one back. Hold the intended frame, not the clamped one. Log at notice.
+  File it with Apple too.
 
 ## Cross-cutting
 
