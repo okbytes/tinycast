@@ -210,8 +210,9 @@ stock Electron app tiles correctly without it, delete the helper rather than kee
 Placing over the Dock was not enough on its own. With the Dock auto-hidden, a window Tinycast tiled to
 the bottom of the screen could still, later and with no command pressed, have its bottom edge pulled up
 by the Dock's height. Tinycast writes nothing between commands, so that is macOS or the app re-fitting
-the window. The trigger is unconfirmed; the likeliest is a `visibleFrame` that briefly reports the Dock
-around a display or Dock change. Tinycast cannot stop the re-fit, only undo it.
+the window. macOS 27 briefly reports a hidden Dock's space in `visibleFrame`, and an app that fits
+itself to it then stays short; what triggers it is still unknown ([TODO.md](../../TODO.md)). Tinycast
+cannot stop the re-fit, only undo it.
 
 `DockShrinkGuard` does that. After a command whose placement reaches the bottom of the canvas, the
 mover hands it the observed frame and the window, and it registers an `AXObserver` for resized, moved

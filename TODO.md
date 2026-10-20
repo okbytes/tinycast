@@ -91,6 +91,34 @@ on two Macs; the old event tap eventually went dead, so long uptime is the test 
 - More than Hyper and Meh: per-key chords, tap-versus-hold roles, external keyboards.
 - `HyperKeyPhysicalKey` now names the Meh key's choice too; rename it to say so.
 
+## Window management — the hidden Dock
+
+With the Dock auto-hidden, windows in any app (Helium, Chrome, Zed, Claude) sometimes come back with
+their bottom edge pulled up by the Dock's height: after un-minimizing from the Dock or a Tinycast app
+hotkey, or on clicking back to the app. Seen on both Macs under macOS 27.0.1.
+
+Caught live on 2026-10-19: with auto-hide on and no Dock window on screen, `NSScreen.visibleFrame`
+on the 1920×1080 display read `(0, 67, 1920×983)`, and the Claude window ended at y 1013, exactly
+1080 − 67. A fresh read about a minute later was back to `(0, 0, 1920×1050)`. So macOS briefly
+reserves a hidden Dock's space, and any app that fits itself to the usable area during that time
+stays shrunk afterwards. Rectangle's `DockUtil` works around the same stale `visibleFrame`
+(rxhanson/Rectangle#467).
+
+- Done: tiles ignore the Dock (`40cad3fd`), and `DockShrinkGuard` puts back a window Tinycast tiled
+  if an app later shortens it (`2b1d4c28`, v0.15.0). Windows sized by hand are not covered.
+- Ruled out: Tinycast itself (nothing moves windows between commands since v0.12.0); a plain AppKit
+  window un-minimized directly or through the reopen route, intact on both Macs; Helium's own
+  restore, intact here; third-party window tools, none running at work; revealing the Dock and
+  pulling away mid-animation; about 40 Helium ↔ Claude switches. A monitor ran for about 40 minutes
+  of normal use without catching another episode.
+- Unknown: what starts an episode, how long one lasts, and whether `didChangeScreenParameters` fires
+  at its start and end.
+- Next: catch an episode with a long-running monitor that logs each screen's `visibleFrame`, the Dock's
+  on-screen windows, the frontmost app, the pointer at the bottom edge, and windows whose bottom edge
+  rises off a screen's bottom with no mouse button held. With the trigger known, a repair pass:
+  note window frames when the reservation appears, then put back any window whose bottom edge was
+  pulled up to it once it clears. File it with Apple too.
+
 ## Cross-cutting
 
 - Replace the Raycast backend for currency rates with an open source such as frankfurter.app, or
