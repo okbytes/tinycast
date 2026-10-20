@@ -113,12 +113,12 @@ final class DockShrinkGuard {
         let now = Date()
         watch.restores.removeAll { now.timeIntervalSince($0) > Self.insistenceWindow }
         guard watch.restores.count < Self.restoreLimit else {
-            logger.info("Stopped holding pid \(watch.pid)'s window over the Dock: the app insists")
+            logger.notice("Stopped holding pid \(watch.pid, privacy: .public)'s window over the Dock: the app insists")
             return drop(watch)
         }
         watch.restores.append(now)
         let lift = Double(watch.held.maxY - current.maxY)
-        logger.info("Restored pid \(watch.pid)'s window, lifted \(lift) pt for the Dock")
+        logger.notice("Restored pid \(watch.pid, privacy: .public)'s window, lifted \(lift, privacy: .public) pt for the Dock")
 
         let application = AXWindowAccess.application(for: watch.pid)
         let restoreEnhancedUI = AXWindowAccess.suppressEnhancedUserInterface(on: application)

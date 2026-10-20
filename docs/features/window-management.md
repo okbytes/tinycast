@@ -35,6 +35,8 @@ entries and a still-registered shortcut moves nothing.
 | `Service/AXScreens.swift`            | AppKit                       | `@MainActor`. `AXGeometry`, the one coordinate flip                 |
 | `Service/WindowMover.swift`          | AppKit + ApplicationServices | `@MainActor`. Command policy: resolve, cycle, write                 |
 | `Service/DockShrinkGuard.swift`      | AppKit + ApplicationServices | `@MainActor`. Undoes a later Dock-height shrink of a bottom tile    |
+| `Service/DockReservationMonitor.swift` | AppKit                     | `@MainActor`. Logs the Dock's reservation, windows and app switches |
+| `Service/DockLogExport.swift`        | AppKit                       | Writes the last days of that log to a file the user picks           |
 | `Service/WindowTarget.swift`         | AppKit                       | `@MainActor`. Which window a command acts on                        |
 | `UI/WindowCommandCoordinator.swift`  | AppKit                       | The one funnel from a palette row or a global hotkey                |
 | `Model/WindowShortcutPreset.swift`   | Foundation + Carbon          | **Pure.** Rectangle / Magnet and Spectacle tables, and the apply plan |
@@ -211,8 +213,9 @@ Placing over the Dock was not enough on its own. With the Dock auto-hidden, a wi
 the bottom of the screen could still, later and with no command pressed, have its bottom edge pulled up
 by the Dock's height. Tinycast writes nothing between commands, so that is macOS or the app re-fitting
 the window. macOS 27 briefly reports a hidden Dock's space in `visibleFrame`, and an app that fits
-itself to it then stays short; what triggers it is still unknown ([TODO.md](../../TODO.md)). Tinycast
-cannot stop the re-fit, only undo it.
+itself to it then stays short; what triggers it is still unknown ([TODO.md](../../TODO.md)), which is
+what [Recording Dock episodes](#recording-dock-episodes) is for. Tinycast cannot stop the re-fit,
+only undo it.
 
 `DockShrinkGuard` does that. After a command whose placement reaches the bottom of the canvas, the
 mover hands it the observed frame and the window, and it registers an `AXObserver` for resized, moved
@@ -233,6 +236,37 @@ The mover releases a window before every write, so the size → position → siz
 a shrink, and the guard drops a quit app's windows with the cycle memory. It holds at most 16 windows,
 oldest dropped first. Only external windows are held; our own go through AppKit and are left alone.
 Only a bottom Dock is covered: a side Dock shrinks the width, which reads as any other change.
+
+## Recording Dock episodes
+
+Nothing so far says what starts an episode, and an episode on the work Mac leaves no trace this
+checkout can read, so Tinycast keeps its own record. `DockReservationMonitor`, started from
+`AppCore.start()` whether or not window management is on, writes one line per event to the unified
+log under `com.tinycast.app` / `dock-watch`:
+
+- `screens notified` on every `didChangeScreenParameters`, and `screens changed silently` when a
+  2 s poll finds `NSScreen.screens` changed without one: each display's frame, `visibleFrame`, and
+  its menu-bar, bottom, left and right insets, then the Dock's on-screen windows and the mouse.
+- `episode began` / `episode ended` when a Dock-side inset appears on a display or clears, with the
+  reservation in points and how long it stood.
+- `dock` when the Dock's own windows change, which is how a reveal or a hide reads.
+- `shrink` / `grow` when an on-screen window's bottom edge moves with its top-left and width kept,
+  from `CGWindowListCopyWindowInfo` on the same poll, with the owning app and the mouse buttons.
+- `activated`, `launched`, `quit`, `space changed`, `screens slept` / `woke`, `system woke`, and
+  the session resigning or becoming active.
+
+`WindowMover` adds `landed N pt short` under `window-management` when a resizing command lands
+short of its height, and `DockShrinkGuard`'s restores and give-ups are under the same category.
+Everything is logged at notice with public interpolation, so `log show` keeps it and shows it.
+
+Settings › Window Management › Options › **Dock log › Save…** runs `log show` over the last
+`DockLogExport.days` days for both categories, prefixes the build, macOS version, Dock settings and
+the screens as they are now, writes the file where the save panel points, and reveals it. Attach
+that file when reporting an episode; the same lines stream live with
+`log stream --predicate 'category == "dock-watch"'`.
+
+The monitor reports and decides nothing. The repair that this record is meant to inform is in
+[TODO.md](../../TODO.md#window-management--the-hidden-dock).
 
 ## Shortcut presets
 
@@ -307,3 +341,6 @@ and has no automated coverage — the AX path needs manual verification, particu
    displays or plug one in. The window must end up full height again, and
    `log stream --predicate 'category == "window-management"'` shows a restore if anything shrank it.
    Dragging its bottom edge up afterwards must stick.
+5. The Dock record: `log stream --predicate 'category == "dock-watch"'` shows `activated` lines as
+   you switch apps, and Settings › Window Management › Dock log › Save… writes a file that opens
+   with the build and the screens and ends with those lines.

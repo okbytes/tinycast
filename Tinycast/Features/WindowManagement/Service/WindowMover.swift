@@ -1,4 +1,5 @@
 import AppKit
+import os
 @preconcurrency import ApplicationServices
 
 /// Applies window commands over AX. See docs/features/window-management.md#applying-a-placement.
@@ -110,6 +111,7 @@ final class WindowMover {
         }
     }
 
+    private static let logger = Logger(subsystem: "com.tinycast.app", category: "window-management")
     private var memory = WindowActionMemory<WindowKey>()
     private let dockShrinkGuard = DockShrinkGuard()
     private var terminationToken: NotificationToken?
@@ -235,6 +237,13 @@ final class WindowMover {
             let canvas, placement.frame.maxY >= canvas.maxY - AXWindowAccess.clampTolerance
         {
             dockShrinkGuard.hold(applied, anchor: placement.anchor, of: window, pid: key.pid)
+        }
+        // A short landing with no app minimum in play is the hidden-Dock bug; leave a trace of it.
+        let short = Int(placement.frame.height - applied.height)
+        if canResize, short > Int(AXWindowAccess.clampTolerance) {
+            Self.logger.notice(
+                "\(command.rawValue, privacy: .public) landed \(short, privacy: .public) pt short of its height"
+            )
         }
 
         let landedOn =

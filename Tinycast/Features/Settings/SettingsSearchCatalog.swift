@@ -214,6 +214,9 @@ enum SettingsSearchCatalog {
             .windowManagementOptions, "Shortcut preset",
             keywords: ["rectangle", "magnet", "spectacle", "defaults", "import", "shortcuts"]),
         .init(
+            .windowManagementOptions, "Dock log",
+            keywords: ["diagnostics", "export", "hidden dock", "shrink", "save", "episode"]),
+        .init(
             group: .windowManagementOptions, "Window commands",
             keywords: ["shortcut", "alias", "left half", "maximize", "center"])
     ]

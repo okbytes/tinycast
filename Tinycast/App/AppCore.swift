@@ -14,6 +14,7 @@ final class AppCore {
     let hotKeys = HotKeyManager()
     let keyRemap = KeyRemapManager()
     let windowMover = WindowMover()
+    let dockReservationMonitor = DockReservationMonitor()
     let inputSourceSwitcher = InputSourceSwitcher()
     let settings: AppSettings
     /// Mirrors settings into settings.json; nil while the Backup pane's switch is off.
@@ -165,6 +166,7 @@ final class AppCore {
             }
             hotKeys.start()
             keyRemap.start(settings: settings)
+            dockReservationMonitor.start()
 
             observeFeatureSwitches()
 

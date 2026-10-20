@@ -4,6 +4,7 @@ struct WindowManagementSettingsView: View {
     @Environment(AppSettings.self) private var settings
     @Environment(AppCore.self) private var core
     @State private var chosenPreset: WindowShortcutPreset?
+    @State private var savingDockLog = false
 
     var body: some View {
         @Bindable var settings = settings
@@ -81,8 +82,32 @@ struct WindowManagementSettingsView: View {
                 SettingsRowTitle(.windowManagementOptions, "Shortcut preset")
                 Text("Fills in another app's shortcuts. Others stay as they are.")
             }
+
+            LabeledContent {
+                if savingDockLog {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Button("Save…") { saveDockLog() }
+                }
+            } label: {
+                SettingsRowTitle(.windowManagementOptions, "Dock log")
+                Text("What Tinycast saw of the Dock and your windows, last \(DockLogExport.days) days.")
+            }
         } header: {
             SettingsSectionHeader(.windowManagementOptions)
+        }
+    }
+
+    private func saveDockLog() {
+        guard !savingDockLog else { return }
+        savingDockLog = true
+        Task {
+            defer { savingDockLog = false }
+            do {
+                _ = try await DockLogExport.run()
+            } catch {
+                core.showMessage(error.localizedDescription, tone: .danger)
+            }
         }
     }
 

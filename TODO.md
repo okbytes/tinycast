@@ -129,10 +129,11 @@ in Rectangle prevents the re-fit or undoes it, and its maintainer calls it a mac
   `logger.info` lines are not persisted, so nothing says afterwards what it did.
 - Unknown: what starts an episode, how long one lasts, and whether `didChangeScreenParameters` fires
   at its start and end.
-- Running: a monitor started 2026-10-20 09:00 at work, from the session scratchpad, logging each
-  `didChangeScreenParameters`, the in-process and fresh-process `visibleFrame`, the Dock's windows,
-  app launches and activations, space changes, and any window whose bottom edge rises with no mouse
-  button held.
+- Running: `DockReservationMonitor` records every `didChangeScreenParameters`, `visibleFrame`
+  change, Dock reveal, app switch, space change and bottom-edge shrink to the unified log, and
+  Settings › Window Management › Dock log › Save… exports the last three days to a file; see
+  [window-management.md](docs/features/window-management.md#recording-dock-episodes). Install it on
+  both Macs and attach the file after the next episode, with the time it happened.
 - Next, once the monitor answers the unknowns: make the guard episode-aware. Treat a bottom
   reservation appearing on a screen as the start of an episode and its clearing as the end; during
   one, write nothing and remember every window whose bottom edge was pulled up to the line, held or
