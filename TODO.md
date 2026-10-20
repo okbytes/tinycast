@@ -127,14 +127,23 @@ in Rectangle prevents the re-fit or undoes it, and its maintainer calls it a mac
   reservation stands, so its two tries are spent before the reservation lifts; a command pressed
   during an episode holds the clamped `applied` frame rather than the intended one; and its
   `logger.info` lines are not persisted, so nothing says afterwards what it did.
-- Unknown: what starts an episode, how long one lasts, and whether `didChangeScreenParameters` fires
-  at its start and end.
+- Answered by the first exported record (work Mac, 2026-10-20 10:06, v0.17.0):
+  `didChangeScreenParameters` fired at both the start and the end, with `visibleFrame` reading
+  60 pt reserved in between for 111 s. Every command pressed meanwhile landed 60–61 pt short, so
+  AX writes are clamped for the duration. It began 23 ms after OpenCode was activated with the
+  Dock's window up and the pointer 21 pt from the bottom, which reads as an app opened from the
+  revealed Dock, as rxhanson/Rectangle#1922 describes; 33 other Dock appearances that day, most
+  with an app activated under them but the pointer elsewhere, started nothing. It ended the moment
+  the pointer touched the bottom edge again, 0.6 s before the Dock re-appeared, so revealing the
+  Dock looks like what clears it. Chrome and OpenCode stayed short until re-placed by hand.
+- Unknown: whether a reveal always clears it, and whether the trigger needs the click or only the
+  pointer in the Dock's zone at activation.
 - Running: `DockReservationMonitor` records every `didChangeScreenParameters`, `visibleFrame`
   change, Dock reveal, app switch, space change and bottom-edge shrink to the unified log, and
   Settings › Window Management › Dock log › Save… exports the last three days to a file; see
   [window-management.md](docs/features/window-management.md#recording-dock-episodes). Install it on
   both Macs and attach the file after the next episode, with the time it happened.
-- Next, once the monitor answers the unknowns: make the guard episode-aware. Treat a bottom
+- Next: make the guard episode-aware. Treat a bottom
   reservation appearing on a screen as the start of an episode and its clearing as the end; during
   one, write nothing and remember every window whose bottom edge was pulled up to the line, held or
   not; at the end, put each one back. Hold the intended frame, not the clamped one. Log at notice.
