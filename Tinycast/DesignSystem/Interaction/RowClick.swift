@@ -66,18 +66,6 @@ extension View {
                 press: RowPress(activation: .doubleClick, select: select, activate: activate, drag: drag)))
     }
 
-    /// A tap that can drag out: activation waits for the release, so a drag never activates.
-    @ViewBuilder
-    func onRowTap(drag: RowDrag?, perform activate: @escaping () -> Void) -> some View {
-        if let drag {
-            overlay(
-                RowPressCatcher(
-                    press: RowPress(activation: .release, select: {}, activate: activate, drag: drag)))
-        } else {
-            onTapGesture(perform: activate)
-        }
-    }
-
     /// Publishes this row's frame in `space` for the list's `ListPressCatcher`; the catcher needs it
     /// on every row it serves. The frame is dropped with the row, so a dropped row cannot be hit.
     func reportRowFrame(_ id: String, to frames: RowFrames, in space: String) -> some View {
@@ -216,8 +204,9 @@ private final class RowPressView: NSView, NSDraggingSource {
     func draggingSession(
         _ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation
     ) {
+        let dropped = dropped
+        self.dropped = nil
         guard operation != [] else { return }
         dropped?()
-        dropped = nil
     }
 }
