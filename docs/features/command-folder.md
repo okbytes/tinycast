@@ -40,9 +40,8 @@ counts and a linked folder does not). The model keeps:
 | `.url` `.link`, first non-empty line a URL with a scheme | a link, opened by the scheme's handler |
 | hidden (`.…`), a folder, anything else | nothing |
 
-The name is the file name without its extension, split on `-`, `_` and spaces, each word's first
-letter raised and the rest kept: `hide-whitespace.sh` is "Hide Whitespace", `openJIRA.sh` is
-"OpenJIRA". A link needs a scheme because a bare domain would open nothing.
+The name is the file name without its extension, exactly as written: `chatgpt.link` is "chatgpt"
+and `Open Jira.url` is "Open Jira". A link needs a scheme because a bare domain would open nothing.
 
 `CommandFolderMonitor` watches the folder with a `DispatchSource`, reopening it after every event
 and polling every 2 s only while it is missing, and reports once writes settle for 300 ms. The folder

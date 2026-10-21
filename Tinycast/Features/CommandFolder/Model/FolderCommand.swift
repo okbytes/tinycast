@@ -59,11 +59,9 @@ struct FolderCommand: Hashable, Identifiable, Sendable {
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
-    /// `hide-whitespace.sh` reads as "Hide Whitespace"; a word's own capitals are kept.
+    /// The file name without its extension, exactly as written: `chatgpt.link` is "chatgpt".
     static func displayName(forFile name: String) -> String {
-        let stem = (name as NSString).deletingPathExtension
-        let words = stem.split { $0 == "-" || $0 == "_" || $0 == " " }
-        return words.map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined(separator: " ")
+        (name as NSString).deletingPathExtension.trimmingCharacters(in: .whitespaces)
     }
 
     /// A link needs a scheme: a bare domain would open nothing, so it is not a command.
