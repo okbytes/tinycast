@@ -41,7 +41,7 @@ struct DictionaryScreen: PaletteScreen {
         return true
     }
 
-    func body(selection: Int, scroll: ScrollIntent) -> AnyView {
+    func body(selection: Int) -> AnyView {
         if term.isEmpty { return AnyView(EmptyResults(text: "Type a word to define")) }
         if let entry { return AnyView(DictionaryEntryView(entry: entry)) }
         if session.lookup?.term == term { return AnyView(EmptyResults(text: "No definition found")) }

@@ -112,9 +112,9 @@ struct ClipboardScreen: PaletteScreen {
         scrollToFollow()
     }
 
-    func body(selection: Int, scroll: ScrollIntent) -> AnyView {
+    func body(selection: Int) -> AnyView {
         AnyView(
-            content(selection: selection, scroll: scroll)
+            content(selection: selection)
                 .onChange(of: ClipFollowKey(id: store.items.first?.id, token: vm.followToken)) {
                     old, new in
                     follow(from: old, to: new)
@@ -123,7 +123,7 @@ struct ClipboardScreen: PaletteScreen {
     }
 
     @ViewBuilder
-    private func content(selection: Int, scroll: ScrollIntent) -> some View {
+    private func content(selection: Int) -> some View {
         let rows = rows
         // Empty history: centre one message across the panel, not in the list column.
         if rows.isEmpty {
@@ -135,7 +135,6 @@ struct ClipboardScreen: PaletteScreen {
                 ClipboardList(
                     results: rows,
                     selectedID: selected?.id,
-                    scroll: scroll,
                     onSelect: { item in vm.selection = rows.firstIndex(of: item) ?? 0 },
                     onActivate: { activate(at: vm.selection) },
                     onActions: { item in

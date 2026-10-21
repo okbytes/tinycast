@@ -2,12 +2,11 @@ import AppKit
 import SwiftUI
 
 struct UninstallList: View {
+    @Environment(PaletteState.self) private var vm
 
     let results: [UninstallCandidate]
     let selectedID: UninstallCandidate.ID?
     let summary: String
-    /// Changes only on keyboard nav / reset, so mouse selection never yanks the scroll position.
-    let scroll: ScrollIntent
     let onSelect: (UninstallCandidate) -> Void
     let onToggle: (UninstallCandidate) -> Void
     let onActions: (UninstallCandidate) -> Void
@@ -53,7 +52,7 @@ struct UninstallList: View {
             .thinScrollbar()
             // On the first row, snap to the origin so the summary header shows too.
             .scrollFollowsSelection(
-                scroll, row: selectedID, atOrigin: firstRowSelected, proxy: proxy)
+                intent: { vm.scrollIntent }, row: selectedID, atOrigin: firstRowSelected, proxy: proxy)
         }
         .onDisappear { IconCache.purgeFitted() }
     }

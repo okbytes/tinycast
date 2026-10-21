@@ -97,14 +97,13 @@ private enum EmojiGridItem: Identifiable {
 }
 
 struct EmojiGridView: View {
+    @Environment(PaletteState.self) private var vm
 
     let sections: [EmojiGridSection]
     /// Flat selection index across all sections, as in the list modes.
     let selection: Int
     let tone: EmojiSkinTone
     let columns: EmojiGridColumns
-    /// The pending scroll request; mouse selection leaves it untouched.
-    let scroll: ScrollIntent
     let onSelect: (Int) -> Void
     let onActivate: () -> Void
     let onActions: (Int) -> Void
@@ -179,7 +178,7 @@ struct EmojiGridView: View {
             .thinScrollbar()
             // Snap to the origin on the first grid row so its header shows too.
             .scrollFollowsSelection(
-                scroll, row: selectedRowID, atOrigin: selectedRowID == firstRowID, proxy: proxy
+                intent: { vm.scrollIntent }, row: selectedRowID, atOrigin: selectedRowID == firstRowID, proxy: proxy
             )
         }
     }

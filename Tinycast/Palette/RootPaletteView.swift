@@ -24,8 +24,6 @@ struct RootPaletteView: View {
     @State private var menuPanel = MenuPanelController()
     /// The palette's own window, reported by `WindowReader`; the menu hangs off its frame.
     @State private var hostWindow: NSWindow?
-    /// The pending scroll request; modes are exclusive, so one piece of state serves all.
-    @State private var scroll = ScrollIntent(kind: .top)
 
     /// Compact vs. full; the source of truth is on `AppCore`, so the two can't disagree.
     private var isCollapsed: Bool { core.paletteCoordinator.paletteIsCollapsed }
@@ -38,7 +36,7 @@ struct RootPaletteView: View {
                 appIndex: appIndex, visibility: visibility,
                 currencyRates: currencyRates, core: core, vm: vm, running: selectionIsRunning,
                 openActions: openActions,
-                scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
+                scrollToFollow: { vm.scrollIntent = ScrollIntent(kind: .follow) })
         case .uninstall:
             return UninstallScreen(
                 session: uninstall, core: core, vm: vm, openActions: openActions)
@@ -50,7 +48,7 @@ struct RootPaletteView: View {
         case .clipboard:
             return ClipboardScreen(
                 store: store, core: core, vm: vm, openActions: openActions,
-                scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
+                scrollToFollow: { vm.scrollIntent = ScrollIntent(kind: .follow) })
         case .dictionary:
             return DictionaryScreen(session: dictionary, core: core, vm: vm)
         case .calculatorHistory:
@@ -146,28 +144,22 @@ struct RootPaletteView: View {
     }
 
     var body: some View {
-        // Resolve the screen once per render, so the flat index can't drift from the rows.
-        let screen = screen
-        let count = screen.rows.count
-        let sel = selection(count: count)
-        let showActionGroup = count > 0 && screen.hasPrimaryAction(at: sel)
-
-        // One header position, so focus survives the swap. See docs/features/palette.md.
-        return keyHandlers(
+        // Nothing here reads the query, the selection or the scroll intent: a keystroke re-renders
+        // `ScreenContent` and `ActionGroup`, which resolve the screen in their own bodies, and leaves
+        // this shell alone. See docs/features/palette.md.
+        // One header position, so focus survives the swap.
+        keyHandlers(
             stateObservers(
                 Group {
                     if isCollapsed {
                         Color.clear
                     } else {
-                        screen.body(selection: sel, scroll: scroll)
+                        ScreenContent(resolve: { screen })
                     }
                 }
                 .safeAreaInset(edge: .top, spacing: 0) { header }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if !isCollapsed {
-                        bottomBar(
-                            pillLabel: screen.primaryActionTitle, showActionGroup: showActionGroup)
-                    }
+                    if !isCollapsed { bottomBar }
                 }
                 // The menu lives in its own window; this only reports the one to hang it from.
                 .background(WindowReader { hostWindow = $0 })
@@ -186,8 +178,7 @@ struct RootPaletteView: View {
                             ? Theme.Duration.dialogEnter : Theme.Duration.dialogExit),
                     value: core.isDimmingPaletteForDialog
                 )
-                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))),
-            selection: sel)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))))
     }
 
     /// The emoji grid's observers, split out so `stateObservers` stays within type-checker reach.
@@ -196,7 +187,8 @@ struct RootPaletteView: View {
         content
             .onChange(of: vm.emojiCategoryFilter) { land() }
             .onChange(of: core.pinnedEmoji.revision) { emojiGridChanged() }
-            .onChange(of: (screen as? EmojiScreen)?.frequentlyUsed) { old, new in
+            // Gated on the mode: resolving the screen here would read the query on every keystroke.
+            .onChange(of: vm.mode == .emoji ? (screen as? EmojiScreen)?.frequentlyUsed : nil) { old, new in
                 guard let old, let new else { return }
                 (screen as? EmojiScreen)?.frequentlyUsedChanged(from: old, to: new)
                 emojiGridChanged()
@@ -213,7 +205,7 @@ struct RootPaletteView: View {
     /// Pins and density move cells under the selection, and can change an open Actions menu's rows.
     private func emojiGridChanged() {
         guard vm.mode == .emoji else { return }
-        scroll = ScrollIntent(kind: .follow)
+        vm.scrollIntent = ScrollIntent(kind: .follow)
         refreshActionsMenu()
     }
 
@@ -225,11 +217,8 @@ struct RootPaletteView: View {
             .onChange(of: vm.focusToken) { searchFocused = true }
             // A preserved screen re-summons as it was left, so a menu must end with the palette.
             .modifier(PaletteHideObserver { if menuOpen { closeMenus() } })
-            .onChange(of: vm.query) {
-                if vm.collapseQueryLineBreaks() { return }
-                land()
-                if vm.mode == .dictionary { dictionary.lookUp(vm.query) }
-            }
+            // Observed in its own modifier, so a keystroke never re-evaluates this body.
+            .modifier(QueryObserver(onChange: queryChanged))
             // A narrower list means the old index points at a different row, or at none.
             .onChange(of: vm.clipboardFilter) { land() }
             .onChange(of: vm.mode) {
@@ -286,7 +275,7 @@ struct RootPaletteView: View {
 
     /// Split from `body`: one chain of this length is past what the type-checker will infer.
     @ViewBuilder
-    private func keyHandlers(_ content: some View, selection sel: Int) -> some View {
+    private func keyHandlers(_ content: some View) -> some View {
         content
             // Repeat included: holding the key keeps stepping, as the bare-key form does.
             .onKeyPress(keys: [.downArrow], phases: [.down, .repeat]) { press in
@@ -466,32 +455,7 @@ struct RootPaletteView: View {
     }
 
     private var searchField: some View {
-        @Bindable var vm = vm
-        return TextField("", text: $vm.query)
-            .textFieldStyle(.plain)
-            .font(Theme.Typography.searchField)
-            .tint(Theme.Colors.textPrimary)
-            .focused($searchFocused)
-            .frame(maxHeight: .infinity)
-            .background(alignment: .leading) {
-                // An IME's marked text leaves `query` empty, so the placeholder would overlap it.
-                if vm.query.isEmpty, !vm.isComposing {
-                    Text(searchPrompt)
-                        .font(Theme.Typography.searchField)
-                        .foregroundStyle(Theme.Colors.textTertiary)
-                        .lineLimit(1)
-                        // Never a click target: tapping the placeholder must still land the caret.
-                        .allowsHitTesting(false)
-                }
-            }
-            // The prompt used to carry this; without it the field would be unlabelled.
-            .accessibilityLabel(Text(searchPrompt))
-            // The panel resolves the pointer against this rather than hit-testing for the field.
-            .onGeometryChange(for: CGRect.self) {
-                $0.frame(in: .global)
-            } action: {
-                vm.searchFieldFrame = $0
-            }
+        SearchField(prompt: searchPrompt, focused: $searchFocused)
     }
 
     /// The Uninstall screen's primary action is destructive, so its pill isn't white.
@@ -499,14 +463,14 @@ struct RootPaletteView: View {
         vm.mode == .uninstall ? Theme.Colors.destructive : .primary
     }
 
-    private func bottomBar(pillLabel: String, showActionGroup: Bool) -> some View {
+    private var bottomBar: some View {
         // Floating controls, no bar; the edge dissolve ghosts the rows passing beneath.
         HStack(spacing: 0) {
             appMenuButton
             Spacer()
-            if showActionGroup {
-                actionGroup(pillLabel: pillLabel)
-            }
+            ActionGroup(
+                resolve: { screen }, tint: pillTint, activate: activateSelection,
+                toggleActions: toggleActions)
         }
         .padding(.horizontal, Theme.Spacing.md)
         .frame(height: Theme.Size.bottomBarHeight)
@@ -517,33 +481,6 @@ struct RootPaletteView: View {
         MenuCircleButton {
             if openMenu == .app { closeMenus() } else { open(.app, highlighting: 0) }
         }
-    }
-
-    /// The footer control group: primary action and the Actions toggle sharing one glass capsule.
-    private func actionGroup(pillLabel: String) -> some View {
-        HStack(spacing: 2) {
-            BarButton(action: activateSelection) {
-                HStack(spacing: Theme.Spacing.sm) {
-                    Text(pillLabel)
-                        .font(Theme.Typography.bar)
-                        .foregroundStyle(pillTint)
-                    KeyCapChip(text: "↵", style: .outline)
-                }
-            }
-            BarButton(action: toggleActions) {
-                HStack(spacing: Theme.Spacing.sm) {
-                    Text("Actions")
-                        .font(Theme.Typography.bar)
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                    HStack(spacing: Theme.Spacing.xxs) {
-                        KeyCapChip(text: "⌘", style: .outline)
-                        KeyCapChip(text: "K", style: .outline)
-                    }
-                }
-            }
-        }
-        .padding(Theme.Spacing.xs)
-        .frosted(in: Capsule())
     }
 
     /// The one path opening the Actions menu, sampling the state its rows depend on.
@@ -750,18 +687,25 @@ struct RootPaletteView: View {
 
     // MARK: - Actions
 
+    /// Every keystroke, from `QueryObserver`; the body itself never reads the query.
+    private func queryChanged() {
+        if vm.collapseQueryLineBreaks() { return }
+        land()
+        if vm.mode == .dictionary { dictionary.lookUp(vm.query) }
+    }
+
     /// Every reset lands here, so handlers that fire together agree in whatever order they run.
     private func land() {
         let landing = screen.landingSelection
         vm.selection = landing
-        scroll = ScrollIntent(kind: landing == 0 ? .top : .center)
+        vm.scrollIntent = ScrollIntent(kind: landing == 0 ? .top : .center)
     }
 
     private func move(_ delta: Int, in screen: any PaletteScreen) {
         let count = screen.rows.count
         guard count > 0 else { return }
         vm.selection = min(max(selection(count: count) + delta, 0), count - 1)
-        scroll = ScrollIntent(kind: .follow)
+        vm.scrollIntent = ScrollIntent(kind: .follow)
     }
 
     /// ↑/↓: the screen's own move where it has one, else a linear step through the rows.
@@ -772,7 +716,7 @@ struct RootPaletteView: View {
             return .handled
         }
         vm.selection = next
-        scroll = ScrollIntent(kind: .follow)
+        vm.scrollIntent = ScrollIntent(kind: .follow)
         return .handled
     }
 
@@ -783,7 +727,7 @@ struct RootPaletteView: View {
             return false
         }
         vm.selection = next
-        scroll = ScrollIntent(kind: .follow)
+        vm.scrollIntent = ScrollIntent(kind: .follow)
         return true
     }
 
@@ -864,6 +808,116 @@ private enum OpenMenu {
     case app
     case clipboardFilter
     case emojiCategory
+}
+
+/// Resolves the screen in its own body: the query and the selection are read here, so a keystroke
+/// or an arrow key re-renders the list and not the shell around it.
+private struct ScreenContent: View {
+    @Environment(PaletteState.self) private var vm
+    let resolve: () -> any PaletteScreen
+
+    var body: some View {
+        let screen = resolve()
+        let count = screen.rows.count
+        let selection = count == 0 ? 0 : min(max(vm.selection, 0), count - 1)
+        screen.body(selection: selection)
+    }
+}
+
+/// The footer control group: primary action and the Actions toggle sharing one glass capsule.
+/// Resolves the screen itself, for the same reason `ScreenContent` does.
+private struct ActionGroup: View {
+    @Environment(PaletteState.self) private var vm
+    let resolve: () -> any PaletteScreen
+    let tint: Color
+    let activate: () -> Void
+    let toggleActions: () -> Void
+
+    var body: some View {
+        let screen = resolve()
+        let count = screen.rows.count
+        let selection = count == 0 ? 0 : min(max(vm.selection, 0), count - 1)
+        if count > 0, screen.hasPrimaryAction(at: selection) {
+            HStack(spacing: 2) {
+                BarButton(action: activate) {
+                    HStack(spacing: Theme.Spacing.sm) {
+                        Text(screen.primaryActionTitle)
+                            .font(Theme.Typography.bar)
+                            .foregroundStyle(tint)
+                        KeyCapChip(text: "↵", style: .outline)
+                    }
+                }
+                BarButton(action: toggleActions) {
+                    HStack(spacing: Theme.Spacing.sm) {
+                        Text("Actions")
+                            .font(Theme.Typography.bar)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                        HStack(spacing: Theme.Spacing.xxs) {
+                            KeyCapChip(text: "⌘", style: .outline)
+                            KeyCapChip(text: "K", style: .outline)
+                        }
+                    }
+                }
+            }
+            .padding(Theme.Spacing.xs)
+            .frosted(in: Capsule())
+        }
+    }
+}
+
+/// Observes the query in its own body, so the handler runs without re-rendering the shell.
+private struct QueryObserver: ViewModifier {
+    @Environment(PaletteState.self) private var vm
+    let onChange: () -> Void
+
+    func body(content: Content) -> some View {
+        content.onChange(of: vm.query) { onChange() }
+    }
+}
+
+/// Owns the field's binding: SwiftUI reads a binding's value when it diffs the field, and that read
+/// must register here, not on the shell.
+private struct SearchField: View {
+    @Environment(PaletteState.self) private var vm
+    let prompt: String
+    let focused: FocusState<Bool>.Binding
+
+    var body: some View {
+        @Bindable var vm = vm
+        TextField("", text: $vm.query)
+            .textFieldStyle(.plain)
+            .font(Theme.Typography.searchField)
+            .tint(Theme.Colors.textPrimary)
+            .focused(focused)
+            .frame(maxHeight: .infinity)
+            .background(alignment: .leading) { SearchPlaceholder(prompt: prompt) }
+            // The prompt used to carry this; without it the field would be unlabelled.
+            .accessibilityLabel(Text(prompt))
+            // The panel resolves the pointer against this rather than hit-testing for the field.
+            .onGeometryChange(for: CGRect.self) {
+                $0.frame(in: .global)
+            } action: {
+                vm.searchFieldFrame = $0
+            }
+    }
+}
+
+/// Reads the query in its own body; the field around it never re-renders for a keystroke.
+private struct SearchPlaceholder: View {
+    @Environment(PaletteState.self) private var vm
+    let prompt: String
+
+    var body: some View {
+        // An IME's marked text leaves `query` empty, so the placeholder would overlap it.
+        if vm.query.isEmpty, !vm.isComposing {
+            Text(prompt)
+                .font(Theme.Typography.searchField)
+                .foregroundStyle(Theme.Colors.textTertiary)
+                .lineLimit(1)
+                // Never a click target: tapping the placeholder must still land the caret.
+                .allowsHitTesting(false)
+        }
+    }
 }
 
 /// Reads visibility in its own body, so a summon never re-renders the palette's.

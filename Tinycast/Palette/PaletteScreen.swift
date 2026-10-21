@@ -123,7 +123,7 @@ private extension MenuPanelCorner {
     func perform(_ shortcut: PaletteShortcut, at selection: Int) -> Bool
     /// The selection an arrow key lands on, or nil to leave the key to the palette's own default.
     func move(_ delta: Int, axis: PaletteAxis, from selection: Int) -> Int?
-    @ViewBuilder func body(selection: Int, scroll: ScrollIntent) -> AnyView
+    @ViewBuilder func body(selection: Int) -> AnyView
 }
 
 extension PaletteScreen {

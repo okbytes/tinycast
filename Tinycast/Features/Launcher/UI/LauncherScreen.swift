@@ -236,18 +236,17 @@ struct LauncherScreen: PaletteScreen {
         return core.runningApps.isRunning(app)
     }
 
-    func body(selection: Int, scroll: ScrollIntent) -> AnyView {
-        AnyView(content(selection: selection, scroll: scroll))
+    func body(selection: Int) -> AnyView {
+        AnyView(content(selection: selection))
     }
 
     @ViewBuilder
-    private func content(selection: Int, scroll: ScrollIntent) -> some View {
+    private func content(selection: Int) -> some View {
         LauncherList(
             results: results,
             selectedRowID: row(at: selection)?.id,
             suggestionCount: suggestionCount,
             matchCount: matchCount,
-            scroll: scroll,
             card: leadCard,
             cardSelected: isCardSelected(selection),
             onActivateCard: {

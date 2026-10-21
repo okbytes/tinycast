@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 /// A scroll request; reset and follow need different ops, so the caller states which.
 struct ScrollIntent: Equatable {
@@ -14,25 +14,4 @@ struct ScrollIntent: Equatable {
     var kind: Kind
     /// Distinguishes back-to-back intents of the same kind so `onChange` still fires.
     var nonce = UUID()
-}
-
-extension View {
-    /// Marks the content top as the `scrollToOrigin` target; apply after the padding.
-    func scrollOriginAnchor() -> some View {
-        overlay(alignment: .top) {
-            Color.clear.frame(height: 0).id(ScrollOrigin.id)
-        }
-    }
-
-}
-
-private enum ScrollOrigin {
-    nonisolated static let id = "scroll-origin-anchor"
-}
-
-extension ScrollViewProxy {
-    /// Restores the exact resting offset; needs `scrollOriginAnchor()` on the content.
-    func scrollToOrigin() {
-        scrollTo(ScrollOrigin.id, anchor: .top)
-    }
 }

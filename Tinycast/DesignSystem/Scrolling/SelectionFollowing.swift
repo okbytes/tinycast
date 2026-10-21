@@ -15,10 +15,11 @@ extension View {
     }
 
     /// Keeps the keyboard selection in the band between the bars; needs `selectionFrame` on rows.
+    /// `intent` is read inside the modifier, so the view that owns the request never re-renders for it.
     func scrollFollowsSelection(
-        _ scroll: ScrollIntent, row: String?, atOrigin: Bool, proxy: ScrollViewProxy
+        intent: @escaping () -> ScrollIntent, row: String?, atOrigin: Bool, proxy: ScrollViewProxy
     ) -> some View {
-        modifier(SelectionFollowing(scroll: scroll, row: row, atOrigin: atOrigin, proxy: proxy))
+        modifier(SelectionFollowing(intent: intent, row: row, atOrigin: atOrigin, proxy: proxy))
     }
 }
 
@@ -31,7 +32,7 @@ private struct SelectionFrameKey: PreferenceKey {
 }
 
 private struct SelectionFollowing: ViewModifier {
-    let scroll: ScrollIntent
+    let intent: () -> ScrollIntent
     let row: String?
     let atOrigin: Bool
     let proxy: ScrollViewProxy
@@ -55,14 +56,16 @@ private struct SelectionFollowing: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        content
+        let scroll = intent()
+        return content
             .onScrollGeometryChange(for: Band.self) {
                 Band(insetTop: $0.contentInsets.top, height: $0.containerSize.height)
             } action: { old, new in
                 band = new
                 // The inset settles after mount and moves the resting offset: restate a landing.
-                if old.insetTop != new.insetTop, scroll.kind != .follow {
-                    return begin(scroll.kind)
+                let kind = intent().kind
+                if old.insetTop != new.insetTop, kind != .follow {
+                    return begin(kind)
                 }
                 align()
             }
@@ -111,5 +114,25 @@ private struct SelectionFollowing: ViewModifier {
             return
         }
         proxy.scrollTo(row, anchor: edge == .top ? .top : .bottom)
+    }
+}
+extension View {
+    /// Marks the content top as the `scrollToOrigin` target; apply after the padding.
+    func scrollOriginAnchor() -> some View {
+        overlay(alignment: .top) {
+            Color.clear.frame(height: 0).id(ScrollOrigin.id)
+        }
+    }
+
+}
+
+private enum ScrollOrigin {
+    nonisolated static let id = "scroll-origin-anchor"
+}
+
+extension ScrollViewProxy {
+    /// Restores the exact resting offset; needs `scrollOriginAnchor()` on the content.
+    func scrollToOrigin() {
+        scrollTo(ScrollOrigin.id, anchor: .top)
     }
 }

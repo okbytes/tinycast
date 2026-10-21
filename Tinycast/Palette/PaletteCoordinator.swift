@@ -95,9 +95,10 @@ final class PaletteCoordinator {
 
     /// True for the slim compact bar: launcher root, empty, not overflowed.
     var paletteIsCollapsed: Bool {
+        // `queryIsEmpty`, not the query: it flips at the edge, so the shell ignores keystrokes.
         !palette.forceExpanded
             && palette.mode == .launcher
-            && palette.query.trimmingCharacters(in: .whitespaces).isEmpty
+            && palette.queryIsEmpty
     }
 
     /// The compact bar's overflow: expand into the full launcher without typing.

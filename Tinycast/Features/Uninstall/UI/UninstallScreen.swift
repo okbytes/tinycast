@@ -47,12 +47,12 @@ struct UninstallScreen: PaletteScreen {
         return true
     }
 
-    func body(selection: Int, scroll: ScrollIntent) -> AnyView {
-        AnyView(content(selection: selection, scroll: scroll))
+    func body(selection: Int) -> AnyView {
+        AnyView(content(selection: selection))
     }
 
     @ViewBuilder
-    private func content(selection: Int, scroll: ScrollIntent) -> some View {
+    private func content(selection: Int) -> some View {
         switch session.state {
         case .idle, .scanning:
             // Blank, not copy: discovery is milliseconds, so anything here would only flash.
@@ -70,7 +70,6 @@ struct UninstallScreen: PaletteScreen {
                     results: rows,
                     selectedID: rows.indices.contains(selection) ? rows[selection].id : nil,
                     summary: summary,
-                    scroll: scroll,
                     onSelect: { candidate in
                         if let index = rows.firstIndex(of: candidate) { vm.selection = index }
                     },

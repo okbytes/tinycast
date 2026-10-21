@@ -16,6 +16,14 @@ The command palette is a borderless floating `NSPanel` hosting SwiftUI; see
   Section headers are not selectable and never consume an index.
 - **A menu owns native text input while it is open.** Its panel becomes key so the menu field gets an
   AppKit field editor; the palette field stays mounted and inert beneath it.
+- **`RootPaletteView.body` never reads the query, the selection or the scroll intent.** Observation is
+  per property: one read of `vm.query` in that body re-renders the whole shell — header, field, bars and
+  some forty modifiers — on every keystroke, and did, twice (once for the query, once for the scroll
+  intent `land()` set in root state). The screen is resolved inside `ScreenContent` and `ActionGroup`,
+  the query is observed by `QueryObserver`, the placeholder reads it in `SearchPlaceholder`, the
+  collapse rule reads `PaletteState.queryIsEmpty` (which flips only at the edge), and the scroll
+  intent is `PaletteState.scrollIntent`, read inside `scrollFollowsSelection`. Measured on the Debug
+  build: 23 ms of CPU per keystroke before, and the list itself accounts for only a third of it.
 - **The search field is never mounted conditionally**, because flipping a branch around it tears its
   field editor down.
 - **Focus restoration is load-bearing.** Paste targets the recorded `previousApp` and requires the

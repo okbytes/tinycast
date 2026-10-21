@@ -14,8 +14,35 @@ final class PaletteState {
     var mode: PaletteMode = .launcher
     /// The screens below `mode`, innermost last: a summon starts a new one, navigating pushes on.
     private(set) var backStack: [PaletteFrame] = []
-    var query: String = ""
-    var selection: Int = 0
+    /// Written by the field on every keystroke; `queryIsEmpty` is what the shell reads instead.
+    var query: String {
+        get {
+            access(keyPath: \.query)
+            return _query
+        }
+        set {
+            withMutation(keyPath: \.query) { _query = newValue }
+            let empty = newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            if empty != queryIsEmpty { queryIsEmpty = empty }
+        }
+    }
+    @ObservationIgnored private var _query = ""
+    /// Flips only when the trimmed query crosses empty, so a view that reads it ignores keystrokes.
+    private(set) var queryIsEmpty = true
+    /// Same-value writes are dropped: every landing sets 0, and the shell must not re-render for it.
+    var selection: Int {
+        get {
+            access(keyPath: \.selection)
+            return _selection
+        }
+        set {
+            guard newValue != _selection else { return }
+            withMutation(keyPath: \.selection) { _selection = newValue }
+        }
+    }
+    @ObservationIgnored private var _selection = 0
+    /// The pending scroll request. Only the list's follow modifier reads it; see docs/ui.md.
+    var scrollIntent = ScrollIntent(kind: .top)
     /// True while an IME holds marked text, which leaves `query` empty. The panel publishes it.
     var isComposing = false
     /// The clipboard screen's type filter, reset with the rest of the screen state on each summon.

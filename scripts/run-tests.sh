@@ -219,6 +219,7 @@ run palette-escape-test    Tinycast/Palette/PaletteMode.swift \
                            Tinycast/Palette/CommandEscapeTap.swift \
                            Tinycast/Features/Settings/EscapeKeyBehavior.swift
 run palette-navigation-test Tinycast/Palette/PaletteState.swift \
+                           Tinycast/DesignSystem/Scrolling/ScrollIntent.swift \
                            Tinycast/Palette/PaletteMode.swift \
                            Tinycast/Palette/HoverArming.swift \
                            Tinycast/Features/Emoji/Model/EmojiCatalog.swift \

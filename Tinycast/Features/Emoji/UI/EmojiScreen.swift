@@ -124,12 +124,12 @@ struct EmojiScreen: PaletteScreen {
         }
     }
 
-    func body(selection: Int, scroll: ScrollIntent) -> AnyView {
-        AnyView(content(selection: selection, scroll: scroll))
+    func body(selection: Int) -> AnyView {
+        AnyView(content(selection: selection))
     }
 
     @ViewBuilder
-    private func content(selection: Int, scroll: ScrollIntent) -> some View {
+    private func content(selection: Int) -> some View {
         let sections = sections
         if !index.isLoaded {
             EmptyResults(text: "Loading emoji…")
@@ -141,7 +141,6 @@ struct EmojiScreen: PaletteScreen {
                 selection: selection,
                 tone: tone,
                 columns: columns,
-                scroll: scroll,
                 onSelect: { vm.selection = $0 },
                 onActivate: { activate(at: vm.selection) },
                 onActions: { flat in

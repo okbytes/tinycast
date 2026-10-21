@@ -112,12 +112,12 @@ struct CalculatorHistoryScreen: PaletteScreen {
         Task { await core.calculatorCoordinator.deleteAllHistory() }
     }
 
-    func body(selection: Int, scroll: ScrollIntent) -> AnyView {
-        AnyView(content(selection: selection, scroll: scroll))
+    func body(selection: Int) -> AnyView {
+        AnyView(content(selection: selection))
     }
 
     @ViewBuilder
-    private func content(selection: Int, scroll: ScrollIntent) -> some View {
+    private func content(selection: Int) -> some View {
         let rows = rows
         if rows.isEmpty {
             EmptyResults(
@@ -127,7 +127,6 @@ struct CalculatorHistoryScreen: PaletteScreen {
             CalculatorHistoryList(
                 results: entries,
                 selectedID: entry(at: selection)?.id,
-                scroll: scroll,
                 calc: calc,
                 calcSelected: isCardSelected(selection),
                 onActivateCalc: {

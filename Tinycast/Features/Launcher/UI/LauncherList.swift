@@ -2,12 +2,11 @@ import SwiftUI
 
 struct LauncherList: View {
 
+    @Environment(PaletteState.self) private var vm
     let results: [AppEntry]
     let selectedRowID: String?
     let suggestionCount: Int
     let matchCount: Int
-    /// Changes only when the list should scroll, so mouse selection never yanks it.
-    let scroll: ScrollIntent
     /// The card at flat index 0, when one leads. At most one ever does.
     var card: LeadCard?
     var cardSelected = false
@@ -134,7 +133,7 @@ struct LauncherList: View {
                     .thinScrollbar()
                     // Snap to the origin on the first row so its header shows too.
                     .scrollFollowsSelection(
-                        scroll, row: selectedRowID, atOrigin: firstRowSelected, proxy: proxy)
+                        intent: { vm.scrollIntent }, row: selectedRowID, atOrigin: firstRowSelected, proxy: proxy)
                 }
             }
         }

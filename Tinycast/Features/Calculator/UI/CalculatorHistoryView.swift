@@ -2,10 +2,9 @@ import SwiftUI
 
 /// Past calculations, shaped like `ClipboardList`; both sides per row, so no preview pane.
 struct CalculatorHistoryList: View {
+    @Environment(PaletteState.self) private var vm
     let results: [CalcHistoryEntry]
     let selectedID: CalcHistoryEntry.ID?
-    /// Changes only when the list should scroll, so mouse selection never yanks the position.
-    let scroll: ScrollIntent
     /// Live answer typed into the history search; same flat-index-0 contract as the launcher.
     var calc: CalcResult?
     var calcSelected = false
@@ -97,7 +96,7 @@ struct CalculatorHistoryList: View {
             .thinScrollbar()
             // Snap to the origin on the first row so its section header shows too.
             .scrollFollowsSelection(
-                scroll, row: selectedRowID, atOrigin: firstRowSelected, proxy: proxy)
+                intent: { vm.scrollIntent }, row: selectedRowID, atOrigin: firstRowSelected, proxy: proxy)
         }
     }
 }

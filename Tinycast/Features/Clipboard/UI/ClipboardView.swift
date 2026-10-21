@@ -2,11 +2,10 @@ import AppKit
 import SwiftUI
 
 struct ClipboardList: View {
+    @Environment(PaletteState.self) private var vm
 
     let results: [ClipboardItem]
     let selectedID: ClipboardItem.ID?
-    /// Changes only when the list should scroll, so mouse selection never yanks it.
-    let scroll: ScrollIntent
     let onSelect: (ClipboardItem) -> Void
     let onActivate: () -> Void
     let onActions: (ClipboardItem) -> Void
@@ -89,7 +88,7 @@ struct ClipboardList: View {
             .thinScrollbar()
             // Snap to the origin on the first row so its section header shows too.
             .scrollFollowsSelection(
-                scroll, row: selectedID?.uuidString, atOrigin: firstRowSelected, proxy: proxy)
+                intent: { vm.scrollIntent }, row: selectedID?.uuidString, atOrigin: firstRowSelected, proxy: proxy)
         }
     }
 }
