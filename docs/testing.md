@@ -347,7 +347,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Every installed app appears; running apps show the dot
 - Icons render with no placeholder flash on reopen, and Settings ▸ Applications scrolls without hitching,
   even with the scrollbar thumb dragged from end to end in under a second
-- An app removed since the last open drops out after a reopen
+- An app removed since the last open drops out after a reopen at least 15 s after the previous one
 - Learned ranking still surfaces your habitual result for a short query
 - An application row drags onto the Dock and into a Finder window as a copy, never a move, and a
   landed drop hides the palette; a click still launches; no other kind of row drags
@@ -378,10 +378,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 - Off out of the box: the pane lists nothing and no shortcut reaches the launcher
 - Switching on lists every shortcut with the Shortcuts app's icon; ↵ on a row runs it
-- A shortcut added in Shortcuts appears on the next launcher open
+- A shortcut added in Shortcuts appears on the next launcher open at least 15 s after the previous one
 - A row's hotkey runs it with the palette closed; switching the feature off silences it
 - Unchecking a row hides it from search, and its hotkey still fires
-- Deleting a shortcut in Shortcuts frees its alias and hotkey on the next launcher open
+- Deleting a shortcut in Shortcuts frees its alias and hotkey on the next launcher open at least 15 s after the previous one
 - A shortcut that fails shows Tinycast's dialog with the tool's error
 
 ### Calculator and currency

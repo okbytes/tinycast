@@ -38,9 +38,11 @@ or a binding follows the shortcut rather than its old title. The entry id is
 `apple-shortcut:<uuid>`, with no bundle id, so shortcuts never share a `preferenceKey` with the
 Shortcuts app itself.
 
-The list is re-read whenever the launcher opens, the Settings pane appears, or the switch turns on.
-The tool answers in ~10 ms, so an overlapping request is simply dropped rather than queued. An
-unchanged list publishes nothing.
+The list is re-read when the Settings pane appears, when the switch turns on, and when the launcher
+opens more than 15 s after the last successful read (`AppIndex.rescanInterval`; a launcher open
+inside that window keeps the library it has, and a library dropped by switching the feature off never
+counts as fresh). The tool answers in ~10 ms, so an overlapping request is simply dropped rather than
+queued. An unchanged list publishes nothing.
 
 ## Sweeping deleted shortcuts
 

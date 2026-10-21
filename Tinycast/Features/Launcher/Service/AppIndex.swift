@@ -351,6 +351,8 @@ final class AppIndex {
     /// A summon's refresh: a scan that ended within `rescanInterval` stands, so a burst of reopens
     /// costs one scan rather than one each. Scope edits and uninstalls still call `refresh()`.
     func refreshIfStale() async {
+        // A scan in flight is as fresh as one just ended; asking again would only queue a trailing one.
+        guard !isRefreshing else { return }
         if let lastScanEnded, ContinuousClock.now - lastScanEnded < Self.rescanInterval { return }
         await refresh()
     }

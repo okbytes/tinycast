@@ -58,15 +58,18 @@ final class AppleShortcutCoordinator {
         refresh()
     }
 
-    /// Re-read on every launcher open; the tool answers in milliseconds, so overlaps just drop.
+    /// Re-read on a launcher open past `refreshIfStale`'s window, on the pane, and on switch-on; the
+    /// tool answers in milliseconds, so overlaps just drop.
     func refresh() {
         guard settings.appleShortcutsEnabled, refreshTask == nil else { return }
         refreshTask = Task {
             let found = try? await AppleShortcutRunner.list()
             refreshTask = nil
-            if found != nil { lastReadEnded = .now }
             // A failed read keeps the last good library, and with it every alias and binding.
-            guard let found, settings.appleShortcutsEnabled, found != shortcuts else { return }
+            guard let found, settings.appleShortcutsEnabled else { return }
+            // Stamped only for a read the coordinator keeps: one that landed while off counts for nothing.
+            lastReadEnded = .now
+            guard found != shortcuts else { return }
             shortcuts = found
             entries = found.map { AppEntry($0, applicationURL: Self.applicationURL) }
             appIndex.setAppleShortcuts(entries)
@@ -77,7 +80,12 @@ final class AppleShortcutCoordinator {
     /// A summon's refresh: `shortcuts list` is a process spawn, so a read that ended within
     /// `AppIndex.rescanInterval` stands, on the same rule as the app scan.
     func refreshIfStale() {
-        if let lastReadEnded, ContinuousClock.now - lastReadEnded < AppIndex.rescanInterval { return }
+        // Only a held library is fresh: switching the feature off drops it, and the next read must run.
+        if shortcuts != nil, let lastReadEnded,
+            ContinuousClock.now - lastReadEnded < AppIndex.rescanInterval
+        {
+            return
+        }
         refresh()
     }
 
