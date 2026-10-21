@@ -576,11 +576,14 @@ else that takes an app. `AppEntry.canDragOut` — `KindDescriptor.canDragOut`, t
 alone — is the one rule: a shortcut dropped on another app opens nothing there,
 and every new kind has to say so to build.
 
-The row uses `onRowTap(drag:)` from `DesignSystem/Interaction/RowClick.swift`, the tap-shaped sibling
-of the clipboard's `onRowClick(drag:)`. A launcher click launches rather than
+The list has **one** press catcher (`listPressCatcher` from `DesignSystem/Interaction/RowClick.swift`),
+not one per row: every row and the lead card publish their frame with `reportRowFrame`, and a press
+resolves the row under the point from those frames (`LauncherList.press(at:)`). It serves the left
+press, the right-click and the drag-out alike, where a row used to carry two AppKit views for them —
+measured at ~13% of a keystroke's CPU, since every one of them was updated and laid out again on each
+result change. A launcher click launches rather than
 selects, so the press **activates on the release** — the one moment a press is known not to have
-become a drag. A row that cannot drag gets plain `onTapGesture`, so every other kind
-and the lead card keep SwiftUI's own gesture. The operation is **copy only**, as
+become a drag. The operation is **copy only**, as
 [clipboard.md](clipboard.md#dragging-out) explains: on the boot volume a file-URL drag would default
 to a move, and moving an app out of `/Applications` is never what a launcher should do. The image is
 the shared icon bitmap when it is warm and `NSWorkspace`'s otherwise, never a decode, and a landed

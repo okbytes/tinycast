@@ -3,6 +3,9 @@ import SwiftUI
 struct LauncherList: View {
 
     @Environment(PaletteState.self) private var vm
+    /// Row frames for the list's one press catcher; a class, so a layout pass re-renders nothing.
+    @State private var frames = RowFrames()
+    private static let space = "launcher-list"
     let results: [AppEntry]
     let selectedRowID: String?
     let suggestionCount: Int
@@ -106,8 +109,7 @@ struct LauncherList: View {
                                 case .card(let card):
                                     LeadCardView(card: card, selected: cardSelected)
                                         .contentShape(Rectangle())
-                                        .onTapGesture(perform: onActivateCard)
-                                        .onRightClick(perform: onCardActions)
+                                        .reportRowFrame(card.rowID, to: frames, in: Self.space)
                                         .padding(.bottom, Theme.Spacing.xs)
                                         .selectionFrame(cardSelected)
                                 case .app(let app):
@@ -117,12 +119,14 @@ struct LauncherList: View {
                                         running: runningApps.isRunning(app)
                                     )
                                     .contentShape(Rectangle())
-                                    .onRowTap(drag: drag(for: app)) { onActivate(app) }
-                                    .onRightClick { onActions(app) }
+                                    .reportRowFrame(app.id, to: frames, in: Self.space)
                                     .selectionFrame(app.id == selectedRowID)
                                 }
                             }
                         }
+                        // One catcher for every row's click, right-click and drag-out.
+                        .coordinateSpace(.named(Self.space))
+                        .listPressCatcher(resolve: press(at:))
                         .padding(.horizontal, Theme.Spacing.md)
                         .padding(.top, Theme.Spacing.xs)
                         .padding(.bottom, Theme.Spacing.md)
@@ -137,6 +141,21 @@ struct LauncherList: View {
                 }
             }
         }
+    }
+
+    /// The row under a point in the list's space, as the press the one catcher performs for it.
+    private func press(at point: CGPoint) -> RowPress? {
+        var ids = Set(results.map(\.id))
+        if let card { ids.insert(card.rowID) }
+        guard let id = frames.id(at: point, among: ids) else { return nil }
+        if let card, id == card.rowID {
+            return RowPress(
+                activation: .release, select: {}, activate: onActivateCard, actions: onCardActions)
+        }
+        guard let app = results.first(where: { $0.id == id }) else { return nil }
+        return RowPress(
+            activation: .release, select: {}, activate: { onActivate(app) },
+            actions: { onActions(app) }, drag: drag(for: app))
     }
 
     /// Cache-only icon: the row holds its own smaller bitmap, and a decode would stall the drag.
