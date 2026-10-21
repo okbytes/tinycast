@@ -73,7 +73,8 @@ Row content insets are `md`; list horizontal inset is `md`; the search icon alig
 Section-header rhythm has two dedicated tokens: `sectionHeaderBottom` (header → first row) and
 `sectionSpacing` (gap above every header **except the list's first**, which reads as the previous
 section's closing padding). The emoji grid uses the roomier `emojiSectionSpacing` between its tile
-groups. See "Section headers" below.
+groups. See "Section headers" below. `settingsSidebarInset` is the Settings sidebar list's own
+section-header inset, which its version footer lines up under.
 
 ### Radius (`Theme.Radius`)
 
@@ -541,6 +542,9 @@ system-drawn and a pane reads exactly as macOS System Settings does.
 - **The sidebar's field is the system's, not `SettingsFilterField`.** That one is borderless because
   it lives inside a `Form` row; the sidebar's is `.searchable`, which AppKit seats as a split-item
   accessory with a soft scroll edge — the list blurs out under it, as in System Settings.
+- **The sidebar's foot names the running release** (`Bundle.appVersionTitle`, which the palette
+  menu's header also shows). It is a `safeAreaBar`, so browse and search lists both scroll softly
+  under it.
 - **A `Form` realizes every row it is handed, and a lazy stack rebuilds a row's AppKit controls.**
   Handed 400 apps directly, a `Form` took 750 ms and 2040 views; a `LazyVStack` in one Form row
   fixed that, but tears a row's `TextField` and checkbox — both `NSView`s — down when the row scrolls

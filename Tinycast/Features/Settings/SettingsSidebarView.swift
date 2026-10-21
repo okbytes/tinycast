@@ -17,6 +17,7 @@ struct SettingsSidebarView: View {
                 found
             }
         }
+        .safeAreaBar(edge: .bottom, spacing: 0) { versionFooter }
         .searchable(text: $query, isPresented: $searching, placement: .sidebar, prompt: "Search")
         .onExitCommand { query = "" }
         .background(focusShortcut)
@@ -67,6 +68,16 @@ struct SettingsSidebarView: View {
                 navigation.select(entry.tab, revealing: entry.target)
             }
         }
+    }
+
+    private var versionFooter: some View {
+        Text(Bundle.main.appVersionTitle)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Theme.Spacing.settingsSidebarInset)
+            .padding(.vertical, Theme.Spacing.lg)
     }
 
     /// ⌘F with no menu item to hang it on; zero-sized so it only ever contributes the shortcut.

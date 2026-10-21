@@ -23,6 +23,13 @@ extension Bundle {
         infoName("CFBundleDisplayName") ?? infoName("CFBundleName") ?? "Tinycast"
     }
 
+    /// "Tinycast v0.18.0", the release `scripts/release.sh` stamped; a Debug build carries 0.1.0.
+    var appVersionTitle: String {
+        guard let version = object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        else { return appDisplayName }
+        return "\(appDisplayName) v\(version)"
+    }
+
     /// The name a bundle declares for itself. Not what Finder shows — LaunchServices ignores a
     /// `CFBundleDisplayName` that disagrees with the file name, so the launcher labels rows by that.
     var installedAppName: String {

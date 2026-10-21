@@ -21,6 +21,8 @@ enum Theme {
         static let sectionSpacing: CGFloat = 12
         /// Emoji tiles need a little more separation so adjacent category grids stay distinct.
         static let emojiSectionSpacing: CGFloat = 14
+        /// The Settings sidebar list's section-header inset, so its footer lines up beneath them.
+        static let settingsSidebarInset: CGFloat = 14
     }
 
     enum Radius {

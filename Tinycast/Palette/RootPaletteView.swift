@@ -100,10 +100,8 @@ struct RootPaletteView: View {
 
     private var appMenuContent: PopoverMenuContent {
         let appName = Bundle.main.appDisplayName
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-        let title = version.map { "\(appName) v\($0)" } ?? appName
         return PopoverMenuContent(
-            header: title,
+            header: Bundle.main.appVersionTitle,
             items: [
                 PopoverMenuItem(title: "Settings", systemImage: "gearshape", shortcut: "⌘,") {
                     core.settingsCoordinator.showSettings()

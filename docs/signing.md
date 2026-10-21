@@ -37,9 +37,10 @@ releases. A build signed some other way loses Hyper and asks for both grants aga
 `release.sh` refuses a dirty tree or a version already tagged, signs Release with Developer ID,
 runs `verify-signature.sh`, notarizes the zipped app with the `tinycast` profile and staples the
 ticket, so the published zip opens offline. It then pushes the tag and attaches the zip to a GitHub
-release on this private repo, with the commits since the last release as notes. `install.sh` checks
-the download passes Gatekeeper before it replaces the installed copy, so a build that skipped
-notarization never lands.
+release on this private repo, with the commits since the last release as notes. The version it
+stamps shows at the foot of the Settings sidebar; a Debug build always reads 0.1.0. `install.sh`
+checks the download passes Gatekeeper before it replaces the installed copy, so a build that
+skipped notarization never lands.
 
 ## Hardened runtime
 
