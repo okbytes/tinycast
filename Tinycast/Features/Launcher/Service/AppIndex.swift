@@ -249,6 +249,10 @@ final class AppIndex {
     private var isRefreshing = false
     /// Set when a refresh lands mid-scan, so a scope edit is never silently dropped.
     private var refreshPending = false
+    /// When the last scan ended; a summon inside `rescanInterval` of it trusts that scan.
+    @ObservationIgnored private var lastScanEnded: ContinuousClock.Instant?
+    /// Summons come in bursts and installs do not: within this window a reopen rescans nothing.
+    static let rescanInterval: Duration = .seconds(15)
     private let ranking: LauncherRankingStore
     private let aliases: AliasStore
     private var settings: AppSettings?
@@ -340,7 +344,15 @@ final class AppIndex {
             discoveredEntries = found
             publishEntries()
         } while refreshPending
+        lastScanEnded = .now
         onScan?()
+    }
+
+    /// A summon's refresh: a scan that ended within `rescanInterval` stands, so a burst of reopens
+    /// costs one scan rather than one each. Scope edits and uninstalls still call `refresh()`.
+    func refreshIfStale() async {
+        if let lastScanEnded, ContinuousClock.now - lastScanEnded < Self.rescanInterval { return }
+        await refresh()
     }
 
     /// Out of the index *and* unknown to LaunchServices, so dropping a search scope isn't a delete.

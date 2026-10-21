@@ -72,9 +72,10 @@ final class PaletteCoordinator {
             navigate(to: mode)
         }
         windowController.show()
-        // Re-scan on open so an app uninstalled since the last scan drops out of the launcher.
+        // Re-scan on open so an app uninstalled since the last scan drops out of the launcher,
+        // unless a scan just ended: reopens come in bursts, and each scan is a filesystem walk.
         if palette.mode == .launcher {
-            Task { await appIndex.refresh() }
+            Task { await appIndex.refreshIfStale() }
             onLauncherShown?()
         }
     }

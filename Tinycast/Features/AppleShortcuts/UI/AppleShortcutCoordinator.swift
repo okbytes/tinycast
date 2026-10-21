@@ -23,6 +23,8 @@ final class AppleShortcutCoordinator {
     /// Nil until a read succeeds, so the first one after launch always sweeps.
     @ObservationIgnored private var shortcuts: [AppleShortcut]?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
+    /// When the last successful read ended; a summon inside `AppIndex.rescanInterval` keeps it.
+    @ObservationIgnored private var lastReadEnded: ContinuousClock.Instant?
 
     init(
         settings: AppSettings, appIndex: AppIndex, hotKeys: HotKeyManager,
@@ -62,6 +64,7 @@ final class AppleShortcutCoordinator {
         refreshTask = Task {
             let found = try? await AppleShortcutRunner.list()
             refreshTask = nil
+            if found != nil { lastReadEnded = .now }
             // A failed read keeps the last good library, and with it every alias and binding.
             guard let found, settings.appleShortcutsEnabled, found != shortcuts else { return }
             shortcuts = found
@@ -69,6 +72,13 @@ final class AppleShortcutCoordinator {
             appIndex.setAppleShortcuts(entries)
             removeReferences(toShortcutsMissingFrom: found)
         }
+    }
+
+    /// A summon's refresh: `shortcuts list` is a process spawn, so a read that ended within
+    /// `AppIndex.rescanInterval` stands, on the same rule as the app scan.
+    func refreshIfStale() {
+        if let lastReadEnded, ContinuousClock.now - lastReadEnded < AppIndex.rescanInterval { return }
+        refresh()
     }
 
     /// Frees what a deleted shortcut held, including one deleted while Tinycast wasn't running.

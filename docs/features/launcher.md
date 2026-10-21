@@ -73,7 +73,10 @@ Stats, Tinycast itself, Mission Control, Siri, Time Machine, Screenshot, System 
 Book. Don't reintroduce such a heuristic.
 
 `AppIndex.start(settings:)` observes `$searchScopes`, so an edit re-indexes immediately; overlapping
-refreshes collapse into a single trailing scan.
+refreshes collapse into a single trailing scan. A launcher open calls `refreshIfStale()` instead of
+`refresh()`: a scan that ended within the last 15 s (`AppIndex.rescanInterval`) stands, so a burst
+of summons costs one scan and one `shortcuts list` run rather than one each. Measured before the
+rule, every summon spent 19–57 ms of CPU on the scan and spawned the `shortcuts` process.
 
 ## Search fields
 
@@ -335,7 +338,7 @@ Studio Code. Leave `Bundle.installedAppName` on
 looks equivalent and is not, because FindMy's raw `Info.plist` names it `FindMy` while `Find My` lives
 only in the loctable.
 
-A loctable read costs ~0.2 ms per bundle and the scan reruns on every launcher open, so
+A loctable read costs ~0.2 ms per bundle and the scan reruns on a launcher open past the 15 s rule, so
 `BundleNameCache` memoizes the names per bundle path and re-reads only when the bundle's modification
 date moves. Each pass is seeded from the last and keeps only what it looked at, so uninstalled apps
 fall out instead of accumulating; a changed system language drops the whole table, because the names
@@ -482,7 +485,8 @@ off. See
 ## Apple Shortcuts
 
 `AppleShortcutCoordinator` reads the Shortcuts app's library through `/usr/bin/shortcuts` and supplies
-it as its own slice right after Applications, re-reading on every launcher open. Only the name is indexed,
+it as its own slice right after Applications, re-reading on a launcher open under the same 15 s
+staleness rule as the app scan. Only the name is indexed,
 and the entry id is keyed on the shortcut's UUID, so an alias or binding survives a rename in
 Shortcuts. See [apple-shortcuts.md](apple-shortcuts.md).
 

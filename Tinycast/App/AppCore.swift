@@ -119,7 +119,7 @@ final class AppCore {
             applyWindowCommandsPresence()
             appleShortcutCoordinator.applyPresence()
             paletteCoordinator.onLauncherShown = { [weak self] in
-                self?.appleShortcutCoordinator.refresh()
+                self?.appleShortcutCoordinator.refreshIfStale()
             }
             calendarCoordinator.applyEnabled()
             Task { await appIndex.refresh() }
