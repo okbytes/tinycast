@@ -46,6 +46,14 @@ struct AppleShortcutsSettingsView: View {
             Button("Open Shortcuts") { core.appleShortcutCoordinator.openShortcutsApp() }
         } header: {
             SettingsSectionHeader(.appleShortcutsShortcuts)
+        } footer: {
+            // A literal, so the backticks render as code.
+            Text(
+                """
+                A shell action that opens an app should begin with \
+                `unset DIRHELPER_USER_DIR_SUFFIX; export TMPDIR="$(getconf DARWIN_USER_TEMP_DIR)"`, \
+                or the app inherits Shortcuts' temp folder, which is too long for a Unix socket.
+                """)
         }
     }
 }

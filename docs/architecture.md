@@ -145,6 +145,17 @@ driven imperatively from AppKit.
   `VolumeHUDController` (the level box), both over a shared `HUDPresenter` that owns the
   one-at-a-time, auto-dismiss and fade policy. See [ui.md](ui.md#dialogs--hud).
 
+**Apps Tinycast opens inherit its environment**, through `NSWorkspace.openApplication` and the URL
+opens alike, so the environment is cleaned once, in `applicationWillFinishLaunching`, before anything
+can launch. `Platform/InheritedEnvironment.swift` drops `DIRHELPER_USER_DIR_SUFFIX` — Shortcuts' shell
+actions export it, and the "Update Tinycast" shortcut relaunches Tinycast from one — and resets `TMPDIR`
+to the unsuffixed per-user folder, since with the suffix set every opened app's temp folder is
+`…/T/com.apple.shortcuts.mac-helper/` and a socket path under it overruns the 104-byte limit. Both
+steps are needed: `OpenConfiguration.environment` can set `TMPDIR` but cannot remove the variable, and
+removing the variable alone passes the long `TMPDIR` through. `scripts/install.sh` relaunches with the
+same cleaning, so older builds start clean too. Nothing else is stripped; an app opened from Tinycast
+otherwise sees what launched Tinycast.
+
 `NSAlert` is never used, and that is load-bearing. Appearance is a setting: `AppCore.applyAppearance()`
 assigns `NSApp.appearance` from `AppSettings.appearance`, and `.system` assigns `nil` so AppKit follows
 macOS by itself. Nothing else in the app sets an appearance.

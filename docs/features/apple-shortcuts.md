@@ -64,6 +64,15 @@ a shortcut usually acts on the app the user was in. There is **no timeout** — 
 dialog of its own for as long as it likes. Success is silent; a non-zero exit shows the tool's last
 lines in Tinycast's own dialog.
 
+**A shortcut's shell actions run in Shortcuts' own helper**, which exports
+`DIRHELPER_USER_DIR_SUFFIX=com.apple.shortcuts.mac-helper`, so an app such an action opens inherits a
+per-user temp folder (`…/T/com.apple.shortcuts.mac-helper/`) whose socket paths overrun macOS's
+104-byte limit — OpenCode's SSH failed exactly so. Tinycast's own environment cannot reach inside a
+shortcut, so the pane's footer tells the user to start such an action with
+`unset DIRHELPER_USER_DIR_SUFFIX; export TMPDIR="$(getconf DARWIN_USER_TEMP_DIR)"`. Tinycast itself,
+when a shortcut relaunches it through `install.sh`, strips the suffix at startup
+(`InheritedEnvironment`, [architecture.md](../architecture.md#entry-points-and-windows)).
+
 ## Launcher and Settings
 
 `AppEntry.Kind.appleShortcut` is its own section, published right after Applications. It is file-backed

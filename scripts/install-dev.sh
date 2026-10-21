@@ -48,5 +48,6 @@ echo "▸ Installing ${DEST}"
 mkdir -p "$HOME/Applications"
 rm -rf "$DEST"
 ditto "$DERIVED/Build/Products/Debug/$APP_NAME" "$DEST"
-open "$DEST"
+# A Shortcut running this script passes its temp-folder suffix down; the app must not inherit it.
+env -u DIRHELPER_USER_DIR_SUFFIX TMPDIR="$(getconf DARWIN_USER_TEMP_DIR)" open "$DEST"
 echo "✓ ${APP_NAME} $(git rev-parse --short HEAD) is running"
