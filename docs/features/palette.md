@@ -379,7 +379,7 @@ handled in `PalettePanel.sendEvent` before `super` hands the event to the respon
   The tap is enabled only while the palette is on screen, watches `keyDown` alone, and declines the
   chord whenever the panel is not key, so nothing else on the system loses ⌘⎋ to it. It is a
   modifying tap, so it needs Accessibility — without that grant the chord is simply unavailable,
-  which is the only path this codebase has to it.
+  which is the only path this codebase has to it. The tap is enabled on show and disabled on hide, and `reenable()` is gated on `wantsEnabled`: the system answers our own `disable()` with a `tapDisabledByUserInput` on the next keystroke, and taking that for a timeout left the tap enabled for every keystroke on the Mac after the first hide, measured through `CGGetEventTapList`.
 
 Adding a chord that "does nothing" is almost always one of these — check `sendEvent`, and then
 whether macOS has claimed the chord, before assuming the handler is wrong.

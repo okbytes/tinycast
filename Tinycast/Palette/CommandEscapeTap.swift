@@ -34,6 +34,9 @@ final class CommandEscapeTap {
 
     private var tapPort: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    /// What the palette last asked for. The system answers our own `disable()` with a
+    /// `tapDisabledByUserInput` on the next keystroke, so `reenable()` must not take that as a timeout.
+    private var wantsEnabled = false
 
     init(onChord: @escaping () -> Bool) {
         self.onChord = onChord
@@ -53,10 +56,12 @@ final class CommandEscapeTap {
     /// Called on every show: a tap refused for want of Accessibility is retried the next time.
     func enable() {
         guard let port = installIfNeeded() else { return }
+        wantsEnabled = true
         CGEvent.tapEnable(tap: port, enable: true)
     }
 
     func disable() {
+        wantsEnabled = false
         guard let tapPort else { return }
         CGEvent.tapEnable(tap: tapPort, enable: false)
     }
@@ -96,8 +101,11 @@ final class CommandEscapeTap {
         onChord()
     }
 
-    /// The system disables a tap it thinks is too slow; ours only ever compares two integers.
+    /// The system disables a tap it thinks is too slow; ours only ever compares two integers. It also
+    /// reports our own `disable()` the same way once a key arrives, and that one must stay disabled:
+    /// measured, the tap otherwise sat enabled for every keystroke on the Mac after the first hide.
     fileprivate func reenable() {
-        if let tapPort { CGEvent.tapEnable(tap: tapPort, enable: true) }
+        guard wantsEnabled, let tapPort else { return }
+        CGEvent.tapEnable(tap: tapPort, enable: true)
     }
 }
