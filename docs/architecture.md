@@ -146,15 +146,17 @@ driven imperatively from AppKit.
   one-at-a-time, auto-dismiss and fade policy. See [ui.md](ui.md#dialogs--hud).
 
 **Apps Tinycast opens inherit its environment**, through `NSWorkspace.openApplication` and the URL
-opens alike, so the environment is cleaned once, in `applicationWillFinishLaunching`, before anything
-can launch. `Platform/InheritedEnvironment.swift` drops `DIRHELPER_USER_DIR_SUFFIX` — Shortcuts' shell
-actions export it, and the "Update Tinycast" shortcut relaunches Tinycast from one — and resets `TMPDIR`
-to the unsuffixed per-user folder, since with the suffix set every opened app's temp folder is
-`…/T/com.apple.shortcuts.mac-helper/` and a socket path under it overruns the 104-byte limit. Both
-steps are needed: `OpenConfiguration.environment` can set `TMPDIR` but cannot remove the variable, and
-removing the variable alone passes the long `TMPDIR` through. `scripts/install.sh` relaunches with the
-same cleaning, so older builds start clean too. Nothing else is stripped; an app opened from Tinycast
-otherwise sees what launched Tinycast.
+opens alike, so it is made the Dock's once, in `applicationWillFinishLaunching`, before anything can
+launch. `Platform/InheritedEnvironment.swift` keeps only the variables launchd gives a Dock-launched
+app (`HOME`, `USER`, `LOGNAME`, `SHELL`, `SSH_AUTH_SOCK`, the XPC and CF ones), sets `PATH` to
+launchd's `/usr/bin:/bin:/usr/sbin:/sbin`, and resets `TMPDIR` to the unsuffixed per-user folder.
+Everything else is dropped: a terminal's `VIRTUAL_ENV` or `NODE_OPTIONS`, Xcode's, and Shortcuts'
+`DIRHELPER_USER_DIR_SUFFIX`, which its shell actions export and the "Update Tinycast" shortcut hands
+down — with it set, every opened app's temp folder is `…/T/com.apple.shortcuts.mac-helper/` and a
+socket path under it overruns the 104-byte limit. Dropping the variable and resetting `TMPDIR` are
+both needed, and `OpenConfiguration.environment` could do neither per launch: it can set `TMPDIR` but
+not remove a variable. `scripts/install.sh` relaunches with the same cleaning, so older builds start
+clean too. The rule is simply that an app opened from Tinycast sees what it would from the Dock.
 
 `NSAlert` is never used, and that is load-bearing. Appearance is a setting: `AppCore.applyAppearance()`
 assigns `NSApp.appearance` from `AppSettings.appearance`, and `.system` assigns `nil` so AppKit follows

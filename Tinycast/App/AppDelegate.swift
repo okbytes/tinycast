@@ -3,7 +3,7 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Must land before the first scroll view exists, or the scroller switch shows as a flash.
     func applicationWillFinishLaunching(_ notification: Notification) {
-        InheritedEnvironment.clearTempDirSuffix()
+        InheritedEnvironment.adoptLaunchdEnvironment()
         UserDefaults.standard.set("WhenScrolling", forKey: "AppleShowScrollBars")
     }
 
