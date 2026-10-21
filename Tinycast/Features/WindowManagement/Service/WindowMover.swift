@@ -236,7 +236,15 @@ final class WindowMover {
         if case .external(_, let window) = surface, case .external(let key) = focused.key,
             let canvas, placement.frame.maxY >= canvas.maxY - AXWindowAccess.clampTolerance
         {
-            dockShrinkGuard.hold(applied, anchor: placement.anchor, of: window, pid: key.pid)
+            // Under a standing reservation the write was clamped; hold what was asked, not that.
+            let clamped =
+                AXScreens.dockReservationStands
+                && WindowPlacementEngine.heldFrameChange(
+                    from: placement.frame, to: applied, tolerance: AXWindowAccess.clampTolerance)
+                    == .dockShrink
+            dockShrinkGuard.hold(
+                clamped ? placement.frame : applied, anchor: placement.anchor, of: window,
+                pid: key.pid)
         }
         // A short landing with no app minimum in play is the hidden-Dock bug; leave a trace of it.
         let short = Int(placement.frame.height - applied.height)

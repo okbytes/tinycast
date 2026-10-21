@@ -34,7 +34,7 @@ entries and a still-registered shortcut moves nothing.
 | `Service/AXWindowAccess.swift`       | AppKit + ApplicationServices | `@MainActor`. Every `AXUIElement` call, and the one write sequence  |
 | `Service/AXScreens.swift`            | AppKit                       | `@MainActor`. `AXGeometry`, the one coordinate flip                 |
 | `Service/WindowMover.swift`          | AppKit + ApplicationServices | `@MainActor`. Command policy: resolve, cycle, write                 |
-| `Service/DockShrinkGuard.swift`      | AppKit + ApplicationServices | `@MainActor`. Undoes a later Dock-height shrink of a bottom tile    |
+| `Service/DockShrinkGuard.swift`      | AppKit + ApplicationServices | `@MainActor`. Undoes a Dock-height shrink, held or seen, once the reservation clears |
 | `Service/DockReservationMonitor.swift` | AppKit                     | `@MainActor`. Logs the Dock's reservation, windows and app switches |
 | `Service/DockLogExport.swift`        | AppKit                       | Writes the last days of that log to a file the user picks           |
 | `Service/WindowTarget.swift`         | AppKit                       | `@MainActor`. Which window a command acts on                        |
@@ -212,25 +212,41 @@ stock Electron app tiles correctly without it, delete the helper rather than kee
 Placing over the Dock was not enough on its own. With the Dock auto-hidden, a window Tinycast tiled to
 the bottom of the screen could still, later and with no command pressed, have its bottom edge pulled up
 by the Dock's height. Tinycast writes nothing between commands, so that is macOS or the app re-fitting
-the window. macOS 27 briefly reports a hidden Dock's space in `visibleFrame`, and an app that fits
-itself to it then stays short; what triggers it is still unknown ([TODO.md](../../TODO.md)), which is
-what [Recording Dock episodes](#recording-dock-episodes) is for. Tinycast cannot stop the re-fit,
-only undo it.
+the window. macOS 27 reports a hidden Dock's space in `visibleFrame` for a while — an *episode*, which
+[Recording Dock episodes](#recording-dock-episodes) documents — and while it does, AppKit clamps every
+drag and every AX write to that line, so nothing can grow a window past it. Tinycast cannot stop the
+re-fit, only undo it once the reservation clears.
 
-`DockShrinkGuard` does that. After a command whose placement reaches the bottom of the canvas, the
-mover hands it the observed frame and the window, and it registers an `AXObserver` for resized, moved
-and destroyed. `WindowPlacementEngine.heldFrameChange` classifies every change against the held frame:
+`DockShrinkGuard` does that, in two halves.
+
+**Held windows.** After a command whose placement reaches the bottom of the canvas, the mover hands it
+the observed frame and the window — or the *asked* frame, when a reservation stood and the landing was
+a Dock shrink of it, since the observed one is the clamp — and it registers an `AXObserver` for
+resized, moved and destroyed. `WindowPlacementEngine.heldFrameChange` classifies every change against
+the held frame:
 
 - **Unchanged**, within `clampTolerance`: nothing to do. Our own restore lands here.
 - **Dock shrink**: top-left and width kept, only the bottom edge raised, by at most `dockReserveLimit`.
-  After a 500 ms settle, so the restore lands after the app's last re-fit, the held frame is written
-  back through `AXWindowAccess.write`.
+  With no reservation standing, after a 500 ms settle so the restore lands after the app's last
+  re-fit, the held frame is written back through `AXWindowAccess.write`. With one standing the write
+  would only be clamped again, so the watch waits for the episode's end.
 - **Anything else**, a mouse button held during the change, or the window closing: the window is
   the user's again and the guard lets go.
 
 **Two restores in ten seconds is the limit.** An app that re-applies the shrink a third time wins, for
 the same reason the write does no correction loop: fighting it only makes the window jitter. Every
-restore and every give-up is logged under the `window-management` category.
+restore and every give-up is logged under `window-management`.
+
+**Episodes.** The guard also watches `didChangeScreenParameters` and reads
+`AXScreens.dockReservationStands`, true while any display holds space on a Dock edge. When that turns
+true it notes every other app's on-screen layer-0 window from `CGWindowListCopyWindowInfo`, and
+polls them every 2 s while it lasts: apps re-fit lazily, often only when activated, so the whole episode
+is watched rather than its first moment. A window whose change against that note reads as a Dock
+shrink, with no mouse button held, is remembered with both frames. When the reservation clears, after
+the same settle, every held window is restored as above and every remembered one is put back: its AX
+window is found by the frame it was seen at, since frames are the only key a window number and an
+`AXUIElement` share, and written its earlier frame with a top-leading anchor. A remembered window that
+has since moved or closed is simply not found and left alone. Each put-back is logged.
 
 The mover releases a window before every write, so the size → position → size sequence never reads as
 a shrink, and the guard drops a quit app's windows with the cycle memory. It holds at most 16 windows,
@@ -265,8 +281,8 @@ the screens as they are now, writes the file where the save panel points, and re
 that file when reporting an episode; the same lines stream live with
 `log stream --predicate 'category == "dock-watch"'`.
 
-The monitor reports and decides nothing. The repair that this record is meant to inform is in
-[TODO.md](../../TODO.md#window-management--the-hidden-dock).
+The monitor reports and decides nothing; the repair is `DockShrinkGuard`'s, in
+[Holding a tile over the Dock](#holding-a-tile-over-the-dock).
 
 ## Shortcut presets
 

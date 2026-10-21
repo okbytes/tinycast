@@ -123,10 +123,6 @@ in Rectangle prevents the re-fit or undoes it, and its maintainer calls it a mac
   pulling away mid-animation; about 40 Helium ↔ Claude switches. A monitor ran for about 40 minutes
   of normal use without catching another episode. The unified log shows nothing from the Dock
   process across the 2026-10-20 episode.
-- Gaps in the guard, from the 2026-10-20 episode: its restore writes land clamped while the
-  reservation stands, so its two tries are spent before the reservation lifts; a command pressed
-  during an episode holds the clamped `applied` frame rather than the intended one; and its
-  `logger.info` lines are not persisted, so nothing says afterwards what it did.
 - Answered by the first exported record (work Mac, 2026-10-20 10:06, v0.17.0):
   `didChangeScreenParameters` fired at both the start and the end, with `visibleFrame` reading
   60 pt reserved in between for 111 s. Every command pressed meanwhile landed 60–61 pt short, so
@@ -143,11 +139,11 @@ in Rectangle prevents the re-fit or undoes it, and its maintainer calls it a mac
   Settings › Window Management › Dock log › Save… exports the last three days to a file; see
   [window-management.md](docs/features/window-management.md#recording-dock-episodes). Install it on
   both Macs and attach the file after the next episode, with the time it happened.
-- Next: make the guard episode-aware. Treat a bottom
-  reservation appearing on a screen as the start of an episode and its clearing as the end; during
-  one, write nothing and remember every window whose bottom edge was pulled up to the line, held or
-  not; at the end, put each one back. Hold the intended frame, not the clamped one. Log at notice.
-  File it with Apple too.
+- Done: the guard is episode-aware. It writes nothing while a reservation stands, holds the asked
+  frame when a command's landing was the clamp, notes every window any app shortens to the line
+  while it stands, and puts them all back once it clears, each logged. Still to see on a real
+  episode: whether the restore lands before the app re-fits once more, and whether a window
+  shortened and then moved by hand is correctly left alone. File it with Apple too.
 
 ## Cross-cutting
 

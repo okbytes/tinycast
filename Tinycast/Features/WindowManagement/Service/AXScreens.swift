@@ -42,6 +42,19 @@ enum AXScreens {
             height: screen.visibleFrame.maxY - frame.minY)
     }
 
+    /// Space held back on a Dock edge, in points; the menu bar is the top edge and never counts.
+    static func dockReservation(of screen: NSScreen) -> CGFloat {
+        let frame = screen.frame
+        let visible = screen.visibleFrame
+        return max(
+            0, visible.minY - frame.minY, visible.minX - frame.minX, frame.maxX - visible.maxX)
+    }
+
+    /// While this is true every AX write is clamped to the reservation, so none is worth making.
+    static var dockReservationStands: Bool {
+        NSScreen.screens.contains { dockReservation(of: $0) > 0 }
+    }
+
     private static func displayID(_ screen: NSScreen) -> CGDirectDisplayID? {
         (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?
             .uint32Value

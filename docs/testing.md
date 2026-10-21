@@ -440,6 +440,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Window commands move the window you were last in; cycle-on-repeat steps ½ → ⅓ → ⅔
 - "Top Left Quarter" lands flush with the top of the usable frame, on a secondary display too
 - With the Dock auto-hidden, a Left Half window is full height again after a display sleep and wake
+- With the Dock auto-hidden, turn auto-hide off, so a reservation stands: a Maximize lands short
+  and is not fought; turn it back on, and both that window and a window another app shortened
+  meanwhile are full height again within a second
 - Settings › Window Management › Dock log › Save… writes a file that lists the screens and ends
   with the app switches you just made
 - A command with Settings focused places Settings, not the app behind it

@@ -104,7 +104,7 @@ final class DockReservationMonitor {
     private func noteEpisodes() {
         for screen in NSScreen.screens {
             let id = Self.displayID(screen)
-            let inset = Self.dockInset(screen)
+            let inset = Int(AXScreens.dockReservation(of: screen))
             if inset > 0, episodes[id] == nil {
                 episodes[id] = Date()
                 Self.log("episode began on \(screen.localizedName): \(inset) pt reserved")
@@ -196,14 +196,6 @@ final class DockReservationMonitor {
     private static func keepsTopLeftAndWidth(_ old: CGRect, _ new: CGRect) -> Bool {
         abs(old.minX - new.minX) <= 1 && abs(old.minY - new.minY) <= 1
             && abs(old.width - new.width) <= 1
-    }
-
-    /// Space held back on a Dock edge; the menu bar is the top edge and never counts.
-    private static func dockInset(_ screen: NSScreen) -> Int {
-        let frame = screen.frame
-        let visible = screen.visibleFrame
-        return Int(
-            max(visible.minY - frame.minY, visible.minX - frame.minX, frame.maxX - visible.maxX))
     }
 
     private static func displayID(_ screen: NSScreen) -> Int {
