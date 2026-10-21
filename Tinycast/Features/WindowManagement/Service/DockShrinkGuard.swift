@@ -190,6 +190,9 @@ final class DockShrinkGuard {
         episodeEnd?.cancel()
         episodeWindows = Self.onScreenWindows()
         shortened = [:]
+        logger.notice(
+            "The Dock reserved its space; watching \(self.episodeWindows.count, privacy: .public) windows"
+        )
         episodePoll = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: Self.episodePollInterval)
@@ -209,6 +212,10 @@ final class DockShrinkGuard {
                     == .dockShrink
             else { continue }
             shortened[id] = Shortened(pid: window.pid, before: before.frame, after: window.frame)
+            let lift = Int(before.frame.maxY - window.frame.maxY)
+            logger.notice(
+                "Saw pid \(window.pid, privacy: .public)'s window shortened \(lift, privacy: .public) pt to the Dock's line"
+            )
         }
     }
 
@@ -217,6 +224,8 @@ final class DockShrinkGuard {
         episodePoll = nil
         noteShortened()
         episodeWindows = [:]
+        let counts = "\(shortened.count) shortened, \(watches.count) held"
+        logger.notice("The Dock let go; \(counts, privacy: .public) windows to check")
         episodeEnd = Task { [weak self] in
             try? await Task.sleep(for: Self.settleDelay)
             guard let self, !Task.isCancelled else { return }
@@ -230,7 +239,12 @@ final class DockShrinkGuard {
         shortened = [:]
         // A held window was just rewritten, so it no longer sits at `after` and is skipped here.
         for window in pending.values {
-            guard let element = Self.axWindow(pid: window.pid, framed: window.after) else { continue }
+            guard let element = Self.axWindow(pid: window.pid, framed: window.after) else {
+                logger.notice(
+                    "No window of pid \(window.pid, privacy: .public) sits where the shortened one was; left alone"
+                )
+                continue
+            }
             let lift = Int(window.before.maxY - window.after.maxY)
             logger.notice(
                 "Put back pid \(window.pid, privacy: .public)'s window once the Dock let go, \(lift, privacy: .public) pt"

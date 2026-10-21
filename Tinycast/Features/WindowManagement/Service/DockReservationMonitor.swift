@@ -132,9 +132,10 @@ final class DockReservationMonitor {
             else { continue }
             let lift = Int(old.bounds.maxY - window.bounds.maxY)
             let edge = "bottom \(Int(old.bounds.maxY)) → \(Int(window.bounds.maxY))"
-            if lift > 0 {
+            // Within the clamp tolerance is an app's own rounding, not a Dock.
+            if lift > Int(AXWindowAccess.clampTolerance) {
                 Self.log("shrink \(window.owner) #\(id): \(edge), \(lift) pt; \(Self.describeMouse())")
-            } else if NSEvent.pressedMouseButtons == 0 {
+            } else if lift < -Int(AXWindowAccess.clampTolerance), NSEvent.pressedMouseButtons == 0 {
                 Self.log("grow \(window.owner) #\(id): \(edge)")
             }
         }
