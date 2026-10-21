@@ -7,7 +7,7 @@ the launcher checkbox every item carries. It replaced the Quicklinks and Custom 
 which carried editors, templates and output surfaces that a folder makes unnecessary.
 
 There is no switch. The folder is `~/.config/tinycast/commands/` (`tinycast-dev` on the dev channel)
-until **Settings › Command Folder › Choose…** names another; an iCloud-synced folder makes one set of
+until **Settings › Commands › Command Folder › Choose…** names another; an iCloud-synced folder makes one set of
 commands serve every Mac. A missing folder is an empty section, and **Show in Finder** creates it on
 the way.
 
@@ -66,12 +66,12 @@ clipboard with `pbpaste` and writes it with `pbcopy`; nothing is piped in.
 Shortcuts. Rows are symbol tiles — `terminal` for a script, `link` for a link, decided from the file
 name — and each entry's `url` is the file, so Reveal in Finder opens the folder on it.
 
-The pane lists rows through `LauncherItemsList`, the same table the Apple Shortcuts pane uses: icon,
-name, alias, shortcut recorder and the checkbox that hides a row from launcher search while its
+The Commands pane lists them under its built-in commands, through the same `LauncherItemsSection`:
+icon, name, alias, shortcut recorder and the checkbox that hides a row from launcher search while its
 shortcut keeps working. `HotKeyAction.folderCommand(id:)` persists under
 `hotkey.folderCommand.<file name>` with a `boundFolderCommandIDs` index, the per-item case
 [hotkeys.md](hotkeys.md) describes for shortcuts. `commandFolder`, the chosen path kept
-`~`-relative, rides in settings backups and in the settings file as `commandFolder.path`; the files
+`~`-relative, rides in settings backups and in the settings file as `commands.folder`; the files
 themselves are not carried.
 
 ## Testing

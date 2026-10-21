@@ -20,12 +20,11 @@ extension SettingsAnchor {
     static let systemActionsSystemActions = Self(tab: .systemActions, title: "System Actions")
 
     static let commandsCommands = Self(tab: .commands, title: "Commands")
+    static let commandsCommandFolder = Self(tab: .commands, title: "Command Folder")
+    static let commandsFolderCommands = Self(tab: .commands, title: "Folder Commands")
 
     static let appleShortcutsAppleShortcuts = Self(tab: .appleShortcuts, title: "Apple Shortcuts")
     static let appleShortcutsShortcuts = Self(tab: .appleShortcuts, title: "Shortcuts")
-
-    static let commandFolderFolder = Self(tab: .commandFolder, title: "Folder")
-    static let commandFolderCommands = Self(tab: .commandFolder, title: "Commands")
 
     static let windowManagementWindowManagement = Self(
         tab: .windowManagement, title: "Window Management")

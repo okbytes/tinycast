@@ -278,7 +278,6 @@
 		C5F60D8681235B95DAA3314F /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 418DA899A1546F3B4AC44777 /* GeneralSettingsView.swift */; };
 		C647629FED6D6FBD37E1C1AC /* HelperMailbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1491BAEF7F72BAD2985AC1 /* HelperMailbox.swift */; };
 		CA6BA9C381351D0B2CADFB9D /* IconCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CBCCE63360E4590CF5884A /* IconCache.swift */; };
-		CAC3847724BF0078115FE907 /* CommandFolderSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774938539230CE47241AD5E5 /* CommandFolderSettingsView.swift */; };
 		CAE4C44A9D2EC4AC51FD3150 /* UninstallTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EBAD0766FF9BFC6A4396474 /* UninstallTarget.swift */; };
 		CB95B0CBF0DFEDFCEA837053 /* ImageThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36C6775BBA0FC6F134296606 /* ImageThumbnail.swift */; };
 		CBE647056A15F49DF0711ECD /* SettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CBD6D8BC6951A482BDF6169 /* SettingsCoordinator.swift */; };
@@ -318,6 +317,7 @@
 		E4E1403AA9A8ACE4A3D3581C /* MeetingEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B330ABFC83721904159DDF2 /* MeetingEvent.swift */; };
 		E614E06247ED17D38246C834 /* CalcNumberFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41FA492C2712A177DB36E565 /* CalcNumberFormat.swift */; };
 		E633D7EBA2E2EAA3A3E2405D /* SystemActionFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63AEA7984BF00BEDCB7F8EEE /* SystemActionFailure.swift */; };
+		E68AF39DEFA37831171A4D79 /* CommandFolderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37B6223810920C9D0D95A8EA /* CommandFolderSection.swift */; };
 		E6E8E3E2ECD0CD9A982115F3 /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADAA05D695590C4B654E5BF /* OnboardingCoordinator.swift */; };
 		E6E929E9284E8AC361D64D6A /* MenuBarSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D6FD4FBAC3F5E6255D62773 /* MenuBarSummary.swift */; };
 		E876192321D246D205B68850 /* VirtualHIDClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30AAFC3514A0BDD67BA97B68 /* VirtualHIDClient.swift */; };
@@ -454,6 +454,7 @@
 		36B6DAC3B9FF387367C3FAB4 /* UninstallSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UninstallSession.swift; sourceTree = "<group>"; };
 		36C6775BBA0FC6F134296606 /* ImageThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageThumbnail.swift; sourceTree = "<group>"; };
 		37A48095F6487DEE76663F88 /* UninstallProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UninstallProtection.swift; sourceTree = "<group>"; };
+		37B6223810920C9D0D95A8EA /* CommandFolderSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandFolderSection.swift; sourceTree = "<group>"; };
 		384485BD1794D25503534525 /* AppSettingsKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsKey.swift; sourceTree = "<group>"; };
 		38A97022BE0F95B5D19F0C26 /* CalcDateTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcDateTime.swift; sourceTree = "<group>"; };
 		3BA9F5F7226AD5A91835AF5C /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
@@ -540,7 +541,6 @@
 		73E25B87C692D5FEE1FBF994 /* PanelTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelTransition.swift; sourceTree = "<group>"; };
 		7592579B976CA7BCA03E2815 /* CalcValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcValue.swift; sourceTree = "<group>"; };
 		761BF04E2CB1821C6AA3C7B0 /* ActionMenuSearchQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionMenuSearchQuery.swift; sourceTree = "<group>"; };
-		774938539230CE47241AD5E5 /* CommandFolderSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandFolderSettingsView.swift; sourceTree = "<group>"; };
 		780B32AF98BA3A51D2F0E8B4 /* BackupBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupBundle.swift; sourceTree = "<group>"; };
 		7817B7A8760B36FDA43F48FC /* CalcEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcEngine.swift; sourceTree = "<group>"; };
 		78A3289B4E74F178610FAAA8 /* KeyRemapConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyRemapConfiguration.swift; sourceTree = "<group>"; };
@@ -1038,7 +1038,7 @@
 		4C92C190A243F135F8A2EC6D /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				774938539230CE47241AD5E5 /* CommandFolderSettingsView.swift */,
+				37B6223810920C9D0D95A8EA /* CommandFolderSection.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -2020,7 +2020,7 @@
 				42CDB6A71960204B194EDC8B /* CommandEscapeTap.swift in Sources */,
 				22529DC4BD5FF2ABE7CC2F08 /* CommandFolderMonitor.swift in Sources */,
 				850B0369CDB6E7154E5AD534 /* CommandFolderScanner.swift in Sources */,
-				CAC3847724BF0078115FE907 /* CommandFolderSettingsView.swift in Sources */,
+				E68AF39DEFA37831171A4D79 /* CommandFolderSection.swift in Sources */,
 				BEAAD72E748375E0039AC90F /* CommandID.swift in Sources */,
 				7B8E146174D64C9BAF75CA40 /* CommandsSettingsView.swift in Sources */,
 				A024F68213FEB918BEF31255 /* CountryZoneData.generated.swift in Sources */,

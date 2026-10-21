@@ -109,7 +109,7 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + systemActions + commands
-        + appleShortcuts + commandFolder + clipboard + windowManagement
+        + appleShortcuts + clipboard + windowManagement
         + calendar + emoji + permissions + backup
 
     private static let general: [SettingsSearchEntry] = [
@@ -184,7 +184,13 @@ enum SettingsSearchCatalog {
         .init(pane: .commands),
         .init(
             .commandsCommands, "Enable Commands",
-            keywords: ["hide", "visibility"])
+            keywords: ["hide", "visibility"]),
+        .init(
+            .commandsCommandFolder, "Folder",
+            keywords: ["choose", "show in finder", "scripts", "links", "urls", "shell"]),
+        .init(
+            group: .commandsFolderCommands, "Folder commands",
+            keywords: ["alias", "hotkey", "hide", "script", "link"])
     ]
 
     private static let appleShortcuts: [SettingsSearchEntry] = [
@@ -195,16 +201,6 @@ enum SettingsSearchCatalog {
         .init(
             group: .appleShortcutsShortcuts, "Aliases and shortcuts",
             keywords: ["alias", "hotkey", "hide"])
-    ]
-
-    private static let commandFolder: [SettingsSearchEntry] = [
-        .init(pane: .commandFolder, keywords: ["scripts", "links", "urls", "shell", "folder"]),
-        .init(
-            .commandFolderFolder, "Folder",
-            keywords: ["choose", "show in finder", "scripts", "links", "config"]),
-        .init(
-            group: .commandFolderCommands, "Aliases and shortcuts",
-            keywords: ["alias", "hotkey", "hide", "script", "link"])
     ]
 
     private static let windowManagement: [SettingsSearchEntry] = [

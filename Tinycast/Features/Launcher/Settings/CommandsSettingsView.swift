@@ -9,6 +9,12 @@ struct CommandsSettingsView: View {
                 kind: .command,
                 anchor: .commandsCommands,
                 searchPrompt: "Search commands…")
+
+            CommandFolderSection()
+            LauncherItemsSection(
+                kind: .folderCommand,
+                anchor: .commandsFolderCommands,
+                searchPrompt: "Search folder commands…")
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.commands)
