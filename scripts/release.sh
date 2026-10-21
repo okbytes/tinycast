@@ -1,5 +1,6 @@
 #!/bin/bash
-# Build, notarize and publish a Tinycast release on this repo. Usage: ./scripts/release.sh <version>
+# Build, notarize and publish a Tinycast release on this repo. Usage: ./scripts/release.sh [version]
+# With no version it bumps the latest release's minor: after v0.18.0 comes 0.19.0.
 #
 # Needs a Developer ID Application certificate and the `tinycast` notarytool profile, both made once
 # (docs/signing.md). The release is tagged v<version> at HEAD; scripts/install.sh puts it on a Mac.
@@ -12,15 +13,21 @@ PROFILE="tinycast"
 DERIVED="build/ReleaseDerivedData.noindex"
 APP="$DERIVED/Build/Products/Release/Tinycast.app"
 
-latest="$(gh release view --repo "$REPO" --json tagName -q .tagName 2>/dev/null || echo none)"
-VERSION="${1:?usage: release.sh <version>  (latest release: $latest)}"
-TAG="v$VERSION"
-ZIP="build/Tinycast-$VERSION.zip"
-
 fail() {
     echo "✗ $1" >&2
     exit 1
 }
+
+latest="$(gh release view --repo "$REPO" --json tagName -q .tagName 2>/dev/null || echo none)"
+if [ $# -gt 0 ]; then
+    VERSION="$1"
+elif [[ "$latest" =~ ^v([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
+    VERSION="${BASH_REMATCH[1]}.$((BASH_REMATCH[2] + 1)).0"
+else
+    fail "No release to bump from (latest: $latest); pass a version: release.sh <version>"
+fi
+TAG="v$VERSION"
+ZIP="build/Tinycast-$VERSION.zip"
 
 security find-identity -p codesigning -v | grep -q '"Developer ID Application' ||
     fail "No Developer ID Application certificate in the keychain (docs/signing.md)."

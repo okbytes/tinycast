@@ -30,13 +30,15 @@ releases. A build signed some other way loses Hyper and asks for both grants aga
 ## Releasing
 
 ```sh
-./scripts/release.sh 0.12.0   # build, verify, notarize, staple, tag v0.12.0, publish
+./scripts/release.sh          # build, verify, notarize, staple, tag, publish the next minor
+./scripts/release.sh 1.0.0    # the same, under a version you name
 ./scripts/install.sh          # on any Mac: the latest release into ~/Applications
 ```
 
-`release.sh` refuses a dirty tree or a version already tagged, signs Release with Developer ID,
-runs `verify-signature.sh`, notarizes the zipped app with the `tinycast` profile and staples the
-ticket, so the published zip opens offline. It then pushes the tag and attaches the zip to a GitHub
+With no version, `release.sh` bumps the latest GitHub release's minor (v0.18.0 → 0.19.0), and
+stops if it can't read one. It refuses a dirty tree or a version already tagged, signs Release
+with Developer ID, runs `verify-signature.sh`, notarizes the zipped app with the `tinycast`
+profile and staples the ticket, so the published zip opens offline. It then pushes the tag and attaches the zip to a GitHub
 release on this private repo, with the commits since the last release as notes. The version it
 stamps shows at the foot of the Settings sidebar; a Debug build always reads 0.1.0. `install.sh`
 checks the download passes Gatekeeper before it replaces the installed copy, so a build that
