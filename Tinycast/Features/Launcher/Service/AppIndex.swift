@@ -7,6 +7,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case systemAction
         case windowCommand
         case appleShortcut
+        case folderCommand
 
         var descriptor: KindDescriptor {
             switch self {
@@ -36,6 +37,12 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                     label: "Apple Shortcut", sectionTitle: "Apple Shortcuts",
                     openVerb: "Run Shortcut", canHideFromSearch: true,
                     canRevealInFinder: false, canDragOut: false, isSymbolIcon: false, rankPriority: 0)
+            case .folderCommand:
+                // Its url is the file, so Reveal in Finder opens the folder on it.
+                return KindDescriptor(
+                    label: "Folder Command", sectionTitle: "Command Folder",
+                    openVerb: "Run Command", canHideFromSearch: true,
+                    canRevealInFinder: true, canDragOut: false, isSymbolIcon: true, rankPriority: 0)
             }
         }
     }
@@ -116,6 +123,8 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return WindowCommandCatalog.command(forEntryID: id).map { .windowCommand(id: $0.id) }
         case .appleShortcut:
             return AppleShortcut.id(fromEntryID: id).map { .appleShortcut(id: $0) }
+        case .folderCommand:
+            return FolderCommand.id(fromEntryID: id).map { .folderCommand(id: $0) }
         }
     }
 
@@ -138,6 +147,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case .systemAction: return SystemActionCatalog.action(forEntryID: id)?.sfSymbol ?? "questionmark"
         case .windowCommand:
             return WindowCommandCatalog.command(forEntryID: id)?.sfSymbol ?? "questionmark"
+        case .folderCommand: return FolderCommand.symbol(forEntryID: id)
         case .application, .appleShortcut: return "questionmark"
         }
     }
@@ -165,6 +175,12 @@ extension AppEntry {
         self.init(
             id: shortcut.entryID, name: shortcut.name, url: applicationURL, bundleID: nil,
             kind: .appleShortcut)
+    }
+
+    init(_ command: FolderCommand, folder: URL) {
+        self.init(
+            id: command.entryID, name: command.name, url: folder.appending(path: command.id),
+            bundleID: nil, kind: .folderCommand)
     }
 }
 
@@ -243,6 +259,7 @@ final class AppIndex {
     private var discoveredEntries: [AppEntry] = []
     private var windowCommandEntries: [AppEntry] = []
     private var appleShortcutEntries: [AppEntry] = []
+    private var folderCommandEntries: [AppEntry] = []
     /// The catalog's commands a disabled feature hides; the Commands slice is recomputed from it.
     private var hiddenCommands: Set<CommandID> = []
     private var nameCache = BundleNameCache()
@@ -293,6 +310,13 @@ final class AppIndex {
     func setAppleShortcuts(_ entries: [AppEntry]) {
         guard entries != appleShortcutEntries else { return }
         appleShortcutEntries = entries
+        publishEntries()
+    }
+
+    /// Read from the command folder, so it arrives already built and sorted.
+    func setFolderCommands(_ entries: [AppEntry]) {
+        guard entries != folderCommandEntries else { return }
+        folderCommandEntries = entries
         publishEntries()
     }
 
@@ -421,6 +445,7 @@ final class AppIndex {
             discoveredEntries
             + Self.named(
                 appleShortcutEntries
+                    + folderCommandEntries
                     + Self.systemActionEntries
                     + windowCommandEntries
                     + commandEntries)

@@ -257,6 +257,11 @@ final class AppSettings {
         didSet { defaults.set(appleShortcutsEnabled, forKey: Key.appleShortcutsEnabled.rawValue) }
     }
 
+    /// A `~`-abbreviated path, or empty for `~/.config/tinycast/commands`.
+    var commandFolder: String {
+        didSet { defaults.set(commandFolder, forKey: Key.commandFolder.rawValue) }
+    }
+
     /// Whether settings.json mirrors these settings; `AppCore` starts and stops the mirror.
     var settingsFileEnabled: Bool {
         didSet { defaults.set(settingsFileEnabled, forKey: Key.settingsFileEnabled.rawValue) }
@@ -351,6 +356,7 @@ final class AppSettings {
         windowCycle =
             defaults.string(forKey: Key.windowCycle.rawValue).flatMap(WindowCycle.init) ?? .off
         appleShortcutsEnabled = defaults.bool(forKey: Key.appleShortcutsEnabled.rawValue)
+        commandFolder = defaults.string(forKey: Key.commandFolder.rawValue) ?? ""
         settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)
     }
 }

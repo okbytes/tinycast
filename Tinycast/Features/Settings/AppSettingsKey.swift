@@ -27,6 +27,7 @@ enum AppSettingsKey: String, CaseIterable {
     case windowGap = "windowManagementGap"
     case windowCycle = "windowManagementCycleMode"
     case appleShortcutsEnabled = "appleShortcutsEnabled"
+    case commandFolder = "commandFolder"
     case calendarEnabled = "calendarEnabled"
     case calendarSpan = "calendarSpan"
     case menuBarEvents = "menuBarEvents"

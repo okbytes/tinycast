@@ -24,6 +24,14 @@ enum AppPaths {
             .appending(path: "settings.json", directoryHint: .notDirectory)
     }
 
+    /// `~/.config/tinycast/commands/`, beside the settings file and suffixed the same way per channel.
+    static func commandFolder(
+        bundleID: String = Bundle.main.bundleIdentifier ?? "com.tinycast.app"
+    ) -> URL {
+        settingsFile(bundleID: bundleID).deletingLastPathComponent()
+            .appending(path: "commands", directoryHint: .isDirectory)
+    }
+
     private static func configFolderName(bundleID: String) -> String {
         let stable = "com.tinycast.app"
         if bundleID == stable { return "tinycast" }

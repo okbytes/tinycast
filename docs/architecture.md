@@ -22,7 +22,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ WindowCommand · WindowPlacementEngine · WindowActionMemory ·               │
 │ PaletteRowIndex ·                                                          │
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
-│ LinkDestination · AppleShortcut ·                                          │
+│ LinkDestination · AppleShortcut · FolderCommand ·                          │
 │ DoubleTap{Modifier,Detector} · ClipboardStore ·                            │
 │ AppSettingsKey · SettingsBackupCoverage · KeyRemapEngine · TopRowMap ·     │
 │ SettingsFile{JSON,Key,Value,Format,Binding,Issue} ·                        │
@@ -37,7 +37,8 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ SystemActionRunner · CurrencyRateStore · Paster ·                          │
 │ HotKeyCenter · KeyRemapManager · ModifierTapMonitor · RunningAppsMonitor · │
 │ CalendarStore · MeetingClock · CameraSession ·                             │
-│ AppleShortcutRunner · SettingsFileRepository · SettingsFileMonitor ·       │
+│ AppleShortcutRunner · CommandFolderScanner · CommandFolderMonitor ·        │
+│ FolderCommandRunner · SettingsFileRepository · SettingsFileMonitor ·       │
 │ WindowManagementSettingsFile                                               │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
@@ -220,7 +221,7 @@ Tinycast/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Calculator/ Calendar/ Camera/ Emoji/ Dictionary/ AppleShortcuts/
+    Launcher/ Calculator/ Calendar/ Camera/ Emoji/ Dictionary/ AppleShortcuts/ CommandFolder/
     Uninstall/ SystemActions/ HotKeys/ KeyRemap/ Backup/
     WindowManagement/ Onboarding/ Settings/
     Clipboard/

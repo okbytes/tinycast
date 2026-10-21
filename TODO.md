@@ -147,10 +147,8 @@ in Rectangle prevents the re-fit or undoes it, and its maintainer calls it a mac
 
 ## Cross-cutting
 
-- Native script commands: run a user's shell script with `Process` under Tinycast's own environment,
-  instead of through a Shortcut whose shell action runs in Shortcuts' helper with its temp-folder
-  suffix. Many shortcuts are one "Run Shell Script" action ("hide whitespace", "rejoin lines"), and
-  running them natively is faster and sidesteps that environment entirely.
+- Command folder: no arguments, no clipboard or selection piped in, no output surface. Add any of
+  them only once a real script needs it; `pbpaste` and `pbcopy` cover the clipboard today.
 
 - Replace the Raycast backend for currency rates with an open source such as frankfurter.app, or
   make rates opt-in. It is the last unconditional network call at launch.

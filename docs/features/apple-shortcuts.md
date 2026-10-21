@@ -69,7 +69,9 @@ lines in Tinycast's own dialog.
 per-user temp folder (`…/T/com.apple.shortcuts.mac-helper/`) whose socket paths overrun macOS's
 104-byte limit — OpenCode's SSH failed exactly so. Tinycast's own environment cannot reach inside a
 shortcut, so the pane's footer tells the user to start such an action with
-`unset DIRHELPER_USER_DIR_SUFFIX; export TMPDIR="$(getconf DARWIN_USER_TEMP_DIR)"`. Tinycast itself,
+`unset DIRHELPER_USER_DIR_SUFFIX; export TMPDIR="$(getconf DARWIN_USER_TEMP_DIR)"`. A shortcut that
+is only a shell action belongs in the [command folder](command-folder.md) instead, which runs it
+under Tinycast's own environment. Tinycast itself,
 when a shortcut relaunches it through `install.sh`, adopts the Dock's environment at startup
 (`InheritedEnvironment`, [architecture.md](../architecture.md#entry-points-and-windows)).
 

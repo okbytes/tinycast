@@ -10,6 +10,7 @@ final class HotKeyManager {
     var onRunSystemAction: ((SystemAction.ID) -> Void)?
     var onRunWindowCommand: ((WindowCommand.ID) -> Void)?
     var onRunAppleShortcut: ((UUID) -> Void)?
+    var onRunFolderCommand: ((String) -> Void)?
     /// Names what only the stores know; the fixed catalogs resolve here. Set in `AppCore.start()`.
     var displayName: ((HotKeyAction) -> String?)?
     /// Whether the action's launcher category is switched on. Set in `AppCore.start()`.
@@ -46,6 +47,7 @@ final class HotKeyManager {
     private let encoder = JSONEncoder()
     private let boundKey = "boundAppBundleIDs"
     private let boundAppleShortcutKey = "boundAppleShortcutIDs"
+    private let boundFolderCommandKey = "boundFolderCommandIDs"
 
     func start() {
         for action in candidateActions { bindings[action] = storedBinding(for: action) }
@@ -71,6 +73,11 @@ final class HotKeyManager {
     var boundAppleShortcutIDs: [UUID] {
         (UserDefaults.standard.stringArray(forKey: boundAppleShortcutKey) ?? [])
             .compactMap(UUID.init(uuidString:))
+    }
+
+    /// Pruned by `FolderCommandCoordinator` after a successful read, never here at launch.
+    var boundFolderCommandIDs: [String] {
+        UserDefaults.standard.stringArray(forKey: boundFolderCommandKey) ?? []
     }
 
     /// A deleted app takes its Settings row with it, so nothing else could ever clear its binding.
@@ -116,6 +123,8 @@ final class HotKeyManager {
             indexBundleID(bundleID, bound: binding != nil)
         case .appleShortcut(let id):
             indexAppleShortcut(id, bound: binding != nil)
+        case .folderCommand(let id):
+            indexFolderCommand(id, bound: binding != nil)
         case .togglePalette, .command, .systemAction, .windowCommand:
             break
         }
@@ -154,6 +163,7 @@ final class HotKeyManager {
         var actions = HotKeyAction.builtInActions
         actions += boundBundleIDs.map { .app(bundleID: $0) }
         actions += boundAppleShortcutIDs.map { .appleShortcut(id: $0) }
+        actions += boundFolderCommandIDs.map { .folderCommand(id: $0) }
         actions += SystemAction.ID.allCases.map { .systemAction(id: $0) }
         actions += WindowCommand.ID.allCases.map { .windowCommand(id: $0) }
         candidateActionsCache = actions
@@ -174,6 +184,8 @@ final class HotKeyManager {
             return WindowCommandCatalog.command(id: id)?.name ?? "Window Command"
         case .appleShortcut:
             return displayName?(action) ?? "Apple Shortcut"
+        case .folderCommand(let id):
+            return displayName?(action) ?? FolderCommand.displayName(forFile: id)
         }
     }
 
@@ -205,6 +217,7 @@ final class HotKeyManager {
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)
         case .appleShortcut(let id): onRunAppleShortcut?(id)
+        case .folderCommand(let id): onRunFolderCommand?(id)
         }
     }
 
@@ -214,6 +227,12 @@ final class HotKeyManager {
         var ids = Set(boundBundleIDs)
         if bound { ids.insert(bundleID) } else { ids.remove(bundleID) }
         UserDefaults.standard.set(Array(ids), forKey: boundKey)
+    }
+
+    private func indexFolderCommand(_ id: String, bound: Bool) {
+        var ids = Set(boundFolderCommandIDs)
+        if bound { ids.insert(id) } else { ids.remove(id) }
+        UserDefaults.standard.set(ids.sorted(), forKey: boundFolderCommandKey)
     }
 
     private func indexAppleShortcut(_ id: UUID, bound: Bool) {

@@ -60,6 +60,10 @@ final class AppCore {
         ranking: launcherRanking, aliases: aliases, paletteCoordinator: paletteCoordinator,
         core: self)
 
+    @ObservationIgnored private(set) lazy var folderCommandCoordinator = FolderCommandCoordinator(
+        settings: settings, appIndex: appIndex, hotKeys: hotKeys, visibility: visibility, ranking: launcherRanking,
+        aliases: aliases, paletteCoordinator: paletteCoordinator, core: self)
+
     @ObservationIgnored private(set) lazy var launcherCoordinator = LauncherCoordinator(
         ranking: launcherRanking, windowController: windowController,
         paletteCoordinator: paletteCoordinator,
@@ -118,8 +122,10 @@ final class AppCore {
             clipboardCoordinator.applyEnabled()
             applyWindowCommandsPresence()
             appleShortcutCoordinator.applyPresence()
+            folderCommandCoordinator.start()
             paletteCoordinator.onLauncherShown = { [weak self] in
                 self?.appleShortcutCoordinator.refreshIfStale()
+                self?.folderCommandCoordinator.refreshIfStale()
             }
             calendarCoordinator.applyEnabled()
             Task { await appIndex.refresh() }
@@ -139,6 +145,9 @@ final class AppCore {
             }
             hotKeys.onRunAppleShortcut = { [weak self] id in
                 self?.appleShortcutCoordinator.run(id: id)
+            }
+            hotKeys.onRunFolderCommand = { [weak self] id in
+                self?.folderCommandCoordinator.run(id: id)
             }
             appIndex.onScan = { [weak self] in
                 guard let self else { return }
@@ -192,6 +201,8 @@ final class AppCore {
             return appIndex.apps.first { $0.kind == .application && $0.bundleID == bundleID }?.name
         case .appleShortcut(let id):
             return appleShortcutCoordinator.name(of: id)
+        case .folderCommand(let id):
+            return folderCommandCoordinator.name(of: id)
         case .togglePalette, .command, .systemAction, .windowCommand:
             return nil
         }
@@ -241,6 +252,7 @@ final class AppCore {
         track(
             { _ = $0.appleShortcutsEnabled },
             reproject: { $0.appleShortcutCoordinator.applyPresence() })
+        track({ _ = $0.commandFolder }, reproject: { $0.folderCommandCoordinator.applyFolder() })
         track(
             { _ = $0.clipboardEnabled }, reproject: { $0.clipboardCoordinator.applyEnabled() })
         track(

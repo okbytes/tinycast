@@ -63,6 +63,9 @@ final class LauncherCoordinator {
         case .appleShortcut:
             guard let id = AppleShortcut.id(fromEntryID: app.id) else { return }
             core.appleShortcutCoordinator.run(id: id)
+        case .folderCommand:
+            guard let id = FolderCommand.id(fromEntryID: app.id) else { return }
+            core.folderCommandCoordinator.run(id: id)
         }
     }
 

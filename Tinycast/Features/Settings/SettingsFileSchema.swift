@@ -47,6 +47,7 @@ enum SettingsFileSchema {
         case .builtInCommandsEnabled: return launcher.kindBinding(for: key, kind: .command)
         case .builtInCommands: return launcher.commandsBinding(for: key, owner: nil)
         case .appleShortcutsEnabled: return bind(settings, \.appleShortcutsEnabled)
+        case .commandFolder: return bind(settings, \.commandFolder)
         case .windowManagementEnabled: return bind(settings, \.windowManagementEnabled)
         case .windowManagementShowInLauncher:
             return bind(settings, \.windowManagementShowInLauncher)

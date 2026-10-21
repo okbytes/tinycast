@@ -490,6 +490,13 @@ staleness rule as the app scan. Only the name is indexed,
 and the entry id is keyed on the shortcut's UUID, so an alias or binding survives a rename in
 Shortcuts. See [apple-shortcuts.md](apple-shortcuts.md).
 
+## Command Folder
+
+`FolderCommandCoordinator` reads a folder of scripts and link files and supplies it as its own slice
+right after Apple Shortcuts, re-reading on a folder change and on a launcher open under the same
+15 s staleness rule. The entry id is the file name, so an alias or binding follows the file. See
+[command-folder.md](command-folder.md).
+
 ## Pane-owned commands
 
 `SettingsTab.ownedCommands` names, per pane, the commands that pane lists itself. `CommandID.owner`

@@ -24,6 +24,9 @@ extension SettingsAnchor {
     static let appleShortcutsAppleShortcuts = Self(tab: .appleShortcuts, title: "Apple Shortcuts")
     static let appleShortcutsShortcuts = Self(tab: .appleShortcuts, title: "Shortcuts")
 
+    static let commandFolderFolder = Self(tab: .commandFolder, title: "Folder")
+    static let commandFolderCommands = Self(tab: .commandFolder, title: "Commands")
+
     static let windowManagementWindowManagement = Self(
         tab: .windowManagement, title: "Window Management")
     static let windowManagementOptions = Self(tab: .windowManagement, title: "Options")
