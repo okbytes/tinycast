@@ -158,8 +158,12 @@ struct CalendarTests {
             UpcomingWindow.countdown(to: start, now: start.addingTimeInterval(301)) == "Now",
             "a started event stays Now outside the menu-bar-specific timer")
         expect(
-            UpcomingWindow.countdown(to: start, now: start.addingTimeInterval(-619 * 60)) == "in 10 hr",
-            "a long wait rounds to hours")
+            UpcomingWindow.countdown(to: start, now: start.addingTimeInterval(-70.5 * 60))
+                == "in 1 hr 11 min",
+            "a wait past the hour keeps its minutes rather than rounding to the nearest hour")
+        expect(
+            UpcomingWindow.countdown(to: start, now: start.addingTimeInterval(-120 * 60)) == "in 2 hr",
+            "a whole number of hours drops the minutes")
 
         let meeting = event(id: "standup", start: 60, minutes: 30)
         expect(

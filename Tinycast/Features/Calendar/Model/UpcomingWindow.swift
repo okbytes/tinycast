@@ -27,8 +27,8 @@ enum UpcomingWindow {
         _ interval: TimeInterval, rounding: FloatingPointRoundingRule
     ) -> String {
         let minutes = max(1, Int((interval / 60).rounded(rounding)))
-        guard minutes > 60 else { return "\(minutes) min" }
-        let hours = max(1, Int((Double(minutes) / 60).rounded()))
-        return "\(hours) hr"
+        guard minutes >= 60 else { return "\(minutes) min" }
+        let (hours, remainder) = minutes.quotientAndRemainder(dividingBy: 60)
+        return remainder == 0 ? "\(hours) hr" : "\(hours) hr \(remainder) min"
     }
 }
