@@ -9,8 +9,10 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
 ## Invariants
 
 - **`UserDefaults` is the store; the file is a mirror.** Every value keeps its `AppSettingsKey` and its
-  `didSet`, and the file reads and writes through the same properties. Turning the file on or off,
-  deleting it, or updating the app never loses a setting, so there is nothing to migrate.
+  `didSet`, and the file reads and writes through the same properties. Turning the file on or off or
+  deleting it never loses a setting. Updating the app can: a key a release renames or moves to
+  another section is reported as unknown in an older file, and a launcher record that moved panes is
+  reset from the section it no longer sits in. Nothing migrates the file; edit it by hand.
 - **Off by default, and only the pane turns it on.** `settingsFileEnabled` has no key in the file and is
   excluded from backups: a file or an import must never switch on something that reads a file.
 - **A capability grant never has a key.** Calendar access and clipboard text recognition

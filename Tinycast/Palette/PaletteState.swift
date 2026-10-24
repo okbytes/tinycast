@@ -49,7 +49,7 @@ final class PaletteState {
     var clipboardFilter: ClipboardFilter = .all
     /// The emoji picker's visible category, reset with the rest of a freshly opened screen.
     var emojiCategoryFilter: EmojiCategoryFilter = .all
-    /// Nil means the configured default; zoom only overrides it for this picker session.
+    /// Nil means `EmojiGridColumns.default`; zoom only overrides it for this picker session.
     var emojiGridColumnsOverride: EmojiGridColumns?
     /// Ordering out leaves the SwiftUI tree mounted, so a media preview needs this to stop playing.
     private(set) var isVisible = false

@@ -275,7 +275,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
 - **Icon.** `DialogRequest.symbol` is required and is always the subject's own glyph: a system
   command passes its `SystemAction.sfSymbol`, so the Restart dialog shows `arrow.clockwise` and
   Empty Trash shows `trash.slash` — the same glyph as the launcher row the user just activated.
-  The backup flows use `square.and.arrow.up` / `.down`. Symbols render
+  The settings-file Import dialog uses `square.and.arrow.down`. Symbols render
   through `SymbolImage` (`DesignSystem/SymbolImage.swift`), never raw `Image(systemName:)`, because some
   catalog symbols are bundled template assets rather than SF Symbols — `toggleBluetooth` ships its
   own artwork since the logo is a SIG trademark, and a raw `Image(systemName:)` draws nothing for it.

@@ -49,7 +49,7 @@ struct EmojiScreen: PaletteScreen {
         return EmojiActionsMenu.content(
             entry: entry, core: core, target: vm.pasteTarget,
             pinPosition: pins.firstIndex(of: entry.glyph), pinCount: pins.count,
-            canZoom: { columns.applying($0, default: .default) != nil },
+            canZoom: { columns.applying($0) != nil },
             togglePin: { togglePin(entry) },
             movePin: { movePin(entry, by: $0) },
             zoom: zoom)
@@ -86,7 +86,7 @@ struct EmojiScreen: PaletteScreen {
     }
 
     func zoom(_ zoom: EmojiGridZoom) {
-        guard let next = columns.applying(zoom, default: .default) else { return }
+        guard let next = columns.applying(zoom) else { return }
         vm.emojiGridColumnsOverride = next == .default ? nil : next
     }
 

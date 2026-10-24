@@ -115,10 +115,10 @@ enum EmojiGridColumns: Int, CaseIterable, Sendable {
     static let `default`: Self = .ten
 
     /// Nil when the zoom would change nothing: already at the default, or at six or ten columns.
-    func applying(_ zoom: EmojiGridZoom, default defaultColumns: Self) -> Self? {
+    func applying(_ zoom: EmojiGridZoom) -> Self? {
         let next: Self? =
             switch zoom {
-            case .actualSize: defaultColumns
+            case .actualSize: .default
             case .zoomIn: Self(rawValue: rawValue - 1)
             case .zoomOut: Self(rawValue: rawValue + 1)
             }

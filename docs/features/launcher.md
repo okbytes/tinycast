@@ -160,9 +160,6 @@ name. Rule 4 applies at any length: rule 2 only protects an exact title past thr
   Calculator History.
 - **Two entries with the same alias** fall through to the next rule.
 
-`settings` is the case these were measured against. Apple declares `Settings` in System Settings'
-`CFBundleAlternateNames`, so it is an exact alternate title and wins rule 2.
-
 ## One fold, everywhere
 
 `FuzzyMatch.normalized` is the only text fold in the launcher: NFC precomposition, format scalars
@@ -487,7 +484,11 @@ switch governs: Calculator History, Define Word, Open Camera, Quit and Search Em
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw
-value — so a command may be moved between owners without migrating anything.
+value — so moving a command between owners needs no change to UserDefaults. It does move the
+command's settings.json record to the new pane's section (`emoji.commands` → `commands.builtIn` for
+Search Emoji), and a file written before the move still holds it under the old one; with the file on,
+the first launch reports that section as unknown and resets the command's shortcut, alias and
+visibility to what the new section says. No migration covers it — edit the file by hand first.
 
 > **Invariant:** `Tests/fuzz-test.swift` compiles the real `Launcher/Model/LauncherMatch.swift` and
 > `LauncherOrder.swift`, so both must stay Foundation-only and pure. There is no copy of the ranking
