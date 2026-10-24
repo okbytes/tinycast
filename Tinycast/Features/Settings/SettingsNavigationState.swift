@@ -23,8 +23,7 @@ final class SettingsNavigationState {
     /// A search result navigates and asks the pane to reveal one section; a sidebar row just navigates.
     func select(_ tab: SettingsTab, revealing target: SettingsTarget? = nil) {
         history.select(tab)
-        // Any navigation puts the previous pulse out, so a stale light can't outlive its pane.
-        flashing = nil
+        endReveal()
         guard let target else { return }
         requests += 1
         scrollRequest = SettingsScrollRequest(target: target, token: requests)
@@ -47,6 +46,19 @@ final class SettingsNavigationState {
         scrollRequest = nil
     }
 
-    func goBack() { history.goBack() }
-    func goForward() { history.goForward() }
+    func goBack() {
+        history.goBack()
+        endReveal()
+    }
+
+    func goForward() {
+        history.goForward()
+        endReveal()
+    }
+
+    /// Any navigation puts the last reveal out, so neither its light nor its request outlives it.
+    private func endReveal() {
+        flashing = nil
+        scrollRequest = nil
+    }
 }

@@ -13,6 +13,25 @@ extension View {
     func settingsAnchor(_ anchor: SettingsAnchor) -> some View {
         id(SettingsTarget.section(anchor))
     }
+
+    /// A collapsible section's header: opens the section when a search result lands on it.
+    func settingsRevealExpands(_ isExpanded: Binding<Bool>, for anchor: SettingsAnchor) -> some View {
+        modifier(RevealExpansion(anchor: anchor, isExpanded: isExpanded))
+    }
+}
+
+/// On the header, not the `Section`: a closed section has no rows for its modifiers to run on.
+private struct RevealExpansion: ViewModifier {
+    let anchor: SettingsAnchor
+    @Binding var isExpanded: Bool
+    @Environment(SettingsNavigationState.self) private var navigation
+
+    func body(content: Content) -> some View {
+        // Initial too: a result that switches panes sets the request before this header mounts.
+        content.onChange(of: navigation.scrollRequest, initial: true) { _, request in
+            if request?.target.anchor == anchor { isExpanded = true }
+        }
+    }
 }
 
 /// The pulse a search result leaves on arrival: a pill behind the name it matched, and nothing else.
