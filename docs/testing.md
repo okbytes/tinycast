@@ -418,9 +418,12 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - A system action's feedback is the message pill
 - Holding a bound hotkey does **not** stack dialogs
 - Lock Screen locks from a global hotkey with the palette closed, including a Hyper-key binding
-- Window commands move the window you were last in; cycle-on-repeat steps ½ → ⅓ → ⅔
-- "Top Left Quarter" lands flush with the top of the usable frame, on a secondary display too
-- With the Dock auto-hidden, a Left Half window is full height again after a display sleep and wake
+- Window commands move the window you were last in; Half flips sides and Quarter walks the corners
+  clockwise on repeat, each from the starting slot Settings names
+- A top-left Quarter lands flush with the top of the usable frame, on a secondary display too
+- Center is the Center width share of the screen at full height; changing the width applies on the
+  next press
+- With the Dock auto-hidden, a left-Half window is full height again after a display sleep and wake
 - With the Dock auto-hidden, turn auto-hide off, so a reservation stands: a Maximize lands short
   and is not fought; turn it back on, and both that window and a window another app shortened
   meanwhile are full height again within a second

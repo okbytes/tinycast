@@ -25,6 +25,8 @@ extension SettingsAnchor {
 
     static let windowManagementWindowManagement = Self(
         tab: .windowManagement, title: "Window Management")
+    static let windowManagementSizing = Self(tab: .windowManagement, title: "Sizing")
+    static let windowManagementMoving = Self(tab: .windowManagement, title: "Moving")
     static let windowManagementOptions = Self(tab: .windowManagement, title: "Options")
 
     static let clipboardClipboard = Self(tab: .clipboard, title: "Clipboard")

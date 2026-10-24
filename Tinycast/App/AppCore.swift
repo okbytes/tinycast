@@ -53,8 +53,6 @@ final class AppCore {
         ranking: launcherRanking, aliases: aliases, core: self)
     @ObservationIgnored private(set) lazy var windowCommandCoordinator = WindowCommandCoordinator(
         settings: settings, paletteCoordinator: paletteCoordinator, windowMover: windowMover)
-    @ObservationIgnored private(set) lazy var windowShortcutPresetCoordinator =
-        WindowShortcutPresetCoordinator(hotKeys: hotKeys, core: self)
     @ObservationIgnored private(set) lazy var folderCommandCoordinator = FolderCommandCoordinator(
         settings: settings, appIndex: appIndex, hotKeys: hotKeys, visibility: visibility, ranking: launcherRanking,
         aliases: aliases, paletteCoordinator: paletteCoordinator, core: self)

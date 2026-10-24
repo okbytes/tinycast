@@ -3,7 +3,6 @@ import SwiftUI
 struct WindowManagementSettingsView: View {
     @Environment(AppSettings.self) private var settings
     @Environment(AppCore.self) private var core
-    @State private var chosenPreset: WindowShortcutPreset?
     @State private var savingDockLog = false
 
     var body: some View {
@@ -22,8 +21,8 @@ struct WindowManagementSettingsView: View {
             .settingsAnchor(.windowManagementWindowManagement)
 
             Group {
-                options
                 commands
+                options
             }
             .settingsEnabled(settings.windowManagementEnabled)
         }
@@ -31,58 +30,79 @@ struct WindowManagementSettingsView: View {
         .settingsScrollTarget(.windowManagement)
     }
 
-    private var options: some View {
-        @Bindable var settings = settings
-        return Section {
-            Picker(selection: $settings.windowCycle) {
-                ForEach(WindowCycle.allCases) { cycle in
-                    Text(cycle.title).tag(cycle)
+    /// One section per catalog group, each command followed by the setting that tunes it.
+    private var commands: some View {
+        ForEach(WindowCommandCatalog.grouped(), id: \.group) { section in
+            Section {
+                ForEach(section.commands) { command in
+                    WindowCommandSettingsRow(
+                        command: command, showsInLauncher: settings.windowManagementShowInLauncher)
+                    preference(for: command.id)
                 }
-            } label: {
-                SettingsRowTitle(.windowManagementOptions, "Cycling")
-                Text(settings.windowCycle.detail)
+            } header: {
+                header(for: section.group)
             }
+        }
+    }
 
+    @ViewBuilder
+    private func header(for group: WindowCommand.Group) -> some View {
+        switch group {
+        case .sizing: SettingsSectionHeader(.windowManagementSizing)
+        case .moving: SettingsSectionHeader(.windowManagementMoving)
+        }
+    }
+
+    @ViewBuilder
+    private func preference(for id: WindowCommand.ID) -> some View {
+        @Bindable var settings = settings
+        switch id {
+        case .half:
+            Picker(selection: $settings.windowHalfStart) {
+                ForEach(WindowCommand.HalfSide.allCases) { Text($0.title).tag($0) }
+            } label: {
+                SettingsRowTitle(.windowManagementSizing, "Half starts on")
+                Text("Pressing Half again moves it to the other side.")
+            }
+        case .quarter:
+            Picker(selection: $settings.windowQuarterStart) {
+                ForEach(WindowCommand.QuarterCorner.allCases) { Text($0.title).tag($0) }
+            } label: {
+                SettingsRowTitle(.windowManagementSizing, "Quarter starts at")
+                Text("Pressing Quarter again moves it clockwise.")
+            }
+        case .center:
             LabeledContent {
                 HStack(spacing: Theme.Spacing.sm) {
-                    Text("\(settings.windowGap) pt")
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                    TextField("Center width", value: centerWidth, format: .number)
+                        .labelsHidden()
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: Theme.Size.settingsNumberField)
+                    Text("%").foregroundStyle(.secondary)
                     Stepper(
-                        "Gap between windows", value: $settings.windowGap,
-                        in: WindowPlacementEngine.gapRange, step: 2
+                        "Center width", value: centerWidth,
+                        in: WindowPlacementEngine.centerWidthRange, step: 5
                     )
                     .labelsHidden()
                 }
             } label: {
-                SettingsRowTitle(.windowManagementOptions, "Gap between windows")
-                Text("Between tiled windows and screen edges.")
+                SettingsRowTitle(.windowManagementSizing, "Center width")
+                Text("Of the screen, always at full height.")
             }
+        default:
+            EmptyView()
+        }
+    }
 
-            LabeledContent {
-                HStack(spacing: Theme.Spacing.sm) {
-                    Picker("Shortcut preset", selection: $chosenPreset) {
-                        Text("Choose…").tag(WindowShortcutPreset?.none)
-                        ForEach(WindowShortcutPreset.allCases) { preset in
-                            Text(preset.title).tag(Optional(preset))
-                        }
-                    }
-                    .labelsHidden()
-                    .fixedSize()
-                    Button("Apply") {
-                        guard let chosenPreset else { return }
-                        Task { await core.windowShortcutPresetCoordinator.apply(chosenPreset) }
-                    }
-                    // Live bindings decide, so one edit to an applied preset re-enables it.
-                    .disabled(
-                        chosenPreset == nil
-                            || chosenPreset == core.windowShortcutPresetCoordinator.matchingPreset)
-                }
-            } label: {
-                SettingsRowTitle(.windowManagementOptions, "Shortcut preset")
-                Text("Fills in another app's shortcuts. Others stay as they are.")
-            }
+    /// A typed value outside the range snaps to its nearest end rather than being refused.
+    private var centerWidth: Binding<Int> {
+        Binding(
+            get: { settings.windowCenterWidth },
+            set: { settings.windowCenterWidth = WindowPlacementEngine.clampedCenterWidth($0) })
+    }
 
+    private var options: some View {
+        Section {
             LabeledContent {
                 if savingDockLog {
                     ProgressView().controlSize(.small)
@@ -107,20 +127,6 @@ struct WindowManagementSettingsView: View {
                 _ = try await DockLogExport.run()
             } catch {
                 core.showMessage(error.localizedDescription, tone: .danger)
-            }
-        }
-    }
-
-    /// One section per catalog group, so the sidebar's own grouping carries the headings.
-    private var commands: some View {
-        ForEach(WindowCommandCatalog.grouped(), id: \.group) { section in
-            Section {
-                ForEach(section.commands) { command in
-                    WindowCommandSettingsRow(
-                        command: command, showsInLauncher: settings.windowManagementShowInLauncher)
-                }
-            } header: {
-                Text(section.group.title)
             }
         }
     }

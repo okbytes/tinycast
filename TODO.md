@@ -28,10 +28,11 @@ Findings from the initial survey that still shape the plan:
 - Removed About: its Settings pane, the About command and both menu items.
 - Removed Navigation, the window switcher.
 - Removed Notes.
-- Removed window Layouts, Rooms and Custom Sizes; window commands, cycling, gaps and presets stay.
-- Trimmed window commands to Left/Right Half, the quarters, the three fourths, Maximize, Center and
-  the four moves. Top/Bottom Half, thirds, the other sizing commands, Restore, display moves,
-  Toggle Fullscreen and Space switching are gone.
+- Removed window Layouts, Rooms and Custom Sizes.
+- Trimmed window commands to Half, Quarter, Maximize, Center and the four moves. Half and Quarter
+  cycle on their own; the cycling setting, gaps, shortcut presets, the three fourths, Top/Bottom Half,
+  thirds, the other sizing commands, Restore, display moves, Toggle Fullscreen and Space switching
+  are gone.
 - Trimmed Calendar to the menu-bar item: next event, the agenda on click, Open in Calendar. Joining,
   auto join, the camera preview, launcher rows, My Schedule, event details, Create Event and the
   calendar commands are gone.

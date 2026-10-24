@@ -199,25 +199,25 @@ enum SettingsSearchCatalog {
     private static let windowManagement: [SettingsSearchEntry] = [
         .init(
             pane: .windowManagement,
-            keywords: ["tile", "halves", "thirds", "maximize", "snap"]),
+            keywords: ["tile", "halves", "quarters", "maximize", "snap"]),
         .init(
             .windowManagementWindowManagement, "Enable window management",
             keywords: ["tile", "accessibility"]),
         .init(
-            .windowManagementOptions, "Cycling",
-            keywords: ["repeat", "thirds", "halves", "displays", "monitor", "screens"]),
+            group: .windowManagementSizing, "Window commands",
+            keywords: ["shortcut", "alias", "half", "quarter", "maximize", "center", "move"]),
         .init(
-            .windowManagementOptions, "Gap between windows",
-            keywords: ["padding", "spacing", "margin", "points"]),
+            .windowManagementSizing, "Half starts on",
+            keywords: ["left", "right", "side", "cycle", "repeat", "flip", "halves"]),
         .init(
-            .windowManagementOptions, "Shortcut preset",
-            keywords: ["rectangle", "magnet", "spectacle", "defaults", "import", "shortcuts"]),
+            .windowManagementSizing, "Quarter starts at",
+            keywords: ["corner", "top left", "cycle", "repeat", "clockwise", "quarters"]),
+        .init(
+            .windowManagementSizing, "Center width",
+            keywords: ["percent", "percentage", "centre", "wide", "three fourths"]),
         .init(
             .windowManagementOptions, "Dock log",
-            keywords: ["diagnostics", "export", "hidden dock", "shrink", "save", "episode"]),
-        .init(
-            group: .windowManagementOptions, "Window commands",
-            keywords: ["shortcut", "alias", "left half", "maximize", "center"])
+            keywords: ["diagnostics", "export", "hidden dock", "shrink", "save", "episode"])
     ]
 
     private static let clipboard: [SettingsSearchEntry] = [

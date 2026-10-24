@@ -10,15 +10,7 @@ struct WindowActionMemory<Key: Hashable> {
         var step: Int
         /// Where it landed; a press from any other display starts a new chain.
         var screenID: Int
-        var originScreenID: Int
         var at: Date
-    }
-
-    struct Decision: Equatable, Sendable {
-        /// Cycle position for this press, fed straight into `WindowPlacementEngine.Input.step`.
-        var step: Int
-        /// The display the chain started on, which the display cycle counts `step` from.
-        var originScreenID: Int
     }
 
     /// Tolerance for "still the frame we left it at": subpixel drift in, a real drag out.
@@ -26,7 +18,7 @@ struct WindowActionMemory<Key: Hashable> {
 
     /// Bounded so a long session over many windows can't grow this without limit.
     var capacity: Int
-    /// When set, a cold cycle restarts from the half rather than continuing mid-sequence.
+    /// When set, a cold cycle restarts from its first slot rather than continuing mid-sequence.
     var cycleTimeout: TimeInterval?
 
     private var records: [Key: Record] = [:]
@@ -42,33 +34,29 @@ struct WindowActionMemory<Key: Hashable> {
 
     func record(for key: Key) -> Record? { records[key] }
 
-    /// Resolves the cycle step; `commit` writes once the mover knows what landed.
+    /// The cycle step for this press, fed into `WindowPlacementEngine.Input.step`.
     func decide(
         key: Key, command: WindowCommand.ID, currentFrame: CGRect, currentScreenID: Int,
         cycleLength: Int, now: Date
-    ) -> Decision {
+    ) -> Int {
         // Against the observed frame, never the requested one. docs/features/window-management.md
         guard let record = records[key], approximatelyEqual(currentFrame, record.appliedFrame)
-        else { return Decision(step: 0, originScreenID: currentScreenID) }
+        else { return 0 }
 
         let expired = cycleTimeout.map { now.timeIntervalSince(record.at) > $0 } ?? false
-        // A length of 1 covers both a non-cycling command and cycling switched off entirely.
         let continues =
             cycleLength > 1 && command == record.command
             && currentScreenID == record.screenID && !expired
-        return Decision(
-            step: continues ? (record.step + 1) % cycleLength : 0,
-            originScreenID: continues ? record.originScreenID : currentScreenID)
+        return continues ? (record.step + 1) % cycleLength : 0
     }
 
     /// Records what actually landed. `appliedFrame` must be read back from the window, not assumed.
     mutating func commit(
-        key: Key, command: WindowCommand.ID, decision: Decision, appliedFrame: CGRect,
-        screenID: Int, now: Date
+        key: Key, command: WindowCommand.ID, step: Int, appliedFrame: CGRect, screenID: Int,
+        now: Date
     ) {
         records[key] = Record(
-            appliedFrame: appliedFrame, command: command, step: decision.step, screenID: screenID,
-            originScreenID: decision.originScreenID, at: now)
+            appliedFrame: appliedFrame, command: command, step: step, screenID: screenID, at: now)
         touch(key)
     }
 

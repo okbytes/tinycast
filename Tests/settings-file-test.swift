@@ -114,7 +114,7 @@ struct SettingsFileTest {
             .escapeKeyBehavior: "say \"hi\"\\ / é\n\t\u{01}",
             .clipboardDisabledApps: .array([]),
             .popToRootTimeout: 5,
-            .windowGap: .number(-1.5)
+            .windowCenterWidth: .number(-1.5)
         ]
         let golden = """
             {
@@ -131,7 +131,7 @@ struct SettingsFileTest {
                 ]
               },
               "windowManagement": {
-                "gap": -1.5,
+                "centerWidthPercent": -1.5,
                 "shortcuts": {}
               },
               "clipboard": {

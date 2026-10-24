@@ -232,14 +232,17 @@ final class AppSettings {
         }
     }
 
-    /// Points between tiled windows and the screen edge; `WindowPlacementEngine` caps it.
-    var windowGap: Int {
-        didSet { defaults.set(windowGap, forKey: Key.windowGap.rawValue) }
+    var windowHalfStart: WindowCommand.HalfSide {
+        didSet { defaults.set(windowHalfStart.rawValue, forKey: Key.windowHalfStart.rawValue) }
     }
 
-    /// What re-triggering a half does: nothing, step its size, or walk it across the displays.
-    var windowCycle: WindowCycle {
-        didSet { defaults.set(windowCycle.rawValue, forKey: Key.windowCycle.rawValue) }
+    var windowQuarterStart: WindowCommand.QuarterCorner {
+        didSet { defaults.set(windowQuarterStart.rawValue, forKey: Key.windowQuarterStart.rawValue) }
+    }
+
+    /// Center's width as a percentage of the display; `WindowPlacementEngine` clamps it.
+    var windowCenterWidth: Int {
+        didSet { defaults.set(windowCenterWidth, forKey: Key.windowCenterWidth.rawValue) }
     }
 
     /// A `~`-abbreviated path, or empty for `~/.config/tinycast/commands`.
@@ -331,10 +334,16 @@ final class AppSettings {
         windowManagementShowInLauncher =
             defaults.object(forKey: Key.windowManagementShowInLauncher.rawValue) == nil
             || defaults.bool(forKey: Key.windowManagementShowInLauncher.rawValue)
-        // Unset reads as 0, which is the intended default anyway — no gap.
-        windowGap = defaults.integer(forKey: Key.windowGap.rawValue)
-        windowCycle =
-            defaults.string(forKey: Key.windowCycle.rawValue).flatMap(WindowCycle.init) ?? .off
+        let windowDefaults = WindowPlacementEngine.Preferences.standard
+        windowHalfStart =
+            defaults.string(forKey: Key.windowHalfStart.rawValue)
+            .flatMap(WindowCommand.HalfSide.init) ?? windowDefaults.halfStart
+        windowQuarterStart =
+            defaults.string(forKey: Key.windowQuarterStart.rawValue)
+            .flatMap(WindowCommand.QuarterCorner.init) ?? windowDefaults.quarterStart
+        windowCenterWidth =
+            defaults.object(forKey: Key.windowCenterWidth.rawValue) as? Int
+            ?? windowDefaults.centerWidth
         commandFolder = defaults.string(forKey: Key.commandFolder.rawValue) ?? ""
         settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)
     }

@@ -1,8 +1,8 @@
 # Window Management
 
-Rectangle-style window actions — halves, quarters, three fourths, Maximize, Center and edge moves —
-searchable in the palette and bindable to global shortcuts. 15 commands, no new dependencies and no
-new permission: they reuse the Accessibility grant clipboard paste already needs.
+Rectangle-style window actions — Half, Quarter, Maximize, Center and edge moves — searchable in the
+palette and bindable to global shortcuts. 8 commands, no new dependencies and no new permission: they
+reuse the Accessibility grant clipboard paste already needs.
 
 Ships **off**. Settings › Window Management is the switch, and while it is off there are no launcher
 entries and a still-registered shortcut moves nothing.
@@ -27,8 +27,7 @@ entries and a still-registered shortcut moves nothing.
 
 | File                                             | Imports                      | Role                                                                |
 | ------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------- |
-| `Model/WindowCommand.swift`          | Foundation                   | Catalog: id, name, symbol, group, `cyclesOnRepeat`, `resizes`       |
-| `Model/WindowCycle.swift`            | Foundation                   | The three cycling modes a repeat press can run                      |
+| `Model/WindowCommand.swift`          | Foundation                   | Catalog: id, name, symbol, group, `cycleLength`, `resizes`; Half's sides and Quarter's corners |
 | `Model/WindowPlacementEngine.swift`  | Foundation + CoreGraphics    | **Pure.** Every frame the commands produce                          |
 | `Model/WindowActionMemory.swift`     | Foundation + CoreGraphics    | **Pure.** Per-window cycle position                                 |
 | `Service/AXWindowAccess.swift`       | AppKit + ApplicationServices | `@MainActor`. Every `AXUIElement` call, and the one write sequence  |
@@ -39,24 +38,22 @@ entries and a still-registered shortcut moves nothing.
 | `Service/DockLogExport.swift`        | AppKit                       | Writes the last days of that log to a file the user picks           |
 | `Service/WindowTarget.swift`         | AppKit                       | `@MainActor`. Which window a command acts on                        |
 | `UI/WindowCommandCoordinator.swift`  | AppKit                       | The one funnel from a palette row or a global hotkey                |
-| `Model/WindowShortcutPreset.swift`   | Foundation + Carbon          | **Pure.** Rectangle / Magnet and Spectacle tables, and the apply plan |
-| `UI/WindowShortcutPresetCoordinator.swift` | Foundation             | Applies a preset, confirming first when it replaces a user's key   |
 
-The first four compile into `Tests/window-command-test.swift`, so none of them may gain an AppKit,
+The first three compile into `Tests/window-command-test.swift`, so none of them may gain an AppKit,
 SwiftUI or `NSScreen` dependency, and all must stay pure — `WindowActionMemory` takes `now` as a parameter rather than
 reading a clock. CoreGraphics is needed only because `CGRect`'s `Equatable` conformance lives in that
 overlay rather than in Foundation.
 
 Adding a command is four edits in `WindowCommand.swift` (a case in `ID`, plus `name`, `symbol` and
-`group` arms), an arm in `WindowPlacementEngine.placement` or `tileFractions`, and bumping
-`commands.count == 15` and its group count in the harness. A command opening a new family also needs
+`group` arms), an arm in `WindowPlacementEngine.placement`, and bumping `commands.count == 8` and its
+group count in the harness. A command opening a new family also needs
 a `Group` case and its `title` arm; `ID.allCases` stays in group order.
 
 ## Coordinate space
 
 **`WindowPlacementEngine` works exclusively in AX space**: global coordinates, top-left origin, +Y pointing
 _down_. `AXScreens.AXGeometry` is the only place that converts to and from Cocoa's bottom-left space.
-The visible consequence is that Top Left Quarter has `minY == usableFrame.minY`, which the harness asserts
+The visible consequence is that a top-left Quarter has `minY == usableFrame.minY`, which the harness asserts
 specifically to stop a bottom-left convention creeping back in.
 
 The flip is anchored on the **primary** display's height — the display whose Cocoa frame origin is
@@ -81,68 +78,55 @@ later, which [Holding a tile over the Dock](#holding-a-tile-over-the-dock) undoe
 
 ## Geometry
 
-**Tiles** come from fractional bounds of `usableFrame`. Gaps use one rule that composes across every
-family: an edge sitting on the screen boundary takes the full gap, an interior edge takes half. Two
-adjacent tiles therefore leave exactly `gap` between them and every screen edge is inset by `gap`, with
-no per-family special cases. Rects are rounded on their four **edges**, not origin + size, so two tiles
-sharing a fractional boundary (480.333 for thirds of 1441) round it identically — no overlaps, no
-one-point seams.
+**Tiles** — Half, Quarter and Center — come from fractional bounds of `usableFrame`, with no gap
+between windows. Rects are rounded on their four **edges**, not origin + size, so two tiles sharing a
+fractional boundary (720.5 for halves of 1441) round it identically — no overlaps, no one-point seams.
 
-**Free-floating commands** (Maximize, Center and the four moves) work in
-`canvas = usableFrame.insetBy(gap)` instead: a centred window has no neighbour to gutter against.
+**Free-floating commands** (Maximize and the four moves) work in `canvas`, the rounded `usableFrame`.
 
 **Move Left / Right / Up / Down** push the window flush against that edge of the canvas, keeping its
 size and its position on the other axis — a vertically centred window moved left stays vertically
 centred, a top-aligned one stays top-aligned. A second press is a no-op, and neither the size nor the
 display ever changes.
 
-**Center** centres horizontally only: the window keeps its size and its vertical position, clamped
-back onto the display if it hangs off it.
-
-**Center Three Fourths** is three quarters of the width at full height, horizontally centred, so it
-shares the quarter grid with First and Last Three Fourths.
+**Center** is a share of the display's width at its full height, horizontally centred. The share is
+**Center width** in Settings, 75% unless changed, between 20% and 100%; a value outside that range, from a
+hand-edited file, is clamped by `clampedCenterWidth` rather than refused, and 100% is a Maximize.
 
 An oversized or off-screen window is always clamped back onto the display; `clamped` pins the leading
 edge rather than shoving the window off the far side.
 
 ## Cycling
 
-Cycling reduces to one question — _has the user moved this window themselves since our last
-action?_ — so `WindowActionMemory` answers it once. It is generic over the key so it stays Foundation-only: the app
-keys by `AXUIElement` (via `CFEqual`/`CFHash` plus the pid), the harness keys by `Int`.
+**Half and Quarter cycle; nothing else does.** `WindowCommand.cycleLength` is the whole rule: 2 for
+Half, 4 for Quarter, 1 for the rest. Half's first press lands on **Half starts on** (Left unless
+changed) and a repeat flips it to the other side. Quarter's first press lands on **Quarter starts
+at** (Top Left unless changed) and repeats walk `QuarterCorner.clockwise` — top left, top right,
+bottom right, bottom left — so each step moves to a neighbouring corner rather than across the
+diagonal. Both choices travel to the engine as `WindowPlacementEngine.Preferences`, with Center's
+width, and `Preferences.standard` is the one place their defaults are written.
 
-`decide` is a pure query returning the cycle step, which is then fed into `WindowPlacementEngine.Input.step` —
-cycle state is never hidden inside the geometry. Its rules, in order:
+A press continues a chain only when the user hasn't moved the window since our last action, so
+`WindowActionMemory` answers that once. It is generic over the key so it stays Foundation-only: the
+app keys by `AXUIElement` (via `CFEqual`/`CFHash` plus the pid), the harness keys by `Int`.
+
+`decide` is a pure query returning the step, which is then fed into `WindowPlacementEngine.Input.step`
+— cycle state is never hidden inside the geometry. Its rules, in order:
 
 1. No record → step 0.
 2. The frame drifted from `appliedFrame` by more than 2 pt → step 0.
 3. A different command, a different display, a `cycleLength` of 1, or a lapsed `cycleTimeout` → step 0.
 4. Otherwise → `(step + 1) % cycleLength`.
 
-`cycleLength` comes from `WindowPlacementEngine.cycleLength(for:screens:cycle:)`, so the memory holds
-no opinion about what a step means: 1 covers cycling switched off *and* a command that never cycles,
-which is why `WindowActionMemory` no longer reads the catalog at all.
-
 **Rule 2 compares against the frame we observed, never the one we asked for.** Terminal resizes in
 whole character cells and never lands exactly on target; comparing against the target would read as
 "the user moved it" on every press and break cycling for such apps.
 
-**Cycling covers Left and Right Half only**, and `WindowCycle` picks one of three modes,
-`.off` by default so a repeat press stays idempotent unless asked otherwise:
-
-- **`.sizes`** — ½ → ⅓ → ⅔ in place, hugging the half's own edge. The thirds have no commands of
-  their own, so they are expressed as fractions.
-- **`.displays`** — every display contributes two half-slots to one strip, ordered left-to-right by
-  `ordered(_:)`. Left walks it backwards and Right forwards, both wrapping, so one
-  shortcut sweeps the whole desktop in one direction: on two displays, Left Half gives
-  D1-left → D2-right → D2-left → D1-right. The walk counts from the display the chain started on,
-  which `decide` carries as `originScreenID`: from the second press the window already sits on the
-  display it was moved to, and counting from there would overshoot a slot. One display makes the
-  mode a quiet no-op — a length of 1 — rather than a left/right flip in place.
-
-The two are deliberately exclusive rather than composable: a 12-press chain over two displays is not a
-shortcut any more, and Raycast's own setting is the same single choice. `Half` names the edge a slot
-hugs, which makes both modes one expression: the same edge decides which side a ⅓ hugs.
+**A press that would change nothing moves on a step.** With no chain to continue — a window tiled
+before Tinycast started, or one evicted from the memory — a Half pressed on a window already at the
+left half would otherwise re-apply the left half. `WindowPlacementEngine.advancingPastNoOp` checks the
+step's slot against the window within the same 2 pt and, when they match, takes the next one, so the
+press always does something visible.
 
 Growth is bounded three ways: an LRU cap of 64, an `NSWorkspace.didTerminateApplicationNotification`
 observer (the house `NotificationToken` RAII idiom) dropping a quit app's keys, and lazy invalidation
@@ -169,7 +153,7 @@ this section exists.
 
 ## Applying a placement
 
-`WindowMover.perform(_:target:gap:cycle:)` is the only entry point. `target` is **explicit**
+`WindowMover.perform(_:target:preferences:)` is the only entry point. `target` is **explicit**
 because the palette is frontmost when a command dispatches from it — `WindowCommandCoordinator` passes
 a `WindowTarget`, which is either an external app or one of our own windows (see
 [Choosing a target](#choosing-a-target)), and restores focus to it rather than dropping it. The own
@@ -284,30 +268,6 @@ that file when reporting an episode; the same lines stream live with
 The monitor reports and decides nothing; the repair is `DockShrinkGuard`'s, in
 [Holding a tile over the Dock](#holding-a-tile-over-the-dock).
 
-## Shortcut presets
-
-Settings › Window Management › Options › **Shortcut preset**, a pop-up and an Apply button, fills
-in the stock window shortcuts of Rectangle / Magnet (one option: Rectangle adopted Magnet's scheme
-and only added to it) or Spectacle.
-It is a one-shot action rather than a mode, so nothing is persisted, there is no `SettingsFileKey`,
-and every shortcut stays editable afterwards.
-
-- **Fill in, never replace wholesale.** A command the preset doesn't name keeps its binding, unless it
-  holds a key the preset gives to another command — then it is *displaced* and cleared.
-- **Confirm only over the user's own keys.** `WindowShortcutPresetPlan` lists every command whose
-  existing binding would change or be displaced; when that list is empty the preset applies at once,
-  otherwise `WindowShortcutPresetCoordinator` asks through `AppCore.confirm` first.
-- **Never take a key from outside the feature.** A preset key already held by any other action (the
-  palette toggle, an app hotkey, …) is skipped, the command keeps its previous binding when that is
-  still free, and the closing HUD counts the skips.
-- **Key codes, not letters.** Each table stores Carbon key codes, as the original apps register them,
-  so ⌃⌥U lands on the same physical key under Dvorak or AZERTY. Actions with no Tinycast equivalent
-  are left out.
-- **Choose, then Apply.** The pop-up holds a choice that is never stored, and Apply stays disabled
-  until one is made — and while `WindowShortcutPreset.matching` reports the chosen preset as fully
-  set (other commands don't count), so one edited or cleared key re-enables it.
-- **No Raycast preset.** Raycast ships its window commands unbound, so there is nothing to fill in.
-
 ## Wiring
 
 - **`AppEntry.Kind.windowCommand`** — entries are `window-command:<id>`, published by
@@ -320,9 +280,10 @@ and every shortcut stays editable afterwards.
   and `conflictOwner` iterate `WindowCommand.ID.allCases` and `register` no-ops on an unbound command.
 - **`WindowCommandCoordinator.runWindowCommand(id:)`** is the one funnel for both palette activation and the global
   hotkey, so the feature switch cannot be bypassed by either.
-- **Settings** — `windowManagementEnabled` (off), `windowManagementShowInLauncher` (on), `windowGap`
-  (0) and `windowCycle` (`.off`). All four ride in settings backups: they grant no
-  permission class of their own.
+- **Settings** — `windowManagementEnabled` (off), `windowManagementShowInLauncher` (on),
+  `windowHalfStart` (`.left`), `windowQuarterStart` (`.topLeft`) and `windowCenterWidth` (75). All
+  five ride in settings backups: they grant no permission class of their own. Each of the last three
+  sits in Settings › Window Management directly under the command it tunes.
 - **Per-command visibility** reuses `VisibilityStore` as-is; clearing a recorded shortcut is how a
   hotkey is disabled, so there is no separate per-command enabled flag. Each command
   row carries an alias field, dimmed while its entry is hidden from the launcher. Window commands
@@ -331,29 +292,24 @@ and every shortcut stays editable afterwards.
 
 ## Testing
 
-`Tests/window-command-test.swift` (279 assertions) covers the catalog, the AX-space convention lock,
-tiling on divisible and non-divisible screens, off-origin and negative-coordinate displays, gap
-arithmetic including degenerate values, sizing, edge moves, screen ordering and overlap, both cycling
-modes including the strip walk, its wrap and a run of real presses across displays, every
-`WindowActionMemory` rule, and a fuzz sweep over every command × gap × screen × cycle × step ×
+`Tests/window-command-test.swift` (184 assertions) covers the catalog, the AX-space convention lock,
+tiling on divisible and non-divisible screens, off-origin and negative-coordinate displays, Center's
+width and its clamp, edge moves, screen overlap, Half and Quarter cycling from every starting slot —
+pressed the way `WindowMover` presses them, including the step past a no-op — every
+`WindowActionMemory` rule, and a fuzz sweep over every command × screen × preferences × step ×
 degenerate window frame checking for non-finite output, negative dimensions, off-screen results,
-non-determinism and, at step 0, drift on repeat.
+non-determinism and drift on repeat.
 
-`Tests/window-preset-test.swift` covers the preset tables (no key used twice, a commanding modifier
-on each) and `WindowShortcutPresetPlan`: a fresh apply, a repeat apply, a replaced user key, a
-displaced command and an unrelated one left alone, plus when `matching` names a preset.
-
-Everything runs headless because the layer is pure. `WindowMover` is not compiled into either harness
+Everything runs headless because the layer is pure. `WindowMover` is not compiled into the harness
 and has no automated coverage — the AX path needs manual verification, particularly:
 
 1. A non-resizable window (System Information) must fail silently, left untouched rather than
    half-moved.
 2. **A mixed-resolution multi-monitor setup** — the coordinate-flip bug appears nowhere else. Tile on
-   the secondary display, and walk Left Half across both displays under `.displays`.
-3. Cycling, in both modes: under `.sizes`, three presses of Left Half, then drag the window and confirm
-   the next press restarts at ½. Under `.displays` on two monitors, four presses of Left Half must
-   visit every half-slot once and return to the first.
-4. The Dock guard, with the Dock auto-hidden: tile a window to Left Half, then sleep and wake the
+   the secondary display with Half and Quarter.
+3. Cycling: Half twice lands left then right; Quarter four times visits every corner clockwise. Drag
+   the window, and the next press starts over on the starting slot.
+4. The Dock guard, with the Dock auto-hidden: tile a window to the left Half, then sleep and wake the
    displays or plug one in. The window must end up full height again, and
    `log stream --predicate 'category == "window-management"'` shows a restore if anything shrank it.
    Dragging its bottom edge up afterwards must stick.

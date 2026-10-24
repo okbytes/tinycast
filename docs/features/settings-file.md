@@ -109,7 +109,9 @@ Where a number has a special case, the case is a word:
 | `calendar.menuBar` | `"disabled"`, `"meetingIcon"`, `"meetingTitle"` |
 | `calendar.menuBarUpcomingEvents` | `"today"`, or 2, 5, 10, 30 minutes before |
 | `calendar.hideCurrentEventAfterMinutes` | `"never"`, 0 (as it starts), 5, 10, 30 |
-| `windowManagement.gap` | 0 to 64 |
+| `windowManagement.halfStart` | `"left"`, `"right"` |
+| `windowManagement.quarterStart` | `"topLeft"`, `"topRight"`, `"bottomLeft"`, `"bottomRight"` |
+| `windowManagement.centerWidthPercent` | 20 to 100 |
 
 ## Shortcut chords
 
@@ -149,7 +151,7 @@ in `commands.builtIn` — by their ID after `command:`. App Launcher is `general
 
 ## Window management
 
-- **`shortcuts`** lists all 15 commands by ID, `null` when unbound; one left out is unbound too.
+- **`shortcuts`** lists all 8 commands by ID, `null` when unbound; one left out is unbound too.
 - **`aliases`** lists only the commands that have one.
 
 ## Adding a setting

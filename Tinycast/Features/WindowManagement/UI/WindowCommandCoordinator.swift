@@ -17,8 +17,10 @@ final class WindowCommandCoordinator {
     func runWindowCommand(id: WindowCommand.ID) {
         guard settings.windowManagementEnabled else { return }
         windowMover.perform(
-            id, target: handOffTarget(), gap: CGFloat(settings.windowGap),
-            cycle: settings.windowCycle)
+            id, target: handOffTarget(),
+            preferences: WindowPlacementEngine.Preferences(
+                halfStart: settings.windowHalfStart, quarterStart: settings.windowQuarterStart,
+                centerWidth: settings.windowCenterWidth))
     }
 
     /// The window to place, read before the palette hides and hands focus back to it.

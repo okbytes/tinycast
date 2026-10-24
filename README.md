@@ -31,10 +31,10 @@ source, and staying that way.
 - **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
 - **Command folder** — scripts and link files in a folder become launcher commands, with aliases and
   global hotkeys.
-- **Window management** — 15 Rectangle-style actions: halves, quarters, three fourths, Maximize,
-  Center and edge moves.
-- **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, mute, hidden
-  files, and more.
+- **Window management** — Rectangle-style actions: Half and Quarter, which cycle on repeat,
+  Maximize, Center at a width you choose, and edge moves.
+- **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, hidden files,
+  and more.
 - **Calendar** — what's coming up next in the menu bar, the schedule on click, and one click to open
   any event in Calendar.
 - **Emoji picker** — a searchable emoji grid, one keystroke away.

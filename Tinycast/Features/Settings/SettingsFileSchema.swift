@@ -50,11 +50,12 @@ enum SettingsFileSchema {
         case .windowManagementEnabled: return bind(settings, \.windowManagementEnabled)
         case .windowManagementShowInLauncher:
             return bind(settings, \.windowManagementShowInLauncher)
-        case .windowGap:
-            return bind(settings, \.windowGap) {
-                WindowPlacementEngine.gapRange.contains($0) ? $0 : nil
+        case .windowHalfStart: return bind(settings, \.windowHalfStart)
+        case .windowQuarterStart: return bind(settings, \.windowQuarterStart)
+        case .windowCenterWidth:
+            return bind(settings, \.windowCenterWidth) {
+                WindowPlacementEngine.centerWidthRange.contains($0) ? $0 : nil
             }
-        case .windowCycle: return bind(settings, \.windowCycle)
         case .windowShortcuts: return windowManagement.commandShortcutsBinding(for: key)
         case .windowAliases: return windowManagement.commandAliasesBinding(for: key)
         case .clipboardEnabled: return bind(settings, \.clipboardEnabled)
@@ -78,7 +79,8 @@ extension HyperKeyPhysicalKey: SettingsFileRawValue {}
 extension HyperKeyQuickPress: SettingsFileRawValue {}
 extension CalcNumberStyle: SettingsFileRawValue {}
 extension SearchSensitivity: SettingsFileRawValue {}
-extension WindowCycle: SettingsFileRawValue {}
+extension WindowCommand.HalfSide: SettingsFileRawValue {}
+extension WindowCommand.QuarterCorner: SettingsFileRawValue {}
 extension ClipboardDefaultAction: SettingsFileRawValue {}
 
 extension ClipboardRetention: SettingsFileToken {

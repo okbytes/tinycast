@@ -122,6 +122,8 @@ enum Theme {
         /// The narrowest the pane column may get before a grouped row's control starts colliding.
         static let settingsDetailMinimum: CGFloat = 420
         static let settingsRowIcon: CGFloat = 20
+        /// A Settings number field, wide enough for three digits.
+        static let settingsNumberField: CGFloat = 44
         /// A sidebar glyph inside its tinted tile; the tile's inset brings it to the row icon's size.
         static let settingsSidebarGlyph: CGFloat = 14
         /// The confirmation HUD's width ceiling, and its distance above the screen bottom.

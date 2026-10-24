@@ -32,8 +32,9 @@ struct SettingsBackup: Codable {
         var rootSearchSensitivity: String?
         var windowManagementEnabled: Bool?
         var windowManagementShowInLauncher: Bool?
-        var windowGap: Int?
-        var windowCycle: String?
+        var windowHalfStart: String?
+        var windowQuarterStart: String?
+        var windowCenterWidth: Int?
         // A `~` path, so it lands on the other Mac's home; the folder itself is not carried.
         var commandFolder: String?
         // No `calendarEnabled`, so an import grants no access; the span only narrows what is read.
@@ -91,8 +92,9 @@ extension SettingsBackup {
             rootSearchSensitivity: s.rootSearchSensitivity.rawValue,
             windowManagementEnabled: s.windowManagementEnabled,
             windowManagementShowInLauncher: s.windowManagementShowInLauncher,
-            windowGap: s.windowGap,
-            windowCycle: s.windowCycle.rawValue,
+            windowHalfStart: s.windowHalfStart.rawValue,
+            windowQuarterStart: s.windowQuarterStart.rawValue,
+            windowCenterWidth: s.windowCenterWidth,
             commandFolder: s.commandFolder,
             calendarSpan: s.calendarSpan.rawValue,
             menuBarEvents: s.menuBarEvents.rawValue,
@@ -228,12 +230,16 @@ extension SettingsBackup {
             settings.windowManagementShowInLauncher = flag
             count += 1
         }
-        if let gap = s.windowGap {
-            settings.windowGap = gap
+        if let raw = s.windowHalfStart, let side = WindowCommand.HalfSide(rawValue: raw) {
+            settings.windowHalfStart = side
             count += 1
         }
-        if let raw = s.windowCycle, let cycle = WindowCycle(rawValue: raw) {
-            settings.windowCycle = cycle
+        if let raw = s.windowQuarterStart, let corner = WindowCommand.QuarterCorner(rawValue: raw) {
+            settings.windowQuarterStart = corner
+            count += 1
+        }
+        if let width = s.windowCenterWidth, WindowPlacementEngine.centerWidthRange.contains(width) {
+            settings.windowCenterWidth = width
             count += 1
         }
         if let path = s.commandFolder {
