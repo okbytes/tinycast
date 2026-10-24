@@ -290,7 +290,7 @@ can't say what it acts on.
 ### User aliases
 
 `AliasStore` (`Launcher/Service/`) keeps one user-chosen alias per entry, keyed by `preferenceKey`
-like learned ranking, so every entry kind — apps, commands, Apple Shortcuts —
+like learned ranking, so every entry kind — apps, commands, folder commands —
 can carry one. An alias is deliberate in a way no vendor field is, so an exact hit is rule 1 and a
 prefix hit rule 5. Only a hit **from its start** earns those rules; anywhere else the alias ranks as
 an alternate title by score, so `dark` finds an alias `toggle light / dark`, while `term` inside
@@ -312,7 +312,7 @@ hands `AliasField` the key itself: Settings ▸ Window Management passes each co
 dims the field when the entry is hidden from launcher search, whose entry the ranker never sees.
 
 Aliases ride along in a settings backup (`launcherAliases`), and deleting what an alias points at —
-uninstalling an app, deleting an Apple Shortcut — removes it
+uninstalling an app, deleting a folder command's file — removes it
 with the entry's other per-entry preferences.
 
 ### Alternate names
@@ -482,18 +482,10 @@ Settings › Window Management rather than a launcher-category pane of their own
 off. See
 [window-management.md](window-management.md).
 
-## Apple Shortcuts
-
-`AppleShortcutCoordinator` reads the Shortcuts app's library through `/usr/bin/shortcuts` and supplies
-it as its own slice right after Applications, re-reading on a launcher open under the same 15 s
-staleness rule as the app scan. Only the name is indexed,
-and the entry id is keyed on the shortcut's UUID, so an alias or binding survives a rename in
-Shortcuts. See [apple-shortcuts.md](apple-shortcuts.md).
-
 ## Command Folder
 
 `FolderCommandCoordinator` reads a folder of scripts and link files and supplies it as its own slice
-right after Apple Shortcuts, re-reading on a folder change and on a launcher open under the same
+right after Applications, re-reading on a folder change and on a launcher open under the same
 15 s staleness rule. The entry id is the file name, so an alias or binding follows the file. See
 [command-folder.md](command-folder.md).
 

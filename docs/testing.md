@@ -104,7 +104,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `volume-test` | `SystemActions/Model/VolumeLevel.swift` |
 | `window-command-test` | `WindowManagement/WindowCommand.swift`, `WindowPlacementEngine.swift`, `WindowActionMemory.swift` |
 | `uninstall-test` | all five pure files in `Uninstall/Model/` |
-| `apple-shortcut-test` | all of `AppleShortcuts/Model/` — the `shortcuts list` parser and entry ids |
 | `folder-command-test` | `CommandFolder/Model/FolderCommand.swift` — which files make commands, names, links, entry ids and the sweep |
 | `icon-cache-test` | `Platform/Images/IconCache.swift` — row sizing at 1×/2×, warm reuse, stamp and style invalidation, bitmap release, fitted geometry across all 256 alpha values, and that a row icon draws identically to the 96px one |
 | `entry-icon-test` | `EntryIcon` — that each case draws, caches and prints apart from the others, and that a moved `FileIconStamp` retires the bitmap decoded before it |
@@ -374,16 +373,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Confirming moves items to the Trash and they are **recoverable from it**
 - Escaping mid-scan cancels promptly with no spinner left behind
 - Hiding and immediately restoring the screen never strands an in-flight file icon as a placeholder
-
-### Apple Shortcuts
-
-- Off out of the box: the pane lists nothing and no shortcut reaches the launcher
-- Switching on lists every shortcut with the Shortcuts app's icon; ↵ on a row runs it
-- A shortcut added in Shortcuts appears on the next launcher open at least 15 s after the previous one
-- A row's hotkey runs it with the palette closed; switching the feature off silences it
-- Unchecking a row hides it from search, and its hotkey still fires
-- Deleting a shortcut in Shortcuts frees its alias and hotkey on the next launcher open at least 15 s after the previous one
-- A shortcut that fails shows Tinycast's dialog with the tool's error
 
 ### Calculator and currency
 

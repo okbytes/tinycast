@@ -22,7 +22,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ WindowCommand · WindowPlacementEngine · WindowActionMemory ·               │
 │ PaletteRowIndex ·                                                          │
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
-│ LinkDestination · AppleShortcut · FolderCommand ·                          │
+│ LinkDestination · FolderCommand ·                                          │
 │ DoubleTap{Modifier,Detector} · ClipboardStore ·                            │
 │ AppSettingsKey · SettingsBackupCoverage · KeyRemapEngine · TopRowMap ·     │
 │ SettingsFile{JSON,Key,Value,Format,Binding,Issue} ·                        │
@@ -37,13 +37,13 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ SystemActionRunner · CurrencyRateStore · Paster ·                          │
 │ HotKeyCenter · KeyRemapManager · ModifierTapMonitor · RunningAppsMonitor · │
 │ CalendarStore · MeetingClock · CameraSession ·                             │
-│ AppleShortcutRunner · CommandFolderScanner · CommandFolderMonitor ·        │
+│ CommandFolderScanner · CommandFolderMonitor ·                              │
 │ FolderCommandRunner · SettingsFileRepository · SettingsFileMonitor ·       │
 │ WindowManagementSettingsFile                                               │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 31 @MainActor @Observable stores, sessions, indices and State types        │
+│ 30 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -221,7 +221,7 @@ Tinycast/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Calculator/ Calendar/ Camera/ Emoji/ Dictionary/ AppleShortcuts/ CommandFolder/
+    Launcher/ Calculator/ Calendar/ Camera/ Emoji/ Dictionary/ CommandFolder/
     Uninstall/ SystemActions/ HotKeys/ KeyRemap/ Backup/
     WindowManagement/ Onboarding/ Settings/
     Clipboard/
@@ -244,7 +244,7 @@ Every `SettingsTab` maps to one `…SettingsView`, and each is a stock `Form` wi
 `.formStyle(.grouped)` — see [ui.md](ui.md#settings). A pane lives with its feature; only a pane no
 feature owns (General, Permissions) lives in `Settings/Panes/`. The three launcher-category panes —
 Applications, System Actions, Commands — are thin wrappers over the shared
-`LauncherItemsSection`; Apple Shortcuts pairs its feature switch with the same `LauncherItemsList`.
+`LauncherItemsSection`.
 
 `SettingsTab` and `SettingsSection` both identify by the case itself, never by an index. A selectable
 `List` flattens section and row IDs into one namespace, so overlapping `Int` IDs make SwiftUI drop

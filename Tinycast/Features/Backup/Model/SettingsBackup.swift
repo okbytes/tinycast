@@ -36,8 +36,6 @@ struct SettingsBackup: Codable {
         var windowManagementShowInLauncher: Bool?
         var windowGap: Int?
         var windowCycle: String?
-        // Carried: running a shortcut the user built grants no permission class.
-        var appleShortcutsEnabled: Bool?
         // A `~` path, so it lands on the other Mac's home; the folder itself is not carried.
         var commandFolder: String?
         // No `calendarEnabled`, so an import grants no access; the span only narrows what is read.
@@ -99,7 +97,6 @@ extension SettingsBackup {
             windowManagementShowInLauncher: s.windowManagementShowInLauncher,
             windowGap: s.windowGap,
             windowCycle: s.windowCycle.rawValue,
-            appleShortcutsEnabled: s.appleShortcutsEnabled,
             commandFolder: s.commandFolder,
             calendarSpan: s.calendarSpan.rawValue,
             menuBarEvents: s.menuBarEvents.rawValue,
@@ -249,10 +246,6 @@ extension SettingsBackup {
         }
         if let raw = s.windowCycle, let cycle = WindowCycle(rawValue: raw) {
             settings.windowCycle = cycle
-            count += 1
-        }
-        if let flag = s.appleShortcutsEnabled {
-            settings.appleShortcutsEnabled = flag
             count += 1
         }
         if let path = s.commandFolder {

@@ -144,7 +144,6 @@ run launcher-settings-file-test \
                            Tinycast/Platform/LinkDestination.swift \
                            Tinycast/Features/SystemActions/Model/SystemAction.swift \
                            Tinycast/Features/WindowManagement/Model/WindowCommand.swift
-run apple-shortcut-test    Tinycast/Features/AppleShortcuts/Model/*.swift
 run folder-command-test    Tinycast/Features/CommandFolder/Model/*.swift
 run calc-test              Tinycast/Features/Calculator/Model/*.swift
 run index calc-performance Tinycast/Features/Calculator/Model/*.swift

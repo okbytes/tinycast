@@ -12,7 +12,6 @@ struct SettingsDetailView: View {
             case .applications: ApplicationsSettingsView()
             case .systemActions: SystemActionsSettingsView()
             case .commands: CommandsSettingsView()
-            case .appleShortcuts: AppleShortcutsSettingsView()
             case .windowManagement: WindowManagementSettingsView()
             case .clipboard: ClipboardSettingsView()
             case .emoji: EmojiSettingsView()

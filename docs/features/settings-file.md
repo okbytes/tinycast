@@ -24,7 +24,7 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
 - **Applying the file never writes it.** Only a change made in the app rewrites the file, so hand
   formatting stays until then.
 - **Content and machine state never enter it** — not the palette's position, nor the shortcuts and
-  aliases of Apple Shortcuts.
+  aliases of folder commands.
 
 ## Layout
 

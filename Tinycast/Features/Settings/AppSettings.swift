@@ -252,11 +252,6 @@ final class AppSettings {
         didSet { defaults.set(windowCycle.rawValue, forKey: Key.windowCycle.rawValue) }
     }
 
-    /// Off means the Shortcuts tool is never run, down to a bound shortcut running nothing.
-    var appleShortcutsEnabled: Bool {
-        didSet { defaults.set(appleShortcutsEnabled, forKey: Key.appleShortcutsEnabled.rawValue) }
-    }
-
     /// A `~`-abbreviated path, or empty for `~/.config/tinycast/commands`.
     var commandFolder: String {
         didSet { defaults.set(commandFolder, forKey: Key.commandFolder.rawValue) }
@@ -355,7 +350,6 @@ final class AppSettings {
         windowGap = defaults.integer(forKey: Key.windowGap.rawValue)
         windowCycle =
             defaults.string(forKey: Key.windowCycle.rawValue).flatMap(WindowCycle.init) ?? .off
-        appleShortcutsEnabled = defaults.bool(forKey: Key.appleShortcutsEnabled.rawValue)
         commandFolder = defaults.string(forKey: Key.commandFolder.rawValue) ?? ""
         settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)
     }

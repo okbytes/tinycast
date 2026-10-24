@@ -6,7 +6,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case command
         case systemAction
         case windowCommand
-        case appleShortcut
         case folderCommand
 
         var descriptor: KindDescriptor {
@@ -31,12 +30,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                     label: "Window Command", sectionTitle: "Window Management",
                     openVerb: "Move Window", canHideFromSearch: true,
                     canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 0)
-            case .appleShortcut:
-                // File-backed so every row draws the Shortcuts app's own icon.
-                return KindDescriptor(
-                    label: "Apple Shortcut", sectionTitle: "Apple Shortcuts",
-                    openVerb: "Run Shortcut", canHideFromSearch: true,
-                    canRevealInFinder: false, canDragOut: false, isSymbolIcon: false, rankPriority: 0)
             case .folderCommand:
                 // Its url is the file, so Reveal in Finder opens the folder on it.
                 return KindDescriptor(
@@ -121,8 +114,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return SystemActionCatalog.action(forEntryID: id).map { .systemAction(id: $0.id) }
         case .windowCommand:
             return WindowCommandCatalog.command(forEntryID: id).map { .windowCommand(id: $0.id) }
-        case .appleShortcut:
-            return AppleShortcut.id(fromEntryID: id).map { .appleShortcut(id: $0) }
         case .folderCommand:
             return FolderCommand.id(fromEntryID: id).map { .folderCommand(id: $0) }
         }
@@ -148,7 +139,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case .windowCommand:
             return WindowCommandCatalog.command(forEntryID: id)?.sfSymbol ?? "questionmark"
         case .folderCommand: return FolderCommand.symbol(forEntryID: id)
-        case .application, .appleShortcut: return "questionmark"
+        case .application: return "questionmark"
         }
     }
 
@@ -168,13 +159,6 @@ extension AppEntry {
             id: command.entryID, name: command.name,
             url: URL(string: "tinycast://window-command/" + command.id.rawValue)!,
             bundleID: nil, kind: .windowCommand)
-    }
-
-    /// No bundle id: that would key every shortcut's alias and ranking to the Shortcuts app.
-    init(_ shortcut: AppleShortcut, applicationURL: URL) {
-        self.init(
-            id: shortcut.entryID, name: shortcut.name, url: applicationURL, bundleID: nil,
-            kind: .appleShortcut)
     }
 
     init(_ command: FolderCommand, folder: URL) {
@@ -258,7 +242,6 @@ final class AppIndex {
 
     private var discoveredEntries: [AppEntry] = []
     private var windowCommandEntries: [AppEntry] = []
-    private var appleShortcutEntries: [AppEntry] = []
     private var folderCommandEntries: [AppEntry] = []
     /// The catalog's commands a disabled feature hides; the Commands slice is recomputed from it.
     private var hiddenCommands: Set<CommandID> = []
@@ -303,13 +286,6 @@ final class AppIndex {
         let updated = visible ? hiddenCommands.subtracting(commands) : hiddenCommands.union(commands)
         guard updated != hiddenCommands else { return }
         hiddenCommands = updated
-        publishEntries()
-    }
-
-    /// Discovered from the Shortcuts app, so it arrives already built and sorted.
-    func setAppleShortcuts(_ entries: [AppEntry]) {
-        guard entries != appleShortcutEntries else { return }
-        appleShortcutEntries = entries
         publishEntries()
     }
 
@@ -444,8 +420,7 @@ final class AppIndex {
         let updated =
             discoveredEntries
             + Self.named(
-                appleShortcutEntries
-                    + folderCommandEntries
+                folderCommandEntries
                     + Self.systemActionEntries
                     + windowCommandEntries
                     + commandEntries)

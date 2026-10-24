@@ -29,7 +29,7 @@ source, and staying that way.
 - **Dictionary** — look a word up with the Define Word command, read from the Mac's own dictionaries.
 - **Clipboard history** — text and images, searchable, pasted back into the app you were using.
 - **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
-- **Apple Shortcuts** — search and run the shortcuts you built in the Shortcuts app, with aliases and
+- **Command folder** — scripts and link files in a folder become launcher commands, with aliases and
   global hotkeys.
 - **Window management** — 15 Rectangle-style actions: halves, quarters, three fourths, Maximize,
   Center and edge moves.
@@ -64,8 +64,7 @@ Accessibility**.
 1. Open **Settings → General** and record a global shortcut to summon Tinycast.
 2. Press it anywhere → the palette floats in. Type to filter, **↵** to launch.
 3. **Tab** switches between Apps and Clipboard; **↑/↓** move, **Esc** dismisses.
-4. **Settings → Applications**, **Commands** or **Apple Shortcuts** — record a global shortcut for
-   any row.
+4. **Settings → Applications** or **Commands** — record a global shortcut for any row.
 
 ## Building from source
 

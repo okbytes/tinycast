@@ -29,7 +29,6 @@ open with an `## Invariants` section; read it before changing anything in that a
 [camera](features/camera.md) ·
 [emoji](features/emoji.md) ·
 [dictionary](features/dictionary.md) ·
-[Apple Shortcuts](features/apple-shortcuts.md) ·
 [command folder](features/command-folder.md) ·
 [hotkeys](features/hotkeys.md) ·
 [window management](features/window-management.md) ·

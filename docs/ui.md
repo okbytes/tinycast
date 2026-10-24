@@ -550,7 +550,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   fixed that, but tears a row's `TextField` and checkbox — both `NSView`s — down when the row scrolls
   off and builds them again when one scrolls on, about 7 ms and 4 ms on macOS 27. A fast scrollbar
   drag replaces a screenful of rows per update, so the list froze for 100–400 ms at a time.
-  The Applications and Apple Shortcuts lists therefore use `LauncherItemsTable`, an `NSTableView`
+  The Applications and folder-command lists therefore use `LauncherItemsTable`, an `NSTableView`
   filling one Form row; the shorter launcher-item lists use native Form rows. The table keeps a
   screenful of cells and hands each a new entry, and each cell hosts the
   SwiftUI `LauncherItemRow`, so a reused row's controls update in place. A hosted row inherits nothing

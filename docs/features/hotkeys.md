@@ -56,17 +56,14 @@ keeps a dropped search scope from deleting a working shortcut, and running on un
 covers LaunchServices still resolving an app for a few seconds after it is trashed.
 
 Shortcuts are also spelled as typeable chords (`ctrl+option+left`) in the opt-in
-[settings file](settings-file.md) — all but those of Apple Shortcuts.
+[settings file](settings-file.md) — all but those of folder commands.
 `HotKeySpelling` is that grammar; `HotKeySettingsFile` applies through `setBinding`, so `UserDefaults`
 stays the one store either way.
 
-Apple Shortcuts use their stable UUIDs in `boundAppleShortcutIDs`. That is the per-item case —
+Folder commands use their file names in `boundFolderCommandIDs`. That is the per-item case —
 unlike a fixed catalog, there is no `allCases` to walk — so it needs an index for `start()` to
-re-register from. It is pruned not at launch but after the first successful read of the library,
-since a failed read looks exactly like deletion
-(see [apple-shortcuts.md](apple-shortcuts.md#sweeping-deleted-shortcuts)). Folder commands use their
-file names in `boundFolderCommandIDs` the same way, pruned after each successful folder read
-([command-folder.md](command-folder.md)).
+re-register from. It is pruned not at launch but after each successful folder read, since an
+unreadable folder looks exactly like deletion ([command-folder.md](command-folder.md)).
 
 `HotKeyBinding` takes the synthesised `Codable`, so a `.combo` writes
 `{"combo":{"_0":{"carbonKeyCode":N,"carbonModifiers":N}}}` and a `.doubleTap` writes

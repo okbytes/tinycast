@@ -43,7 +43,7 @@ struct FolderCommandTest {
 
         let script = commands.last!
         check("an entry id round-trips", FolderCommand.id(fromEntryID: script.entryID) == "rejoin-lines.sh")
-        check("another kind's id is refused", FolderCommand.id(fromEntryID: "apple-shortcut:x") == nil)
+        check("another kind's id is refused", FolderCommand.id(fromEntryID: "window-command:x") == nil)
         check("an empty id is refused", FolderCommand.id(fromEntryID: "folder-command:") == nil)
         check("a link file gets the link glyph", FolderCommand.symbol(forEntryID: commands[3].entryID) == FolderCommand.linkSymbol)
         check("a script gets the terminal glyph", script.symbol == FolderCommand.scriptSymbol)

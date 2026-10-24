@@ -18,12 +18,12 @@ the way.
 - **`run(id:)` is the single funnel** for a launcher row and a global shortcut alike, and it runs
   only a command the last read found.
 - **An unreadable folder keeps the last good read**; an empty one is a real reading and frees
-  everything it once held. Unlike Apple Shortcuts there is no tool that can answer "empty" by
-  mistake: the folder either lists or it does not.
+  everything it once held. No tool can answer "empty" by mistake: the folder either lists or it
+  does not.
 - **A script runs in a login shell, under Tinycast's own environment.** Tinycast launches with
   launchd's variables ([architecture.md](../architecture.md#entry-points-and-windows)), and
   `/bin/zsh -l` adds the user's `PATH` from `/etc/zprofile` and `~/.zprofile`, so `zed` and
-  Homebrew's tools resolve as they do in Terminal. Nothing from Shortcuts' helper is in the way.
+  Homebrew's tools resolve as they do in Terminal.
 - **`Model/` stays Foundation-only and pure** for `folder-command-test`: the scanner hands it a
   listing, and it decides what each file makes.
 
@@ -62,8 +62,8 @@ clipboard with `pbpaste` and writes it with `pbcopy`; nothing is piped in.
 
 ## Launcher and Settings
 
-`AppEntry.Kind.folderCommand` is its own section, "Command Folder", published after Apple
-Shortcuts. Rows are symbol tiles — `terminal` for a script, `link` for a link, decided from the file
+`AppEntry.Kind.folderCommand` is its own section, "Command Folder", published after
+Applications. Rows are symbol tiles — `terminal` for a script, `link` for a link, decided from the file
 name — and each entry's `url` is the file, so Reveal in Finder opens the folder on it.
 
 The Commands pane lists them under its built-in commands, through the same `LauncherItemsSection`:

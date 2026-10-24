@@ -55,11 +55,6 @@ final class AppCore {
         settings: settings, paletteCoordinator: paletteCoordinator, windowMover: windowMover)
     @ObservationIgnored private(set) lazy var windowShortcutPresetCoordinator =
         WindowShortcutPresetCoordinator(hotKeys: hotKeys, core: self)
-    @ObservationIgnored private(set) lazy var appleShortcutCoordinator = AppleShortcutCoordinator(
-        settings: settings, appIndex: appIndex, hotKeys: hotKeys, visibility: visibility,
-        ranking: launcherRanking, aliases: aliases, paletteCoordinator: paletteCoordinator,
-        core: self)
-
     @ObservationIgnored private(set) lazy var folderCommandCoordinator = FolderCommandCoordinator(
         settings: settings, appIndex: appIndex, hotKeys: hotKeys, visibility: visibility, ranking: launcherRanking,
         aliases: aliases, paletteCoordinator: paletteCoordinator, core: self)
@@ -121,10 +116,8 @@ final class AppCore {
             appIndex.start(settings: settings)
             clipboardCoordinator.applyEnabled()
             applyWindowCommandsPresence()
-            appleShortcutCoordinator.applyPresence()
             folderCommandCoordinator.start()
             paletteCoordinator.onLauncherShown = { [weak self] in
-                self?.appleShortcutCoordinator.refreshIfStale()
                 self?.folderCommandCoordinator.refreshIfStale()
             }
             calendarCoordinator.applyEnabled()
@@ -142,9 +135,6 @@ final class AppCore {
             }
             hotKeys.onRunWindowCommand = { [weak self] id in
                 self?.windowCommandCoordinator.runWindowCommand(id: id)
-            }
-            hotKeys.onRunAppleShortcut = { [weak self] id in
-                self?.appleShortcutCoordinator.run(id: id)
             }
             hotKeys.onRunFolderCommand = { [weak self] id in
                 self?.folderCommandCoordinator.run(id: id)
@@ -199,8 +189,6 @@ final class AppCore {
         switch action {
         case .app(let bundleID):
             return appIndex.apps.first { $0.kind == .application && $0.bundleID == bundleID }?.name
-        case .appleShortcut(let id):
-            return appleShortcutCoordinator.name(of: id)
         case .folderCommand(let id):
             return folderCommandCoordinator.name(of: id)
         case .togglePalette, .command, .systemAction, .windowCommand:
@@ -249,9 +237,6 @@ final class AppCore {
                 _ = $0.windowManagementEnabled
                 _ = $0.windowManagementShowInLauncher
             }, reproject: { $0.applyWindowCommandsPresence() })
-        track(
-            { _ = $0.appleShortcutsEnabled },
-            reproject: { $0.appleShortcutCoordinator.applyPresence() })
         track({ _ = $0.commandFolder }, reproject: { $0.folderCommandCoordinator.applyFolder() })
         track(
             { _ = $0.clipboardEnabled }, reproject: { $0.clipboardCoordinator.applyEnabled() })

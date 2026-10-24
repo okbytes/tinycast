@@ -25,7 +25,6 @@ enum SettingsBackupCoverage {
         "windowManagementShowInLauncher": .windowManagementShowInLauncher,
         "windowGap": .windowGap,
         "windowCycle": .windowCycle,
-        "appleShortcutsEnabled": .appleShortcutsEnabled,
         "commandFolder": .commandFolder,
         "calendarSpan": .calendarSpan,
         "menuBarEvents": .menuBarEvents,

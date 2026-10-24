@@ -23,7 +23,6 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case builtInCommandsEnabled = "commands.builtInEnabled"
     case builtInCommands = "commands.builtIn"
     case commandFolder = "commands.folder"
-    case appleShortcutsEnabled = "appleShortcuts.enabled"
     case windowManagementEnabled = "windowManagement.enabled"
     case windowManagementShowInLauncher = "windowManagement.showInLauncher"
     case windowGap = "windowManagement.gap"

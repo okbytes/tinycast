@@ -60,9 +60,6 @@ final class LauncherCoordinator {
         case .windowCommand:
             guard let command = WindowCommandCatalog.command(forEntryID: app.id) else { return }
             windowCommandCoordinator.runWindowCommand(id: command.id)
-        case .appleShortcut:
-            guard let id = AppleShortcut.id(fromEntryID: app.id) else { return }
-            core.appleShortcutCoordinator.run(id: id)
         case .folderCommand:
             guard let id = FolderCommand.id(fromEntryID: app.id) else { return }
             core.folderCommandCoordinator.run(id: id)
