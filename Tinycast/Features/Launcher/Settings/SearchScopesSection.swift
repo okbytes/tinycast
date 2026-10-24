@@ -4,13 +4,16 @@ import UniformTypeIdentifiers
 /// The editable list of folders (and individual `.app` bundles) the launcher indexes.
 struct SearchScopesSection: View {
     @Environment(AppSettings.self) private var settings
+    @Environment(SettingsNavigationState.self) private var navigation
     /// Recomputed only on change: a `fileExists` per row is too much per body render.
     @State private var missing: Set<String> = []
+    /// Collapsed by default: it is set once and would otherwise push the app list off screen.
+    @State private var isExpanded = false
 
     private var isDefault: Bool { settings.searchScopes == SearchScopes.defaults }
 
     var body: some View {
-        Section {
+        Section(isExpanded: $isExpanded) {
             ForEach(settings.searchScopes, id: \.self) { scope in
                 SettingsScopeRow(
                     scope: scope, path: SearchScopes.expand(scope),
@@ -32,6 +35,9 @@ struct SearchScopesSection: View {
         }
         .onAppear(perform: refreshMissing)
         .onChange(of: settings.searchScopes) { _, _ in refreshMissing() }
+        .onChange(of: navigation.scrollRequest, initial: true) { _, request in
+            if request?.target.anchor == .applicationsSearchScopes { isExpanded = true }
+        }
     }
 
     private func refreshMissing() {

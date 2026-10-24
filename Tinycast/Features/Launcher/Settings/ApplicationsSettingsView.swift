@@ -17,5 +17,4 @@ struct ApplicationsSettingsView: View {
         .settingsScrollTarget(.applications)
         .releasesFocusOnOutsideClick()
     }
-
 }
