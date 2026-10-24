@@ -60,19 +60,20 @@ enum WindowPlacementEngine {
         var command: WindowCommand.ID
         var windowFrame: CGRect
         var screens: [Screen]
-        /// Cycle position, supplied by `WindowActionMemory` so the geometry itself stays stateless.
+        /// The slot in the command's cycle, chosen by the mover so the geometry stays stateless.
         var step: Int
-        var preferences: Preferences
+        /// Center's width, as a percentage of the display.
+        var centerWidth: Int
 
         init(
             command: WindowCommand.ID, windowFrame: CGRect, screens: [Screen], step: Int = 0,
-            preferences: Preferences = .standard
+            centerWidth: Int = Preferences.standard.centerWidth
         ) {
             self.command = command
             self.windowFrame = windowFrame
             self.screens = screens
             self.step = step
-            self.preferences = preferences
+            self.centerWidth = centerWidth
         }
     }
 
@@ -93,30 +94,27 @@ enum WindowPlacementEngine {
 
         // `cycleLength` is 1 for a non-cycling command, so a stale step can never leak in.
         let step = wrapped(input.step, into: WindowCommandCatalog.cycleLength(for: input.command))
-        let preferences = input.preferences
         let canvas = canvas(host.usableFrame)
         let current = input.windowFrame
 
         switch input.command {
         case .half:
-            let side = step == 0 ? preferences.halfStart : preferences.halfStart.opposite
-            return tilePlacement(side.fractions, on: host)
+            return tilePlacement(WindowCommand.HalfSide.cycle[step].fractions, on: host)
 
         case .quarter:
-            let corners = WindowCommand.QuarterCorner.clockwise
-            let start = corners.firstIndex(of: preferences.quarterStart) ?? 0
-            return tilePlacement(corners[wrapped(start + step, into: corners.count)].fractions, on: host)
+            return tilePlacement(WindowCommand.QuarterCorner.cycle[step].fractions, on: host)
 
         case .maximize:
             return Placement(
                 frame: canvas, screenID: host.id, anchor: .topLeading, resizes: true)
 
+        // A window that can't take this size sits centred on both axes, not pinned to the top.
         case .center:
-            let width = CGFloat(clampedCenterWidth(preferences.centerWidth)) / 100
+            let width = CGFloat(clampedCenterWidth(input.centerWidth)) / 100
             return tilePlacement(
                 Fractions(
                     x0: (1 - width) / 2, x1: (1 + width) / 2, y0: 0, y1: 1,
-                    anchor: Anchor(horizontal: .center, vertical: .min)),
+                    anchor: Anchor(horizontal: .center, vertical: .center)),
                 on: host)
 
         case .moveLeft, .moveRight, .moveUp, .moveDown:
@@ -126,15 +124,14 @@ enum WindowPlacementEngine {
         }
     }
 
-    /// A cycling press that would leave the window where it already sits moves on a step instead.
-    static func advancingPastNoOp(_ input: Input, tolerance: CGFloat) -> Input {
-        let length = WindowCommandCatalog.cycleLength(for: input.command)
-        guard length > 1, let landing = placement(for: input),
-            approximatelyEqual(landing.frame, input.windowFrame, tolerance: tolerance)
-        else { return input }
-        var next = input
-        next.step = wrapped(input.step + 1, into: length)
-        return next
+    /// The slot a press that starts a new chain lands on: the starting position Settings names.
+    static func firstStep(for command: WindowCommand.ID, preferences: Preferences) -> Int {
+        switch command {
+        case .half: return WindowCommand.HalfSide.cycle.firstIndex(of: preferences.halfStart) ?? 0
+        case .quarter:
+            return WindowCommand.QuarterCorner.cycle.firstIndex(of: preferences.quarterStart) ?? 0
+        case .maximize, .center, .moveLeft, .moveRight, .moveUp, .moveDown: return 0
+        }
     }
 
     // MARK: - Screens
@@ -189,7 +186,7 @@ enum WindowPlacementEngine {
         rounded(visible)
     }
 
-    /// A width outside the range — from a hand-edited file, say — is pulled back into it.
+    /// settings.json and backups refuse a width outside the range; this catches a defaults write.
     static func clampedCenterWidth(_ percent: Int) -> Int {
         min(max(percent, centerWidthRange.lowerBound), centerWidthRange.upperBound)
     }
@@ -256,20 +253,21 @@ enum WindowPlacementEngine {
         return CGRect(x: x, y: y, width: frame.width, height: frame.height)
     }
 
-    private static func approximatelyEqual(_ a: CGRect, _ b: CGRect, tolerance: CGFloat) -> Bool {
-        abs(a.minX - b.minX) <= tolerance && abs(a.minY - b.minY) <= tolerance
-            && abs(a.width - b.width) <= tolerance && abs(a.height - b.height) <= tolerance
-    }
-
     /// Wraps into `0..<length`, so neither a negative nor an overrun step escapes the cycle.
     private static func wrapped(_ value: Int, into length: Int) -> Int {
         ((value % length) + length) % length
     }
 }
 
-extension WindowCommand.HalfSide {
-    var opposite: Self { self == .left ? .right : .left }
+extension CGRect {
+    /// Every edge within `tolerance`: what "the window is still where it was" means here.
+    func approximatelyEquals(_ other: CGRect, tolerance: CGFloat) -> Bool {
+        abs(minX - other.minX) <= tolerance && abs(minY - other.minY) <= tolerance
+            && abs(width - other.width) <= tolerance && abs(height - other.height) <= tolerance
+    }
+}
 
+extension WindowCommand.HalfSide {
     fileprivate var fractions: WindowPlacementEngine.Fractions {
         switch self {
         case .left:

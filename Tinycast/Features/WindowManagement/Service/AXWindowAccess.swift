@@ -90,8 +90,8 @@ enum AXWindowAccess {
             actual = frame(of: window) ?? actual
         }
 
-        // An app-imposed minimum: re-place once per the anchor. No loop, which would jitter.
-        if actual.width > target.width + clampTolerance
+        // The app overrode the width or raised the height: re-place once. Short means the Dock.
+        if abs(actual.width - target.width) > clampTolerance
             || actual.height > target.height + clampTolerance
         {
             var slot = anchor.place(actual.size, in: target)

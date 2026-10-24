@@ -7,6 +7,7 @@ struct WindowActionMemory<Key: Hashable> {
         /// Where we *observed* it after our last write — not what we asked for. See `decide`.
         var appliedFrame: CGRect
         var command: WindowCommand.ID
+        /// The slot it landed in; a chain continues from here, whatever Settings now says.
         var step: Int
         /// Where it landed; a press from any other display starts a new chain.
         var screenID: Int
@@ -34,20 +35,21 @@ struct WindowActionMemory<Key: Hashable> {
 
     func record(for key: Key) -> Record? { records[key] }
 
-    /// The cycle step for this press, fed into `WindowPlacementEngine.Input.step`.
+    /// The next slot when this press continues a chain, or nil when it starts a new one.
     func decide(
         key: Key, command: WindowCommand.ID, currentFrame: CGRect, currentScreenID: Int,
         cycleLength: Int, now: Date
-    ) -> Int {
+    ) -> Int? {
         // Against the observed frame, never the requested one. docs/features/window-management.md
-        guard let record = records[key], approximatelyEqual(currentFrame, record.appliedFrame)
-        else { return 0 }
+        guard let record = records[key],
+            currentFrame.approximatelyEquals(record.appliedFrame, tolerance: Self.tolerance)
+        else { return nil }
 
         let expired = cycleTimeout.map { now.timeIntervalSince(record.at) > $0 } ?? false
         let continues =
             cycleLength > 1 && command == record.command
             && currentScreenID == record.screenID && !expired
-        return continues ? (record.step + 1) % cycleLength : 0
+        return continues ? (record.step + 1) % cycleLength : nil
     }
 
     /// Records what actually landed. `appliedFrame` must be read back from the window, not assumed.
@@ -79,11 +81,5 @@ struct WindowActionMemory<Key: Hashable> {
             order.removeFirst()
             records.removeValue(forKey: oldest)
         }
-    }
-
-    private func approximatelyEqual(_ a: CGRect, _ b: CGRect) -> Bool {
-        let tolerance = Self.tolerance
-        return abs(a.minX - b.minX) <= tolerance && abs(a.minY - b.minY) <= tolerance
-            && abs(a.width - b.width) <= tolerance && abs(a.height - b.height) <= tolerance
     }
 }

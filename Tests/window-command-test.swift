@@ -46,65 +46,72 @@ struct WindowCommandTests {
     static func placement(
         _ command: WindowCommand.ID, on screen: WindowPlacementEngine.Screen = mainScreen,
         window: CGRect = CGRect(x: 100, y: 100, width: 600, height: 400), step: Int = 0,
-        preferences: WindowPlacementEngine.Preferences = .standard
+        centerWidth: Int = 75
     ) -> WindowPlacementEngine.Placement? {
         WindowPlacementEngine.placement(
             for: WindowPlacementEngine.Input(
                 command: command, windowFrame: window, screens: [screen], step: step,
-                preferences: preferences))
+                centerWidth: centerWidth))
     }
 
     static func frame(
         _ command: WindowCommand.ID, on screen: WindowPlacementEngine.Screen = mainScreen,
         window: CGRect = CGRect(x: 100, y: 100, width: 600, height: 400), step: Int = 0,
-        preferences: WindowPlacementEngine.Preferences = .standard
+        centerWidth: Int = 75
     ) -> CGRect? {
-        placement(command, on: screen, window: window, step: step, preferences: preferences)?.frame
+        placement(command, on: screen, window: window, step: step, centerWidth: centerWidth)?.frame
     }
 
     static func quarter(_ corner: WindowCommand.QuarterCorner) -> CGRect {
-        frame(.quarter, preferences: preferences(quarter: corner))!
+        frame(.quarter, step: WindowCommand.QuarterCorner.cycle.firstIndex(of: corner)!)!
     }
 
     static func half(_ side: WindowCommand.HalfSide) -> CGRect {
-        frame(.half, preferences: preferences(half: side))!
+        frame(.half, step: WindowCommand.HalfSide.cycle.firstIndex(of: side)!)!
     }
 
-    /// Presses `command` like `WindowMover`: each press starts from where the last one landed.
+    /// Presses `command` like `WindowMover`; `land` stands in for an app that bends the frame asked for.
     static func presses(
         _ command: WindowCommand.ID, _ count: Int, from window: CGRect,
         preferences: WindowPlacementEngine.Preferences = .standard,
-        memory: inout WindowActionMemory<Int>
+        land: (CGRect) -> CGRect = { $0 }, memory: inout WindowActionMemory<Int>
     ) -> [CGRect] {
         let clock = Date(timeIntervalSince1970: 1_000_000)
-        let list = [mainScreen]
+        let length = WindowCommandCatalog.cycleLength(for: command)
         var current = window
         var landed: [CGRect] = []
         for _ in 0..<count {
-            let step = memory.decide(
+            let continued = memory.decide(
                 key: 1, command: command, currentFrame: current, currentScreenID: mainScreen.id,
-                cycleLength: WindowCommandCatalog.cycleLength(for: command), now: clock)
-            let input = WindowPlacementEngine.advancingPastNoOp(
-                WindowPlacementEngine.Input(
-                    command: command, windowFrame: current, screens: list, step: step,
-                    preferences: preferences),
-                tolerance: WindowActionMemory<Int>.tolerance)
-            let placement = WindowPlacementEngine.placement(for: input)!
+                cycleLength: length, now: clock)
+            var step =
+                continued ?? WindowPlacementEngine.firstStep(for: command, preferences: preferences)
+            var landing = land(
+                frame(command, window: current, step: step, centerWidth: preferences.centerWidth)!)
+            if continued == nil, length > 1,
+                landing.approximatelyEquals(current, tolerance: WindowActionMemory<Int>.tolerance)
+            {
+                step = (step + 1) % length
+                landing = land(
+                    frame(command, window: landing, step: step, centerWidth: preferences.centerWidth)!)
+            }
             memory.commit(
-                key: 1, command: command, step: input.step, appliedFrame: placement.frame,
-                screenID: placement.screenID, now: clock)
-            current = placement.frame
-            landed.append(placement.frame)
+                key: 1, command: command, step: step, appliedFrame: landing,
+                screenID: mainScreen.id, now: clock)
+            current = landing
+            landed.append(landing)
         }
         return landed
     }
 
     static func presses(
         _ command: WindowCommand.ID, _ count: Int, from window: CGRect,
-        preferences: WindowPlacementEngine.Preferences = .standard
+        preferences: WindowPlacementEngine.Preferences = .standard,
+        land: (CGRect) -> CGRect = { $0 }
     ) -> [CGRect] {
         var memory = WindowActionMemory<Int>()
-        return presses(command, count, from: window, preferences: preferences, memory: &memory)
+        return presses(
+            command, count, from: window, preferences: preferences, land: land, memory: &memory)
     }
 
     static func main() {
@@ -154,7 +161,10 @@ struct WindowCommandTests {
             "system-action entry IDs are not claimed")
 
         let cycling = Dictionary(
-            uniqueKeysWithValues: commands.filter { $0.cycleLength > 1 }.map { ($0.id, $0.cycleLength) })
+            uniqueKeysWithValues: WindowCommand.ID.allCases.compactMap { id in
+                let length = WindowCommandCatalog.cycleLength(for: id)
+                return length > 1 ? (id, length) : nil
+            })
         expect(cycling == [.half: 2, .quarter: 4], "Half cycles two sides, Quarter four corners")
         let moveOnly = Set(commands.filter { !$0.resizes }.map(\.id))
         expect(
@@ -172,8 +182,13 @@ struct WindowCommandTests {
         expect(grouped.first { $0.group == .moving }?.commands.count == 4, "four moving commands")
 
         expect(
-            Set(WindowCommand.QuarterCorner.clockwise) == Set(WindowCommand.QuarterCorner.allCases),
-            "the clockwise walk visits every corner once")
+            Set(WindowCommand.QuarterCorner.cycle) == Set(WindowCommand.QuarterCorner.allCases)
+                && WindowCommand.QuarterCorner.cycle.count == WindowCommand.QuarterCorner.allCases.count,
+            "Quarter's cycle visits every corner once")
+        expect(
+            Set(WindowCommand.HalfSide.cycle) == Set(WindowCommand.HalfSide.allCases)
+                && WindowCommand.HalfSide.cycle.count == WindowCommand.HalfSide.allCases.count,
+            "Half's cycle visits every side once")
     }
 
     // MARK: - Convention lock
@@ -219,30 +234,35 @@ struct WindowCommandTests {
         }
         expect(!overlapping, "quarters never overlap")
 
-        // A step flips Half to the other side, whichever side it starts on.
-        for side in WindowCommand.HalfSide.allCases {
-            let start = preferences(half: side)
-            expectRect(frame(.half, preferences: start)!, half(side), "\(side) half at step 0")
+        // A step is a slot in the cycle, whatever Settings says to start on.
+        expectRect(frame(.half, step: 1)!, half(.right), "half step 1 is the right half")
+        expectRect(frame(.half, step: 2)!, half(.left), "half step 2 wraps to the left half")
+        expectRect(frame(.half, step: -1)!, half(.right), "a negative half step normalizes")
+        let corners = WindowCommand.QuarterCorner.cycle
+        for step in 0..<6 {
             expectRect(
-                frame(.half, step: 1, preferences: start)!, half(side.opposite),
-                "\(side) half flips at step 1")
-            expectRect(
-                frame(.half, step: 2, preferences: start)!, half(side), "\(side) half wraps at step 2")
-            expectRect(
-                frame(.half, step: -1, preferences: start)!, half(side.opposite),
-                "\(side) half normalizes a negative step")
+                frame(.quarter, step: step)!, quarter(corners[step % corners.count]),
+                "quarter step \(step) is \(corners[step % corners.count])")
         }
+        expect(
+            corners == [.topLeft, .topRight, .bottomRight, .bottomLeft],
+            "Quarter's cycle runs clockwise")
 
-        // Quarter walks clockwise from wherever it starts.
-        let clockwise = WindowCommand.QuarterCorner.clockwise
-        for (offset, corner) in clockwise.enumerated() {
-            let start = preferences(quarter: corner)
-            for step in 0..<5 {
-                let expected = clockwise[(offset + step) % clockwise.count]
-                expectRect(
-                    frame(.quarter, step: step, preferences: start)!, quarter(expected),
-                    "quarter from \(corner) at step \(step) is \(expected)")
-            }
+        // The starting position names the first slot and nothing else.
+        for side in WindowCommand.HalfSide.allCases {
+            let first = WindowPlacementEngine.firstStep(for: .half, preferences: preferences(half: side))
+            expectRect(frame(.half, step: first)!, half(side), "Half starting \(side) lands \(side)")
+        }
+        for corner in WindowCommand.QuarterCorner.allCases {
+            let first = WindowPlacementEngine.firstStep(
+                for: .quarter, preferences: preferences(quarter: corner))
+            expectRect(
+                frame(.quarter, step: first)!, quarter(corner), "Quarter starting \(corner) lands there")
+        }
+        for command in WindowCommand.ID.allCases where WindowCommandCatalog.cycleLength(for: command) == 1 {
+            expect(
+                WindowPlacementEngine.firstStep(for: command, preferences: .standard) == 0,
+                "\(command.rawValue) starts at slot 0")
         }
 
         // A step handed to a command that doesn't cycle must be ignored outright.
@@ -340,25 +360,29 @@ struct WindowCommandTests {
             frame(.center, window: frame(.center, window: window)!)!,
             frame(.center, window: window)!, "center is idempotent")
         expectRect(
-            frame(.center, preferences: preferences(centerWidth: 50))!,
+            frame(.center, centerWidth: 50)!,
             CGRect(x: 360, y: 0, width: 720, height: 900), "center honours the width it is given")
         expectRect(
-            frame(.center, preferences: preferences(centerWidth: 100))!, frame(.maximize)!,
+            frame(.center, centerWidth: 100)!, frame(.maximize)!,
             "a full-width center is a maximize")
 
         // A width from outside the range is pulled back to its nearest end.
         expectRect(
-            frame(.center, preferences: preferences(centerWidth: 5))!,
-            frame(.center, preferences: preferences(centerWidth: 20))!,
+            frame(.center, centerWidth: 5)!,
+            frame(.center, centerWidth: 20)!,
             "too narrow a width clamps to the smallest")
         expectRect(
-            frame(.center, preferences: preferences(centerWidth: 400))!, frame(.maximize)!,
+            frame(.center, centerWidth: 400)!, frame(.maximize)!,
             "too wide a width clamps to full width")
         expect(
             WindowPlacementEngine.clampedCenterWidth(-3) == 20
                 && WindowPlacementEngine.clampedCenterWidth(60) == 60
                 && WindowPlacementEngine.clampedCenterWidth(101) == 100,
             "the clamp keeps a width inside 20…100")
+        expect(
+            placement(.center)!.anchor
+                == WindowPlacementEngine.Anchor(horizontal: .center, vertical: .center),
+            "a window that can't take Center's size sits centred on both axes")
     }
 
     // MARK: - Moves
@@ -451,6 +475,32 @@ struct WindowCommandTests {
                 == [mainScreen.usableFrame, mainScreen.usableFrame],
             "a command that doesn't cycle stays put on a repeat")
 
+        // An app that never takes the slot exactly still moves on: the landing decides, not the slot.
+        let snapsNarrower: (CGRect) -> CGRect = {
+            CGRect(x: $0.minX, y: $0.minY, width: $0.width - 5, height: $0.height)
+        }
+        let snappedLeft = snapsNarrower(half(.left))
+        expect(
+            presses(.half, 1, from: snappedLeft, land: snapsNarrower)
+                == [snapsNarrower(half(.right))],
+            "Half on a window that snapped into the left half still flips it right")
+
+        // A changed starting position never reinterprets a chain already under way.
+        var restarted = WindowActionMemory<Int>()
+        _ = presses(.quarter, 1, from: loose, memory: &restarted)
+        expect(
+            presses(
+                .quarter, 1, from: quarter(.topLeft), preferences: preferences(quarter: .topRight),
+                memory: &restarted) == [quarter(.topRight)],
+            "a new Quarter start mid-chain still moves clockwise from where the window is")
+        var flipped = WindowActionMemory<Int>()
+        _ = presses(.half, 1, from: loose, memory: &flipped)
+        expect(
+            presses(
+                .half, 1, from: half(.left), preferences: preferences(half: .right),
+                memory: &flipped) == [half(.right)],
+            "a new Half start mid-chain still flips the window")
+
         // A drag or another command between presses starts the chain over.
         var memory = WindowActionMemory<Int>()
         _ = presses(.half, 1, from: loose, memory: &memory)
@@ -475,9 +525,9 @@ struct WindowCommandTests {
         var step = memory.decide(
             key: 1, command: .quarter, currentFrame: original, currentScreenID: 1, cycleLength: 4,
             now: clock)
-        expect(step == 0, "a first press starts at step 0")
+        expect(step == nil, "a first press starts a new chain")
         memory.commit(
-            key: 1, command: .quarter, step: step, appliedFrame: quarter(.topLeft), screenID: 1,
+            key: 1, command: .quarter, step: 0, appliedFrame: quarter(.topLeft), screenID: 1,
             now: clock)
 
         // Repeats advance the cycle.
@@ -487,7 +537,7 @@ struct WindowCommandTests {
                 currentScreenID: 1, cycleLength: 4, now: clock)
             expect(step == expected, "the cycle advances to step \(expected)")
             memory.commit(
-                key: 1, command: .quarter, step: step,
+                key: 1, command: .quarter, step: expected,
                 appliedFrame: frame(.quarter, step: expected)!, screenID: 1, now: clock)
         }
 
@@ -495,15 +545,15 @@ struct WindowCommandTests {
         step = memory.decide(
             key: 1, command: .half, currentFrame: memory.record(for: 1)!.appliedFrame,
             currentScreenID: 1, cycleLength: 2, now: clock)
-        expect(step == 0, "a different command restarts the cycle")
+        expect(step == nil, "a different command restarts the cycle")
         step = memory.decide(
             key: 1, command: .quarter, currentFrame: memory.record(for: 1)!.appliedFrame,
             currentScreenID: 2, cycleLength: 4, now: clock)
-        expect(step == 0, "a different display restarts the cycle")
+        expect(step == nil, "a different display restarts the cycle")
         step = memory.decide(
             key: 99, command: .quarter, currentFrame: original, currentScreenID: 1,
             cycleLength: 4, now: clock)
-        expect(step == 0, "another window has its own chain")
+        expect(step == nil, "another window has its own chain")
 
         // A user drag resets the cycle.
         var dragged = WindowActionMemory<Int>()
@@ -512,7 +562,7 @@ struct WindowCommandTests {
         step = dragged.decide(
             key: 1, command: .half, currentFrame: movedByUser, currentScreenID: 1, cycleLength: 2,
             now: clock)
-        expect(step == 0, "a user drag restarts the cycle")
+        expect(step == nil, "a user drag restarts the cycle")
 
         // A quantising app that lands a point off its target must NOT read as a user drag.
         let quantised = CGRect(x: left.minX + 1, y: left.minY, width: left.width - 1, height: left.height)
@@ -528,9 +578,9 @@ struct WindowCommandTests {
             let nonStep = nonCycling.decide(
                 key: 1, command: .maximize, currentFrame: maximized, currentScreenID: 1,
                 cycleLength: WindowCommandCatalog.cycleLength(for: .maximize), now: clock)
-            expect(nonStep == 0, "a non-cycling command never advances")
+            expect(nonStep == nil, "a non-cycling command never advances")
             nonCycling.commit(
-                key: 1, command: .maximize, step: nonStep, appliedFrame: maximized, screenID: 1,
+                key: 1, command: .maximize, step: 0, appliedFrame: maximized, screenID: 1,
                 now: clock)
         }
 
@@ -543,7 +593,7 @@ struct WindowCommandTests {
         expect(
             timed.decide(
                 key: 1, command: .half, currentFrame: left, currentScreenID: 1, cycleLength: 2,
-                now: clock.addingTimeInterval(120)) == 0, "a cycle past the timeout restarts")
+                now: clock.addingTimeInterval(120)) == nil, "a cycle past the timeout restarts")
 
         // Bounded growth, most-recently-used retained.
         var bounded = WindowActionMemory<Int>(capacity: 64)
@@ -590,32 +640,26 @@ struct WindowCommandTests {
             CGRect(x: 200, y: 200, width: 5000, height: 4000),
             CGRect(x: 1439, y: 899, width: 1, height: 1)
         ]
-        let preferenceSets: [WindowPlacementEngine.Preferences] = [
-            .standard,
-            preferences(half: .right, quarter: .bottomRight, centerWidth: 20),
-            preferences(half: .left, quarter: .topRight, centerWidth: 100),
-            preferences(half: .right, quarter: .bottomLeft, centerWidth: -40),
-            preferences(half: .left, quarter: .topLeft, centerWidth: 9_000)
-        ]
+        let centerWidths = [75, 20, 100, -40, 9_000]
         let steps = [0, 1, 5, -3]
 
         var checked = 0
         var problems: [String] = []
         for screens in displays {
             for window in windows {
-                for preferences in preferenceSets {
+                for centerWidth in centerWidths {
                     for step in steps {
                         for command in WindowCommand.ID.allCases {
                             let input = WindowPlacementEngine.Input(
                                 command: command, windowFrame: window, screens: screens, step: step,
-                                preferences: preferences)
+                                centerWidth: centerWidth)
                             // A nil placement is a legitimate quiet no-op, not a failure.
                             guard let placement = WindowPlacementEngine.placement(for: input) else {
                                 continue
                             }
                             checked += 1
                             let rect = placement.frame
-                            let label = "\(command.rawValue) \(preferences) step \(step) window \(window)"
+                            let label = "\(command.rawValue) width \(centerWidth) step \(step) window \(window)"
 
                             if !(rect.minX.isFinite && rect.minY.isFinite && rect.width.isFinite
                                 && rect.height.isFinite)

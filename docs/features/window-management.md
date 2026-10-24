@@ -27,7 +27,7 @@ entries and a still-registered shortcut moves nothing.
 
 | File                                             | Imports                      | Role                                                                |
 | ------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------- |
-| `Model/WindowCommand.swift`          | Foundation                   | Catalog: id, name, symbol, group, `cycleLength`, `resizes`; Half's sides and Quarter's corners |
+| `Model/WindowCommand.swift`          | Foundation                   | Catalog: id, name, symbol, group, `resizes`, `cycleLength(for:)`; Half's sides and Quarter's corners |
 | `Model/WindowPlacementEngine.swift`  | Foundation + CoreGraphics    | **Pure.** Every frame the commands produce                          |
 | `Model/WindowActionMemory.swift`     | Foundation + CoreGraphics    | **Pure.** Per-window cycle position                                 |
 | `Service/AXWindowAccess.swift`       | AppKit + ApplicationServices | `@MainActor`. Every `AXUIElement` call, and the one write sequence  |
@@ -44,10 +44,13 @@ SwiftUI or `NSScreen` dependency, and all must stay pure — `WindowActionMemory
 reading a clock. CoreGraphics is needed only because `CGRect`'s `Equatable` conformance lives in that
 overlay rather than in Foundation.
 
-Adding a command is four edits in `WindowCommand.swift` (a case in `ID`, plus `name`, `symbol` and
-`group` arms), an arm in `WindowPlacementEngine.placement`, and bumping `commands.count == 8` and its
-group count in the harness. A command opening a new family also needs
-a `Group` case and its `title` arm; `ID.allCases` stays in group order.
+Adding a command is five edits in `WindowCommand.swift` (a case in `ID`, plus `name`, `symbol`,
+`group` and `cycleLength(for:)` arms), arms in `WindowPlacementEngine.placement` and `firstStep`, and
+bumping `commands.count == 8` and its group count in the harness. Every one of those switches is
+exhaustive, so the compiler lists them. A command with a setting of its own also needs an arm in
+`WindowManagementSettingsView.preference(for:)`, whose `default` will not flag a missing one. A
+command opening a new family needs a `Group` case, a `SettingsAnchor` for its section, an arm in
+the view's `header(for:)` and a search entry; `ID.allCases` stays in group order.
 
 ## Coordinate space
 
@@ -90,43 +93,52 @@ centred, a top-aligned one stays top-aligned. A second press is a no-op, and nei
 display ever changes.
 
 **Center** is a share of the display's width at its full height, horizontally centred. The share is
-**Center width** in Settings, 75% unless changed, between 20% and 100%; a value outside that range, from a
-hand-edited file, is clamped by `clampedCenterWidth` rather than refused, and 100% is a Maximize.
+**Center width** in Settings, 75% unless changed, between 20% and 100%, and 100% is a Maximize.
+settings.json and a backup refuse a width outside that range and keep the current one;
+`clampedCenterWidth` catches anything else, such as a raw `defaults write`. A window that can't take
+the size, or an app that caps its width, is centred on both axes rather than left on the slot's edge.
 
 An oversized or off-screen window is always clamped back onto the display; `clamped` pins the leading
 edge rather than shoving the window off the far side.
 
 ## Cycling
 
-**Half and Quarter cycle; nothing else does.** `WindowCommand.cycleLength` is the whole rule: 2 for
-Half, 4 for Quarter, 1 for the rest. Half's first press lands on **Half starts on** (Left unless
-changed) and a repeat flips it to the other side. Quarter's first press lands on **Quarter starts
-at** (Top Left unless changed) and repeats walk `QuarterCorner.clockwise` — top left, top right,
-bottom right, bottom left — so each step moves to a neighbouring corner rather than across the
-diagonal. Both choices travel to the engine as `WindowPlacementEngine.Preferences`, with Center's
-width, and `Preferences.standard` is the one place their defaults are written.
+**Half and Quarter cycle; nothing else does.** `WindowCommandCatalog.cycleLength(for:)` is the whole
+rule: 2 for Half, 4 for Quarter, 1 for the rest. A step is an index into the command's own order,
+`HalfSide.cycle` (left, right) or `QuarterCorner.cycle` (top left, top right, bottom right, bottom
+left, so each step moves to a neighbouring corner rather than across the diagonal). Both commands
+resolve through that one order, so a new side or corner joins the cycle by joining the array.
+
+**Settings names where a chain starts, never where it goes next.** A press that starts a new chain
+lands on `WindowPlacementEngine.firstStep` — **Half starts on** (Left unless changed) or **Quarter
+starts at** (Top Left unless changed). A press that continues one takes the slot after the one the
+window is in, which `WindowActionMemory` records as an index. Changing the starting position between
+two presses therefore never reinterprets a chain under way: the window keeps moving from where it
+is. The two choices travel with Center's width as `WindowPlacementEngine.Preferences`, and
+`Preferences.standard` is the one place their defaults are written.
 
 A press continues a chain only when the user hasn't moved the window since our last action, so
 `WindowActionMemory` answers that once. It is generic over the key so it stays Foundation-only: the
 app keys by `AXUIElement` (via `CFEqual`/`CFHash` plus the pid), the harness keys by `Int`.
 
-`decide` is a pure query returning the step, which is then fed into `WindowPlacementEngine.Input.step`
-— cycle state is never hidden inside the geometry. Its rules, in order:
+`decide` is a pure query returning the next slot, or nil when the press starts a new chain — cycle
+state is never hidden inside the geometry. Its rules, in order:
 
-1. No record → step 0.
-2. The frame drifted from `appliedFrame` by more than 2 pt → step 0.
-3. A different command, a different display, a `cycleLength` of 1, or a lapsed `cycleTimeout` → step 0.
+1. No record → nil.
+2. The frame drifted from `appliedFrame` by more than 2 pt → nil.
+3. A different command, a different display, a `cycleLength` of 1, or a lapsed `cycleTimeout` → nil.
 4. Otherwise → `(step + 1) % cycleLength`.
 
 **Rule 2 compares against the frame we observed, never the one we asked for.** Terminal resizes in
 whole character cells and never lands exactly on target; comparing against the target would read as
 "the user moved it" on every press and break cycling for such apps.
 
-**A press that would change nothing moves on a step.** With no chain to continue — a window tiled
-before Tinycast started, or one evicted from the memory — a Half pressed on a window already at the
-left half would otherwise re-apply the left half. `WindowPlacementEngine.advancingPastNoOp` checks the
-step's slot against the window within the same 2 pt and, when they match, takes the next one, so the
-press always does something visible.
+**A press that changes nothing moves on a slot.** With no chain to continue — a window tiled before
+Tinycast started, or one evicted from the memory — a Half pressed on a window already at the left
+half would otherwise re-apply the left half. `WindowMover.place` compares where the window *landed*
+with where it was: when a new chain's first write moved it by no more than 2 pt, it writes the next
+slot, once. Comparing the landing rather than the slot is what keeps the rule working for a window
+that never takes a slot exactly, such as Terminal or a width-capped app.
 
 Growth is bounded three ways: an LRU cap of 64, an `NSWorkspace.didTerminateApplicationNotification`
 observer (the house `NotificationToken` RAII idiom) dropping a quit app's keys, and lazy invalidation
@@ -176,11 +188,13 @@ always a no-op.
   the slot per the placement's anchor. One coherent move, never a half-applied one.
 - The position write fails after the shrink → roll the size back. Net visible effect: nothing.
 
-The frame is read back **once** afterwards, for three reasons: to detect an app-imposed minimum size
-(AX exposes no attribute for it, so the read-back is the only way to learn it), to record a truthful
-`appliedFrame`, and to report whether anything actually changed. When the app refused to shrink, the
-window is re-placed per the placement's `anchor` so a left half stays left-aligned instead of drifting
-centre. **One correction, no loop** — iterating against an app that fights back just makes the window
+The frame is read back **once** afterwards, for three reasons: to detect a size the app overrode
+(AX exposes no attribute for its limits, so the read-back is the only way to learn them), to record a
+truthful `appliedFrame`, and to report whether anything actually changed. When the app refused the
+width — wider for a minimum, narrower for a cap or a cell grid — or raised the height, the window is
+re-placed per the placement's `anchor`, so a left half stays left-aligned, a right half stays flush
+right and Center stays centred. A short height is left alone: that is the Dock reservation's clamp,
+which [Holding a tile over the Dock](#holding-a-tile-over-the-dock) handles. **One correction, no loop** — iterating against an app that fights back just makes the window
 visibly jitter.
 
 Windows that are minimized, not `AXWindow`-roled (sheets, popovers), already natively fullscreen, or
@@ -292,10 +306,11 @@ The monitor reports and decides nothing; the repair is `DockShrinkGuard`'s, in
 
 ## Testing
 
-`Tests/window-command-test.swift` (184 assertions) covers the catalog, the AX-space convention lock,
+`Tests/window-command-test.swift` (183 assertions) covers the catalog, the AX-space convention lock,
 tiling on divisible and non-divisible screens, off-origin and negative-coordinate displays, Center's
 width and its clamp, edge moves, screen overlap, Half and Quarter cycling from every starting slot —
-pressed the way `WindowMover` presses them, including the step past a no-op — every
+pressed the way `WindowMover` presses them, including the step past a no-op for a window that lands
+inexactly and a starting position changed mid-chain — every
 `WindowActionMemory` rule, and a fuzz sweep over every command × screen × preferences × step ×
 degenerate window frame checking for non-finite output, negative dimensions, off-screen results,
 non-determinism and drift on repeat.

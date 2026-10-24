@@ -205,7 +205,7 @@ enum SettingsSearchCatalog {
             keywords: ["tile", "accessibility"]),
         .init(
             group: .windowManagementSizing, "Window commands",
-            keywords: ["shortcut", "alias", "half", "quarter", "maximize", "center", "move"]),
+            keywords: ["shortcut", "alias", "half", "quarter", "maximize", "center"]),
         .init(
             .windowManagementSizing, "Half starts on",
             keywords: ["left", "right", "side", "cycle", "repeat", "flip", "halves"]),
@@ -215,6 +215,9 @@ enum SettingsSearchCatalog {
         .init(
             .windowManagementSizing, "Center width",
             keywords: ["percent", "percentage", "centre", "wide", "three fourths"]),
+        .init(
+            group: .windowManagementMoving, "Moving",
+            keywords: ["move", "left", "right", "up", "down", "edge", "shortcut", "alias"]),
         .init(
             .windowManagementOptions, "Dock log",
             keywords: ["diagnostics", "export", "hidden dock", "shrink", "save", "episode"])

@@ -98,8 +98,8 @@ final class WindowMover {
             window.setFrame(geometry.flip(WindowPlacementEngine.rounded(target)), display: true)
             var actual = geometry.flip(window.frame)
 
-            // `contentMinSize` can refuse the width or height; re-seat once, per the anchor.
-            if actual.width > target.width + AXWindowAccess.clampTolerance
+            // Content size limits can override the width or raise the height; re-seat once.
+            if abs(actual.width - target.width) > AXWindowAccess.clampTolerance
                 || actual.height > target.height + AXWindowAccess.clampTolerance
             {
                 var slot = placement.anchor.place(actual.size, in: placement.frame)
@@ -205,15 +205,15 @@ final class WindowMover {
 
         // One timestamp for the whole command, so the cycle timeout can't straddle two readings.
         let now = Date()
-        let step = memory.decide(
+        let cycleLength = WindowCommandCatalog.cycleLength(for: command)
+        let continued = memory.decide(
             key: focused.key, command: command, currentFrame: current, currentScreenID: host.id,
-            cycleLength: WindowCommandCatalog.cycleLength(for: command), now: now)
-        let input = WindowPlacementEngine.advancingPastNoOp(
-            WindowPlacementEngine.Input(
-                command: command, windowFrame: current, screens: screens, step: step,
-                preferences: preferences),
-            tolerance: WindowActionMemory<WindowKey>.tolerance)
-        guard let placement = WindowPlacementEngine.placement(for: input) else { return false }
+            cycleLength: cycleLength, now: now)
+        let first = WindowPlacementEngine.firstStep(for: command, preferences: preferences)
+        var input = WindowPlacementEngine.Input(
+            command: command, windowFrame: current, screens: screens, step: continued ?? first,
+            centerWidth: preferences.centerWidth)
+        guard var placement = WindowPlacementEngine.placement(for: input) else { return false }
 
         // Checked before any write, so an unpositionable window is left untouched.
         guard surface.canMove else { return false }
@@ -226,10 +226,25 @@ final class WindowMover {
         defer { restoreEnhancedUI() }
 
         guard
-            let applied = surface.write(
+            var applied = surface.write(
                 placement, current: current, canResize: canResize, canvas: canvas,
                 geometry: geometry)
         else { return false }
+
+        // A new chain whose first slot changed nothing was already there: take the next, once.
+        if continued == nil, cycleLength > 1,
+            applied.approximatelyEquals(current, tolerance: WindowActionMemory<WindowKey>.tolerance)
+        {
+            input.step = (input.step + 1) % cycleLength
+            if let next = WindowPlacementEngine.placement(for: input),
+                let landed = surface.write(
+                    next, current: applied, canResize: canResize, canvas: canvas,
+                    geometry: geometry)
+            {
+                placement = next
+                applied = landed
+            }
+        }
 
         if case .external(_, let window) = surface, case .external(let key) = focused.key,
             let canvas, placement.frame.maxY >= canvas.maxY - AXWindowAccess.clampTolerance

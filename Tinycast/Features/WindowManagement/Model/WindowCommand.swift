@@ -12,17 +12,10 @@ struct WindowCommand: Identifiable, Hashable, Sendable {
         case moveDown = "move-down"
     }
 
-    /// The launcher section a command belongs to, and the order the Settings panel lists them in.
+    /// The Settings section a command is listed under, in display order.
     enum Group: String, CaseIterable, Sendable {
         case sizing
         case moving
-
-        var title: String {
-            switch self {
-            case .sizing: return "Sizing"
-            case .moving: return "Moving"
-            }
-        }
     }
 
     /// The side Half lands on first; pressing it again flips to the other.
@@ -38,6 +31,9 @@ struct WindowCommand: Identifiable, Hashable, Sendable {
             case .right: return "Right"
             }
         }
+
+        /// Repeat-press order; a step is an index into it.
+        static let cycle: [Self] = [.left, .right]
     }
 
     /// The corner Quarter lands on first; pressing it again walks the others clockwise.
@@ -58,16 +54,14 @@ struct WindowCommand: Identifiable, Hashable, Sendable {
             }
         }
 
-        /// Repeat-press order: each step moves to an adjacent corner, never across the diagonal.
-        static let clockwise: [Self] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
+        /// Clockwise, so each step moves to an adjacent corner, never across the diagonal.
+        static let cycle: [Self] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
     }
 
     let id: ID
     let name: String
     let sfSymbol: String
     let group: Group
-    /// Slots a repeat press walks through; 1 for a command that lands in the same place again.
-    let cycleLength: Int
     /// False for the four moves, so the mover never writes `kAXSizeAttribute` for them.
     let resizes: Bool
 
@@ -78,7 +72,7 @@ enum WindowCommandCatalog {
     static let all: [WindowCommand] = WindowCommand.ID.allCases.map { id in
         WindowCommand(
             id: id, name: name(for: id), sfSymbol: symbol(for: id), group: group(for: id),
-            cycleLength: cycleLength(for: id), resizes: !movesOnly.contains(id))
+            resizes: !movesOnly.contains(id))
     }
 
     private static let byID = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
@@ -96,11 +90,12 @@ enum WindowCommandCatalog {
         }
     }
 
+    /// Slots a repeat press walks through; 1 for a command that lands in the same place again.
     static func cycleLength(for id: WindowCommand.ID) -> Int {
         switch id {
-        case .half: return WindowCommand.HalfSide.allCases.count
-        case .quarter: return WindowCommand.QuarterCorner.clockwise.count
-        default: return 1
+        case .half: return WindowCommand.HalfSide.cycle.count
+        case .quarter: return WindowCommand.QuarterCorner.cycle.count
+        case .maximize, .center, .moveLeft, .moveRight, .moveUp, .moveDown: return 1
         }
     }
 
