@@ -9,9 +9,6 @@ enum CommandID: String, CaseIterable, Sendable {
     case openCamera = "command:open-camera"
     case openInBrowser = "command:open-in-browser"
     case define = "command:define"
-    case exportSettings = "command:export-settings"
-    case importSettings = "command:import-settings"
-    case settings = "command:settings"
     case quit = "command:quit"
 
     var name: String {
@@ -23,9 +20,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .openCamera: return "Open Camera"
         case .openInBrowser: return "Open in Browser"
         case .define: return "Define Word"
-        case .exportSettings: return "Export Backup"
-        case .importSettings: return "Import Backup"
-        case .settings: return "Tinycast Settings"
         case .quit: return "Quit Tinycast"
         }
     }
@@ -39,9 +33,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .openCamera: return "camera"
         case .openInBrowser: return "globe"
         case .define: return "book.closed"
-        case .exportSettings: return "square.and.arrow.up"
-        case .importSettings: return "square.and.arrow.down"
-        case .settings: return "gearshape"
         case .quit: return "power"
         }
     }

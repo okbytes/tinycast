@@ -161,8 +161,7 @@ name. Rule 4 applies at any length: rule 2 only protects an exact title past thr
 - **Two entries with the same alias** fall through to the next rule.
 
 `settings` is the case these were measured against. Apple declares `Settings` in System Settings'
-`CFBundleAlternateNames`, so it is an exact alternate title and wins rule 2; the command is named
-`Tinycast Settings`, like Quit, so nothing ties it there.
+`CFBundleAlternateNames`, so it is an exact alternate title and wins rule 2.
 
 ## One fold, everywhere
 
@@ -498,9 +497,8 @@ and three places read it: `FeatureCommandsSection` draws the pane's rows from it
 category gate for it in both `isVisible` and `allowsHotKey`. Stamping the entry rather than sniffing its
 id is what keeps "which pane owns this" out of the entry-ID namespace.
 
-Two panes own commands today — Clipboard and Emoji. What is left in
-Settings › Commands is the set no feature switch governs: Calculator History, Open Camera, Define
-Word, the two backup commands, Tinycast Settings and Quit.
+One pane owns commands today — Clipboard. What is left in Settings › Commands is the set no feature
+switch governs: Calculator History, Define Word, Open Camera, Quit and Search Emoji & Symbols.
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw

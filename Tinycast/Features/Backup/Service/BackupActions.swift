@@ -6,7 +6,7 @@ extension UTType {
     static let tinycastBackup = UTType(exportedAs: "com.tinycast.backup")
 }
 
-/// The backup flows' entry points, shared by the Settings pane and the commands.
+/// The backup flows' entry points, shared by the Settings pane and onboarding.
 @MainActor
 enum BackupActions {
     // MARK: - File panels (dialogs come from `AppCore`)
@@ -71,37 +71,6 @@ enum BackupActions {
         _ categories: Set<BackupCategory>, from staging: BackupStaging, to core: AppCore
     ) async -> BackupApplier.Summary {
         await BackupApplier.apply(categories, from: staging.bundle, to: core)
-    }
-
-    /// The launcher has no picker, so its commands take everything; the pane is where you choose.
-    static func runExportCommand(core: AppCore) async {
-        do {
-            let result = try await exportBackup(core: core, categories: BackupCategory.all)
-            await present(
-                core: core, title: "Backup Exported", message: exportText(result),
-                symbol: exportSymbol, tone: .success)
-        } catch is CancellationError {
-        } catch {
-            await present(
-                core: core, title: "Export Failed", message: error.localizedDescription,
-                symbol: exportSymbol)
-        }
-    }
-
-    static func runImportCommand(core: AppCore) async {
-        guard let file = chooseBackupFile() else { return }
-        do {
-            let (staging, manifest) = try await openBackup(at: file)
-            defer { staging.discard() }
-            let summary = await applyBackup(manifest.categories, from: staging, to: core)
-            await present(
-                core: core, title: "Backup Imported", message: summaryText(summary),
-                symbol: importSymbol, tone: .success)
-        } catch {
-            await present(
-                core: core, title: "Import Failed", message: error.localizedDescription,
-                symbol: importSymbol)
-        }
     }
 
     // MARK: - Helpers
@@ -191,13 +160,5 @@ enum BackupActions {
         return formatter.string(from: Date())
     }
 
-    /// Every import dialog carries the same glyph, so the flow reads as one thing.
     private static let importSymbol = "square.and.arrow.down"
-    private static let exportSymbol = "square.and.arrow.up"
-
-    private static func present(
-        core: AppCore, title: String, message: String, symbol: String, tone: DialogTone = .danger
-    ) async {
-        await core.showNotice(title: title, message: message, symbol: symbol, tone: tone)
-    }
 }

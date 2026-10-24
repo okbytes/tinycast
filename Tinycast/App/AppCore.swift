@@ -62,7 +62,6 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var launcherCoordinator = LauncherCoordinator(
         ranking: launcherRanking, windowController: windowController,
         paletteCoordinator: paletteCoordinator,
-        settingsCoordinator: settingsCoordinator,
         systemActionCoordinator: systemActionCoordinator,
         windowCommandCoordinator: windowCommandCoordinator,
         core: self)

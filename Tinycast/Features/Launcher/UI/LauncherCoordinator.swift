@@ -6,17 +6,15 @@ final class LauncherCoordinator {
     private let ranking: LauncherRankingStore
     private let windowController: PaletteWindowController
     private let paletteCoordinator: PaletteCoordinator
-    private let settingsCoordinator: SettingsCoordinator
     private let systemActionCoordinator: SystemActionCoordinator
     private let windowCommandCoordinator: WindowCommandCoordinator
-    /// The backup commands only, which need the live stores to gather from and apply to.
+    /// The sibling coordinators a command hands off to.
     private unowned let core: AppCore
 
     init(
         ranking: LauncherRankingStore,
         windowController: PaletteWindowController,
         paletteCoordinator: PaletteCoordinator,
-        settingsCoordinator: SettingsCoordinator,
         systemActionCoordinator: SystemActionCoordinator,
         windowCommandCoordinator: WindowCommandCoordinator,
         core: AppCore
@@ -24,7 +22,6 @@ final class LauncherCoordinator {
         self.ranking = ranking
         self.windowController = windowController
         self.paletteCoordinator = paletteCoordinator
-        self.settingsCoordinator = settingsCoordinator
         self.systemActionCoordinator = systemActionCoordinator
         self.windowCommandCoordinator = windowCommandCoordinator
         self.core = core
@@ -84,15 +81,6 @@ final class LauncherCoordinator {
             core.dictionaryCoordinator.show()
         case .openInBrowser:
             break  // Query-driven: it runs where the typed text is, never through this funnel.
-        case .exportSettings:
-            dismissPalette()
-            Task { await BackupActions.runExportCommand(core: core) }
-        case .importSettings:
-            dismissPalette()
-            Task { await BackupActions.runImportCommand(core: core) }
-        case .settings:
-            dismissPalette()
-            settingsCoordinator.showSettings()
         case .quit:
             NSApp.terminate(nil)
         }

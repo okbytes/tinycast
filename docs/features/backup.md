@@ -2,7 +2,7 @@
 
 Export and import of Tinycast's own data as a single `.tinycast` file — the one way a setup moves
 between Macs, or from Tinycast into Tinycast Dev, whose files each channel reads. It is imported from
-**Settings → Backup**, the **Import Backup** command, and onboarding's import step. The feature lives
+**Settings → Backup** and onboarding's import step. The feature lives
 in `Features/Backup/`.
 
 A backup carries three independently selectable categories, ticked on export and again on import:
