@@ -327,9 +327,9 @@ struct DoubleTapDetectorTests {
 
     static func commandActions() {
         expect(
-            HotKeyAction.systemAction(id: .toggleMicrophoneMute).defaultsKey
-                == "hotkey.systemAction.toggle-microphone-mute",
-            "microphone mute persists under its own global hotkey key")
+            HotKeyAction.systemAction(id: .lockScreen).defaultsKey
+                == "hotkey.systemAction.lock-screen",
+            "a system action persists under its own global hotkey key")
         let unbindable = Set(CommandID.allCases.filter { $0.hotKeyAction == nil })
         expect(
             unbindable == [.openInBrowser, .quit],

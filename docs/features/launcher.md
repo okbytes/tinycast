@@ -412,7 +412,7 @@ Search, visibility and learned ranking work through the normal `AppEntry` path, 
 action is bindable to a global shortcut from Settings › System Actions
 (see [hotkeys.md](hotkeys.md)).
 
-Public AppKit, CoreAudio and workspace APIs are preferred. Actions without a stable public macOS API
+Public AppKit and workspace APIs are preferred. Actions without a stable public macOS API
 use fixed system tools, Apple Events, Accessibility, or dynamically resolved Bluetooth power and
 screen-lock APIs. Those routes run only on explicit activation. **Lock Screen never synthesizes
 ⌃⌘Q**: a global hotkey fires on key-down, so its still-held modifiers would merge into the chord.
@@ -442,14 +442,6 @@ something actually changed, `.neutral` when there was nothing to do, shown as th
 message rather than a per-action icon, since the message already names the state. Actions that are
 their own confirmation, such as Show Desktop, Hide Others,
 Quit All and the power actions, return nothing.
-
-**Toggle Microphone Mute** reads the current default macOS input device on each activation and
-toggles its native CoreAudio input mute control without changing input gain or output audio.
-It is available in Settings › System Actions with a global hotkey recorder like every action.
-CoreAudio work runs off-main, and the message pill reports `Microphone Muted` or
-`Microphone Unmuted` only once the device confirms the requested state. Repeated activations are
-ignored while a change is pending. An absent input device, unavailable or externally controlled mute,
-or an unconfirmed write reports a failure rather than claiming the microphone was muted.
 
 **Nothing-to-do is an outcome, not a failure.** Empty Trash asks Finder for `count items of trash`
 first and reports `Trash Is Already Empty`, because Finder raises an error when told to empty an empty

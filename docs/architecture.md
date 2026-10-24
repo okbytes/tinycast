@@ -60,7 +60,7 @@ in whichever of the two owns it.
   and `UninstallRules` is handed directory *names* rather than URLs. This is the layer that **decides**
   things.
 - **`Service/` — effects.** Stores, monitors, runners, scanners and AppKit glue. Every `AXUIElement`
-  call, `CGEventTap`, `NSWorkspace.open`, `URLSession` request, `FileManager` walk and CoreAudio read
+  call, `CGEventTap`, `NSWorkspace.open`, `URLSession` request and `FileManager` walk
   lives here. This is the layer that **does** things.
 - **`UI/` and `Settings/` — views**, plus the feature's coordinator. Declarative, thin, holding no policy.
 

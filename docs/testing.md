@@ -100,7 +100,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `dictionary-test` | `Dictionary/Model/DictionaryEntry.swift`, `DictionaryMarkup.swift` — a real XHTML record and the plain-text fallback, read into page blocks |
 | `callout-test` | `DesignSystem/Theme.swift`, `HotKeys/UI/CalloutPlacement.swift` |
 | `system-action-test` | `SystemActions/Model/SystemAction.swift` |
-| `microphone-mute-test` | Native input mute, delayed confirmation, device switches and failures; injected CoreAudio calls only |
 | `window-command-test` | `WindowManagement/WindowCommand.swift`, `WindowPlacementEngine.swift`, `WindowActionMemory.swift` |
 | `uninstall-test` | all five pure files in `Uninstall/Model/` |
 | `folder-command-test` | `CommandFolder/Model/FolderCommand.swift` — which files make commands, names, links, entry ids and the sweep |
@@ -417,10 +416,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Empty Trash confirms while Finder's "Show warning before emptying the Trash" is on, and runs
   without a dialog once it is off
 - A system action's feedback is the message pill
-- Toggle Microphone Mute works from the launcher and a global hotkey with the palette closed;
-  its pill reports Microphone Muted / Microphone Unmuted, input audio follows that state, and input
-  gain and output audio stay unchanged. Switch the default input and repeat; an unavailable or
-  externally controlled mute reports failure. Rapid repeats while a change is pending are ignored
 - Holding a bound hotkey does **not** stack dialogs
 - Lock Screen locks from a global hotkey with the palette closed, including a Hyper-key binding
 - Window commands move the window you were last in; cycle-on-repeat steps ½ → ⅓ → ⅔

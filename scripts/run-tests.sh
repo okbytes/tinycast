@@ -262,8 +262,6 @@ run entry-icon-test        Tinycast/Platform/Appearance.swift \
                            Tinycast/Platform/Images/IconCache.swift \
                            Tinycast/Platform/Images/FileIconStamp.swift
 run system-action-test     Tinycast/Features/SystemActions/Model/SystemAction.swift
-run microphone-mute-test   Tinycast/Features/SystemActions/Service/SystemActionFailure.swift \
-                           Tinycast/Features/SystemActions/Service/SystemActionRunner+Microphone.swift
 run window-command-test    Tinycast/Features/WindowManagement/Model/WindowCommand.swift \
                            Tinycast/Features/WindowManagement/Model/WindowCycle.swift \
                            Tinycast/Features/WindowManagement/Model/WindowPlacementEngine.swift \

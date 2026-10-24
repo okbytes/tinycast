@@ -58,11 +58,6 @@ enum SystemActionRunner {
                         .showScreenSaver, SystemActionFailure(error.localizedDescription))
                 }
             }
-        case .toggleMicrophoneMute:
-            let muted = try await Task.detached {
-                try await toggleMicrophoneMute()
-            }.value
-            return SystemActionFeedback(muted ? "Microphone Muted" : "Microphone Unmuted")
         case .showDesktop:
             // Executing the binary directly is SIGKILLed; only a LaunchServices launch is allowed.
             let configuration = NSWorkspace.OpenConfiguration()
