@@ -64,7 +64,6 @@ typealias MenuPanelClipPath = @MainActor (_ bounds: CGRect, _ corner: MenuPanelC
 
     init(
         popover: PopoverMenuContent, selection: Binding<Int>, width: CGFloat? = nil,
-        visibleRows: CGFloat? = nil,
         search: PopoverMenu.Search, onActivate: @escaping (Int) -> Void,
         preferredSelection: Int? = nil
     ) {
@@ -74,7 +73,7 @@ typealias MenuPanelClipPath = @MainActor (_ bounds: CGRect, _ corner: MenuPanelC
                 AnyView(
                     PopoverMenu(
                         header: popover.header, items: popover.items, selection: selection,
-                        width: width, visibleRows: visibleRows, onActivate: onActivate,
+                        width: width, onActivate: onActivate,
                         attachment: corner.popoverAttachment, search: search))
             },
             activate: { popover.items[$0].action() },
@@ -82,7 +81,7 @@ typealias MenuPanelClipPath = @MainActor (_ bounds: CGRect, _ corner: MenuPanelC
             clipPath: { bounds, corner in
                 PopoverMenu.SurfaceShape(
                     attachment: corner.popoverAttachment, radius: Theme.Radius.menuPanel,
-                    attachedRadius: Theme.Size.menuButton / 2
+                    attachedRadius: Theme.Radius.menuAttached
                 ).path(in: bounds).cgPath
             },
             motion: .palette)

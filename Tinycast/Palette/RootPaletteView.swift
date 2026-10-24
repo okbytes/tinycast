@@ -442,7 +442,6 @@ struct RootPaletteView: View {
         .frame(maxWidth: .infinity, alignment: .trailing)
         .padding(.horizontal, Theme.Spacing.md)
         .frame(height: Theme.Size.bottomBarHeight)
-        .frame(maxWidth: .infinity)
     }
 
     /// The one path opening the Actions menu, sampling the state its rows depend on.
@@ -819,7 +818,6 @@ private struct ActionGroup: View {
                     }
                 }
             }
-            .padding(Theme.Spacing.xs)
             .featheredBlur()
         }
     }

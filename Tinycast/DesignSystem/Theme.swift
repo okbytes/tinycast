@@ -36,6 +36,8 @@ enum Theme {
         /// A header pop-up button; the footer's action pills stay capsules.
         static let barControl: CGFloat = 8
         static let menuPanel: CGFloat = 16
+        /// A footer menu's attached corner, concentric with the panel corner an inset away.
+        static let menuAttached: CGFloat = panel - Spacing.md
         /// Subject tile inside the more rounded dialog panel.
         static let dialogSymbol: CGFloat = 16
         /// The dialog and HUD surface, so a dialog reads as a sibling of the palette.
@@ -86,7 +88,6 @@ enum Theme {
         /// Keycaps: `compact` hints, `keyCap` is standard, `hero` where the cap is content.
         static let compactKeyCap: CGFloat = 15
         static let heroKeyCap: CGFloat = 22
-        static let menuButton: CGFloat = 36
         /// A one-pixel rule or stroke.
         static let hairline: CGFloat = 1
         /// The uninstall list's leading checkbox / lock glyph.
@@ -129,8 +130,10 @@ enum Theme {
         /// The confirmation HUD's width ceiling, and its distance above the screen bottom.
         static let hudMaxWidth: CGFloat = 420
         static let hudEdgeOffset: CGFloat = 48
+        /// Room for `featheredBlur`'s blur to fade out: twice its radius.
+        static let blurFeather: CGFloat = Spacing.md * 2
         static let dialogWidth: CGFloat = 290
-        static let dialogButtonHeight: CGFloat = menuButton - 2
+        static let dialogButtonHeight: CGFloat = 34
         /// Subject glyph and its fixed tile at the top of a dialog.
         static let dialogSymbol: CGFloat = 28
         static let dialogSymbolContainer: CGFloat = 52
@@ -280,8 +283,15 @@ extension View {
         background {
             Rectangle()
                 .fill(.ultraThinMaterial)
-                .mask { Capsule().blur(radius: Theme.Spacing.md) }
-                .padding(-Theme.Spacing.md)
+                // Inset by twice the blur radius, so the mask reaches zero before the frame does.
+                .mask {
+                    Capsule()
+                        .padding(Theme.Size.blurFeather)
+                        .blur(radius: Theme.Spacing.md)
+                }
+                .padding(-(Theme.Spacing.md + Theme.Size.blurFeather))
+                // It reaches past the bar into the list, where rows keep their clicks and hover.
+                .allowsHitTesting(false)
         }
     }
 }

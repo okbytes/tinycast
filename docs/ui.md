@@ -78,15 +78,18 @@ section-header inset, which its version footer lines up under.
 
 ### Radius (`Theme.Radius`)
 
-`panel 26` · `row 10` · `card 10` · `dialog 20` · `dialogSymbol 16` · `menuPanel 16` · `menu 6` · `menuRow 10` · `barControl 8` · `thumbnail 6` · `keyCap 6` · `recorderKeyCap 4`
+`panel 26` · `row 10` · `card 10` · `dialog 20` · `dialogSymbol 16` · `menuPanel 16` · `menuAttached 18` · `menu 6` · `menuRow 10` · `barControl 8` · `thumbnail 6` · `keyCap 6` · `recorderKeyCap 4`
 
 `barControl` dresses the header pop-ups (the clipboard type filter), which state a value and drop a menu
 the way a native pop-up button does — a rectangle, not a pill.
 
 **The footer actions carry no container.** A glass capsule around them read heavier than the list it
 floats over, so the pair sits on `featheredBlur()` — an `ultraThinMaterial` behind a capsule mask
-blurred by `Spacing.md`, with no edge to read as a shape. The buttons inside keep their capsule hover,
-so a hovered button is still a pill rather than a toolbar square.
+blurred by `Spacing.md`, with no edge to read as a shape. The capsule sits `blurFeather` (twice the
+blur radius) inside the material's frame, so the blur fades to nothing before that frame could cut it
+into a line; the frame reaches into the list, so it takes no hits. The buttons keep their capsule
+hover, so a hovered button is still a pill rather than a toolbar square, and the group sits on the
+bar's `Spacing.md` gutter, where the ⌘K menu's edge meets it.
 
 `dialog` sits between `menuPanel` and `panel` so a dialog reads as a smaller sibling of the palette, not a second palette.
 
@@ -127,7 +130,7 @@ shortcut-recorder callout, and `menuRow` is deliberately equal to
 ### Size (`Theme.Size`)
 
 `panelWidth 750` · `panelHeight 475` · `headerHeight 44` · `bottomBarHeight 52` · `barButtonHeight 28` ·
-`rowIcon 24` · `resultRowIcon 26` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
+`rowIcon 24` · `resultRowIcon 26` · `keyCap 18` · `recorderKeyCap 16` · `blurFeather 16` ·
 `clipboardListWidth 290` · `clipboardFilterMenuWidth 200` ·
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·
 `emojiGridInset 16` ·
@@ -249,7 +252,7 @@ Glass is normally for floating controls. The dialog root is the one modal-surfac
 - Dialogs use untinted, non-interactive `.glassEffect(.regular)` on their root; the HUD retains the panel recipe (see "Dialogs & HUD").
 - **Menus are in-window overlays, not system popovers.** `.contextMenu`/`NSMenu` stall clicks for seconds inside a `LazyVStack` and spill outside the panel. Use `PopoverMenu` anchored to a corner via `.overlay`, inset `menuInset` (8pt) so its own corner isn't clipped by the panel's. A menu hung off a control instead of a corner — the clipboard type filter, `.topTrailing` — insets by that control's own metrics so their edges line up.
 - **A menu's `width` is fixed, never intrinsic**, so it can't jitter as its rows change. Every header menu states its own token at its `RootPaletteView.menuContent` case (`clipboardFilterMenuWidth`, `emojiCategoryMenuWidth`), so retuning one never moves another. Native footer menus add 30pt without changing those header widths.
-- **`PopoverMenu`** uses `glassEffect(.regular)` with `menuPanel 16` corners and **no hand-tuned shadow** — Tahoe glass carries its own elevation; adding a drop shadow reads heavy and non-native. A footer menu raises only its attached bottom corner to 18 points, concentric with the panel's corner 8 points beyond it.
+- **`PopoverMenu`** uses `glassEffect(.regular)` with `menuPanel 16` corners and **no hand-tuned shadow** — Tahoe glass carries its own elevation; adding a drop shadow reads heavy and non-native. A footer menu raises only its attached bottom corner to `menuAttached`, the panel's radius less the 8-point inset, so the two corners are concentric.
 - Its native search field is a row-height sibling of the scroller, above header menus or below footer menus. It uses an 18pt horizontal inset to align with the visible row glyphs. The top field stays vertically symmetric; the bottom field keeps its 1pt optical lift. Menus omit the adjacent edge dissolve and centre **No Results** in one row when their filtered rows are empty. The 8pt resting list inset belongs to the scroll content, so rows can reach the surface edges without shifting their initial position; hover fills keep the dedicated `menuRow 10` corner.
 - `PopoverMenuRow`: leading glyph, label, trailing shortcut glyph and `menuHover` fill on hover. Menus animate in with opacity and scale from the anchored corner, stretching briefly to 1.003 before settling; `Theme.MenuMotion` owns the entry, settle and exit timings.
 - The glyph is a `PopoverMenuIcon`: `.symbol` (SF Symbol, `monochrome`, `menuSymbol` — or **red** when `isDestructive`) `.file` (a real app icon via `IconCache`, used by the paste rows to show the paste target) or `.thumbnail` (a picture's own preview, cropped to the slot). `PopoverMenuItem` keeps a `systemImage:` convenience init, so symbol rows read exactly as before.
@@ -506,9 +509,8 @@ system-drawn and a pane reads exactly as macOS System Settings does.
 - **The sidebar's field is the system's, not `SettingsFilterField`.** That one is borderless because
   it lives inside a `Form` row; the sidebar's is `.searchable`, which AppKit seats as a split-item
   accessory with a soft scroll edge — the list blurs out under it, as in System Settings.
-- **The sidebar's foot names the running release** (`Bundle.appVersionTitle`, which the palette
-  menu's header also shows). It is a `safeAreaBar`, so browse and search lists both scroll softly
-  under it.
+- **The sidebar's foot names the running release** (`Bundle.appVersionTitle`). It is a
+  `safeAreaBar`, so browse and search lists both scroll softly under it.
 - **A `Form` realizes every row it is handed, and a lazy stack rebuilds a row's AppKit controls.**
   Handed 400 apps directly, a `Form` took 750 ms and 2040 views; a `LazyVStack` in one Form row
   fixed that, but tears a row's `TextField` and checkbox — both `NSView`s — down when the row scrolls
