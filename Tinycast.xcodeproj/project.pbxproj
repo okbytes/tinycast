@@ -23,7 +23,6 @@
 		0B16FB98CFD5FC242DB69E70 /* CalcTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BA109C429A1E4E7E2B55BDC /* CalcTimeZone.swift */; };
 		0B9C941402B85C69A33200C2 /* UninstallProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A48095F6487DEE76663F88 /* UninstallProtection.swift */; };
 		0BA4D8CD8EA6B0A30377B6C0 /* VirtualHIDReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF47208D6BD5AC28B20F6B04 /* VirtualHIDReport.swift */; };
-		0C1CACEF014462D3F581CE54 /* EmojiSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B42664C60B760276FBAAD61 /* EmojiSettingsView.swift */; };
 		0DD808F80666846F4E74BAD8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23591B301A183579098AA019 /* OnboardingView.swift */; };
 		0F667981DF990EF41626F052 /* CalcDateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955FBE410967A64A05A2DA3D /* CalcDateFormatters.swift */; };
 		0FC4608F65D69D465EFBBCE0 /* CalcFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E582B93EFB1A2AA85B048A87 /* CalcFormatter.swift */; };
@@ -539,7 +538,6 @@
 		78A3289B4E74F178610FAAA8 /* KeyRemapConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyRemapConfiguration.swift; sourceTree = "<group>"; };
 		7945C129A685FC29FBA70EE4 /* BackupCategorySelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupCategorySelection.swift; sourceTree = "<group>"; };
 		7A423B346F360DEE48749194 /* FolderCommandRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderCommandRunner.swift; sourceTree = "<group>"; };
-		7B42664C60B760276FBAAD61 /* EmojiSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiSettingsView.swift; sourceTree = "<group>"; };
 		7D35CA0655717E1798AFDA7B /* FrequentEmojiStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequentEmojiStore.swift; sourceTree = "<group>"; };
 		7D56AE79EFBE8B3D79CAF6A4 /* HotKeySettingsFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeySettingsFile.swift; sourceTree = "<group>"; };
 		7D61199EE7B60E91ACBDE2E2 /* WindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowChrome.swift; sourceTree = "<group>"; };
@@ -863,7 +861,6 @@
 			children = (
 				9186831EFAB92996224ABE30 /* Model */,
 				3D7C4704ED3555B0651668C9 /* Service */,
-				C9AA6472840E639D832DD97F /* Settings */,
 				A5D554D42B6D1C622146578A /* UI */,
 			);
 			path = Emoji;
@@ -1498,14 +1495,6 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
-		C9AA6472840E639D832DD97F /* Settings */ = {
-			isa = PBXGroup;
-			children = (
-				7B42664C60B760276FBAAD61 /* EmojiSettingsView.swift */,
-			);
-			path = Settings;
-			sourceTree = "<group>";
-		};
 		CA16E7C4F1F141D7C38937A6 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -1996,7 +1985,6 @@
 				5D3F00F708106ADE1CE263B1 /* EmojiGridView.swift in Sources */,
 				A7F4CD74AEBEFF9F07103CD7 /* EmojiIndex.swift in Sources */,
 				614DAAC9331F9C1DE4D76F0D /* EmojiScreen.swift in Sources */,
-				0C1CACEF014462D3F581CE54 /* EmojiSettingsView.swift in Sources */,
 				E99765A5038912C283973F8F /* EmptyResults.swift in Sources */,
 				0FD2528627DE63DC9C6B8793 /* EntryNaming.swift in Sources */,
 				2E9641057A7B1FE1446BD14D /* EscapeKeyBehavior.swift in Sources */,

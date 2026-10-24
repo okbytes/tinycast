@@ -43,7 +43,6 @@ struct RootPaletteView: View {
         case .emoji:
             return EmojiScreen(
                 index: emojiIndex, frequent: frequentEmoji, pinned: core.pinnedEmoji, core: core, vm: vm,
-                tone: settings.emojiSkinTone, defaultColumns: settings.emojiGridColumns,
                 openActions: openActions)
         case .clipboard:
             return ClipboardScreen(
@@ -192,7 +191,6 @@ struct RootPaletteView: View {
                 emojiGridChanged()
             }
             .onChange(of: vm.emojiGridColumnsOverride) { emojiGridChanged() }
-            .onChange(of: settings.emojiGridColumns) { emojiGridChanged() }
             // ⌘0 / ⌘+ / ⌘- arrive as a token, like ⌘. does. See `PaletteState.emojiGridZoomToken`.
             .onChange(of: vm.emojiGridZoomToken) {
                 guard let zoom = vm.emojiGridZoom else { return }

@@ -125,11 +125,6 @@ enum Theme {
         static let settingsRowIcon: CGFloat = 20
         /// A sidebar glyph inside its tinted tile; the tile's inset brings it to the row icon's size.
         static let settingsSidebarGlyph: CGFloat = 14
-        /// A grouped `Form` row's control height.
-        static let settingsControlHeight: CGFloat = 28
-        static let emojiSkinToneGlyph: CGFloat = 13
-        /// One density preview; five fit across the Emoji settings detail pane.
-        static let emojiSettingsGridPreview: CGFloat = 72
         /// The confirmation HUD's width ceiling, and its distance above the screen bottom.
         static let hudMaxWidth: CGFloat = 420
         static let hudEdgeOffset: CGFloat = 48

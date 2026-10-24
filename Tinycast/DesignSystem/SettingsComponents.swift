@@ -158,20 +158,6 @@ struct SettingsScopeRow: View {
 }
 
 extension View {
-    func settingsOptionSegment(isSelected: Bool) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Theme.Radius.barControl, style: .continuous)
-        return
-            self
-            .frame(
-                width: Theme.Size.settingsControlHeight,
-                height: Theme.Size.settingsControlHeight
-            )
-            .contentShape(shape)
-            .background {
-                shape.fill(isSelected ? Theme.Colors.controlSurface : Color.clear)
-            }
-    }
-
     /// Dims as well as disables; `.disabled` alone leaves the title at full strength.
     func settingsEnabled(_ isEnabled: Bool) -> some View {
         disabled(!isEnabled).opacity(isEnabled ? 1 : 0.45)

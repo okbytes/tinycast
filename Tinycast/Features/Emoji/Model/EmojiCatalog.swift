@@ -103,18 +103,16 @@ enum EmojiGridZoom: Sendable {
     case zoomOut
 }
 
-/// User-selectable grid density. Zoom changes this for the current picker session only.
-enum EmojiGridColumns: Int, CaseIterable, Identifiable, Sendable {
+/// Grid density; zoom changes it for the current picker session only.
+enum EmojiGridColumns: Int, CaseIterable, Sendable {
     case six = 6
     case seven = 7
     case eight = 8
     case nine = 9
     case ten = 10
 
-    static let `default`: Self = .eight
-
-    var id: Int { rawValue }
-    var title: String { "\(rawValue) columns" }
+    /// Hardcoded by choice rather than a preference; change it here.
+    static let `default`: Self = .ten
 
     /// Nil when the zoom would change nothing: already at the default, or at six or ten columns.
     func applying(_ zoom: EmojiGridZoom, default defaultColumns: Self) -> Self? {
@@ -128,11 +126,12 @@ enum EmojiGridColumns: Int, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// Fitzpatrick skin tone preference; `modifier` is the scalar appended to tone-capable emoji.
-enum EmojiSkinTone: String, CaseIterable, Identifiable, Sendable {
+/// Fitzpatrick skin tone; `modifier` is the scalar appended to tone-capable emoji.
+enum EmojiSkinTone: Sendable {
     case none, light, mediumLight, medium, mediumDark, dark
 
-    var id: String { rawValue }
+    /// Hardcoded by choice rather than a preference; change it here.
+    static let `default`: Self = .none
 
     var modifier: Unicode.Scalar? {
         switch self {
@@ -144,20 +143,6 @@ enum EmojiSkinTone: String, CaseIterable, Identifiable, Sendable {
         case .dark: return Unicode.Scalar(0x1F3FF)
         }
     }
-
-    var title: String {
-        switch self {
-        case .none: return "Default"
-        case .light: return "Light"
-        case .mediumLight: return "Medium Light"
-        case .medium: return "Medium"
-        case .mediumDark: return "Medium Dark"
-        case .dark: return "Dark"
-        }
-    }
-
-    /// Picker swatch: a waving hand rendered in this tone.
-    var sample: String { EmojiCatalog.applyTone(self, to: "👋") }
 }
 
 /// One emoji or symbol; `glyph` is the base (untoned) form and doubles as the ID.
@@ -171,7 +156,7 @@ struct EmojiEntry: Identifiable, Hashable, Sendable {
     var id: String { glyph }
     var displayName: String { name.capitalized }
 
-    func display(tone: EmojiSkinTone) -> String {
+    func display(tone: EmojiSkinTone = .default) -> String {
         guard supportsSkinTone, tone != .none else { return glyph }
         return EmojiCatalog.applyTone(tone, to: glyph)
     }

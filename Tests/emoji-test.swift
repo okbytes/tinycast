@@ -49,7 +49,7 @@ struct EmojiTests {
         expect(
             EmojiGridColumns.allCases.map(\.rawValue) == [6, 7, 8, 9, 10],
             "grid densities cover six through ten columns")
-        expect(EmojiGridColumns.default == .eight, "the default grid has eight columns")
+        expect(EmojiGridColumns.default == .ten, "the default grid has ten columns")
         expect(EmojiGridColumns.six.applying(.zoomIn, default: .eight) == nil, "zoom-in stops at six")
         expect(EmojiGridColumns.ten.applying(.zoomOut, default: .eight) == nil, "zoom-out stops at ten")
         expect(EmojiGridColumns.eight.applying(.zoomIn, default: .eight) == .seven, "zoom-in drops one")

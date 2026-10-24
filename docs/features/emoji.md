@@ -86,8 +86,9 @@ current selection; the Actions menu or ⌥⌘↑/↓ can then move it up or down
 is counted over the pins the catalog can show, so a stored glyph it lacks — from a newer backup — never
 shifts one.
 
-Grid density is six through ten columns. `AppSettings.emojiGridColumns` is the default for a fresh
-picker; zoom, from Actions or its chords, writes only `PaletteState.emojiGridColumnsOverride`, so a temporary zoom
-does not silently change the preference. Actual Size (`⌘0`) clears that override; `⌘+` and `⌘-`
+Grid density is six through ten columns. A fresh picker opens at `EmojiGridColumns.default`, ten,
+and copies each glyph in `EmojiSkinTone.default`, no modifier; both are hardcoded rather than
+preferences, so changing either is an edit to that constant. Zoom, from Actions or its chords, writes
+only `PaletteState.emojiGridColumnsOverride`, so it lasts for that picker session. Actual Size (`⌘0`) clears that override; `⌘+` and `⌘-`
 remove or add one column. Removing the selected item from the leading Pinned section keeps the
 selection on the neighbour that takes its place instead of following the item into the catalog.

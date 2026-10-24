@@ -460,7 +460,6 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   the way `SystemPromptEditor` does; dimming an editor that still accepts input is the bug, not the fix.
 - **A group is a `Section`**, with `header:` for its name and `footer:` for the caption that used to
   ride under the last row.
-- **Emoji Skin Tone uses `settingsOptionSegment`** for its square selection shape.
 - **A pane scans as section → setting → control, so its words are rationed.** A subtitle is a short
   phrase, and only where the title leaves out a consequence or a limit ("Shortcuts still work when
   hidden."); a footer carries a caveat, such as privacy or cost, never a restatement of its header. A

@@ -130,7 +130,7 @@ where it was. A chord another action still holds is reported, and the old bindin
 
 Each pane that lists items writes the ones with something set, as records keyed by ID:
 `applications.apps` by bundle ID, `systemActions.actions` by action ID, and
-built-in commands under the pane that lists them — `clipboard.commands`, `emoji.commands`, and the rest
+built-in commands under the pane that lists them — `clipboard.commands`, and the rest
 in `commands.builtIn` — by their ID after `command:`. App Launcher is `general.launcherShortcut`.
 
 ```json

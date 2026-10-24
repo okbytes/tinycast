@@ -33,9 +33,6 @@ extension SettingsAnchor {
     static let clipboardDisabledApplications = Self(
         tab: .clipboard, title: "Disabled Applications")
 
-    static let emojiCommands = Self(tab: .emoji, title: "Commands")
-    static let emojiAppearance = Self(tab: .emoji, title: "Appearance")
-
     static let calendarCalendar = Self(tab: .calendar, title: "Calendar")
     static let calendarMenuBar = Self(tab: .calendar, title: "Menu Bar")
     static let calendarCalendars = Self(tab: .calendar, title: "Calendars")

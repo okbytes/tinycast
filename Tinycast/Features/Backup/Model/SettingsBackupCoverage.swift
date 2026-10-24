@@ -13,8 +13,6 @@ enum SettingsBackupCoverage {
         "hyperKeyQuickPress": .hyperKeyQuickPress,
         "mehKey": .mehKey,
         "showInMenuBar": .showInMenuBar,
-        "emojiSkinTone": .emojiSkinTone,
-        "emojiGridColumns": .emojiGridColumns,
         "popToRootSeconds": .popToRootTimeout,
         "escapeKeyBehavior": .escapeKeyBehavior,
         "calcNumberStyle": .calcNumberStyle,

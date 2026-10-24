@@ -102,7 +102,6 @@ struct EmojiGridView: View {
     let sections: [EmojiGridSection]
     /// Flat selection index across all sections, as in the list modes.
     let selection: Int
-    let tone: EmojiSkinTone
     let columns: EmojiGridColumns
     let onSelect: (Int) -> Void
     let onActivate: () -> Void
@@ -157,7 +156,7 @@ struct EmojiGridView: View {
                                 title: title, count: count, isFirst: item.id == items.first?.id)
                         case .row(let row):
                             EmojiGridRowView(
-                                row: row, selection: selection, tone: tone, columns: columns,
+                                row: row, selection: selection, columns: columns,
                                 onSelect: onSelect, onActivate: onActivate, onActions: onActions
                             )
                             .padding(
@@ -209,7 +208,6 @@ private struct EmojiSectionHeader: View {
 private struct EmojiGridRowView: View {
     let row: EmojiGridRow
     let selection: Int
-    let tone: EmojiSkinTone
     let columns: EmojiGridColumns
     let onSelect: (Int) -> Void
     let onActivate: () -> Void
@@ -232,7 +230,7 @@ private struct EmojiGridRowView: View {
             ForEach(0..<columns.rawValue, id: \.self) { column in
                 if column < row.entries.count {
                     EmojiCell(
-                        glyph: row[column].display(tone: tone),
+                        glyph: row[column].display(),
                         selected: row.start + column == selection,
                         hovered: column == hoveredColumn,
                         size: cellSize

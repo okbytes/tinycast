@@ -51,7 +51,6 @@ extension SettingsTab {
     var ownedCommands: [CommandID] {
         switch self {
         case .clipboard: [.clipboardHistory, .pasteSequentially]
-        case .emoji: [.searchEmoji]
         default: []
         }
     }

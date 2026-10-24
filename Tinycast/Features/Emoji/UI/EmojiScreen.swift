@@ -7,12 +7,10 @@ struct EmojiScreen: PaletteScreen {
     let pinned: PinnedEmojiStore
     let core: AppCore
     let vm: PaletteState
-    let tone: EmojiSkinTone
-    let defaultColumns: EmojiGridColumns
     let openActions: () -> Void
 
     private var columns: EmojiGridColumns {
-        vm.emojiGridColumnsOverride ?? defaultColumns
+        vm.emojiGridColumnsOverride ?? .default
     }
 
     /// The pins the grid shows; a stored glyph the catalog lacks must not shift any position.
@@ -51,7 +49,7 @@ struct EmojiScreen: PaletteScreen {
         return EmojiActionsMenu.content(
             entry: entry, core: core, target: vm.pasteTarget,
             pinPosition: pins.firstIndex(of: entry.glyph), pinCount: pins.count,
-            canZoom: { columns.applying($0, default: defaultColumns) != nil },
+            canZoom: { columns.applying($0, default: .default) != nil },
             togglePin: { togglePin(entry) },
             movePin: { movePin(entry, by: $0) },
             zoom: zoom)
@@ -88,8 +86,8 @@ struct EmojiScreen: PaletteScreen {
     }
 
     func zoom(_ zoom: EmojiGridZoom) {
-        guard let next = columns.applying(zoom, default: defaultColumns) else { return }
-        vm.emojiGridColumnsOverride = next == defaultColumns ? nil : next
+        guard let next = columns.applying(zoom, default: .default) else { return }
+        vm.emojiGridColumnsOverride = next == .default ? nil : next
     }
 
     /// Blind to the filter and query, so only a use or a density change rewrites it.
@@ -139,7 +137,6 @@ struct EmojiScreen: PaletteScreen {
             EmojiGridView(
                 sections: sections,
                 selection: selection,
-                tone: tone,
                 columns: columns,
                 onSelect: { vm.selection = $0 },
                 onActivate: { activate(at: vm.selection) },
