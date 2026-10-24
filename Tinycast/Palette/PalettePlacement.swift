@@ -15,13 +15,11 @@ enum PalettePlacement {
 }
 
 enum MenuPanelCorner {
-    case bottomLeading
     case bottomTrailing
     case belowHeaderTrailing
 
     var layerAnchor: CGPoint {
         switch self {
-        case .bottomLeading: CGPoint(x: 0, y: 0)
         case .bottomTrailing: CGPoint(x: 1, y: 0)
         case .belowHeaderTrailing: CGPoint(x: 1, y: 1)
         }
@@ -36,8 +34,6 @@ enum MenuPanelCorner {
     ) -> CGRect {
         let origin: CGPoint =
             switch self {
-            case .bottomLeading:
-                CGPoint(x: parentFrame.minX + inset, y: parentFrame.minY + inset)
             case .bottomTrailing:
                 CGPoint(
                     x: parentFrame.maxX - inset - contentSize.width,

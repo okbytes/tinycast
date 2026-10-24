@@ -69,7 +69,6 @@ struct PopoverMenuContent {
 struct PopoverMenu: View {
     enum Attachment {
         case none
-        case bottomLeading
         case bottomTrailing
     }
 
@@ -91,7 +90,7 @@ struct PopoverMenu: View {
         func path(in rect: CGRect) -> Path {
             UnevenRoundedRectangle(
                 topLeadingRadius: radius,
-                bottomLeadingRadius: attachment == .bottomLeading ? attachedRadius : radius,
+                bottomLeadingRadius: radius,
                 bottomTrailingRadius: attachment == .bottomTrailing ? attachedRadius : radius,
                 topTrailingRadius: radius,
                 style: .continuous

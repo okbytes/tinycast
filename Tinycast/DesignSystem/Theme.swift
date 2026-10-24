@@ -105,7 +105,6 @@ enum Theme {
         static let menuSectionHeader: CGFloat = 16
         /// Five rows and half of the sixth, so a capped menu reads as scrollable, not clipped.
         static let menuVisibleRows: CGFloat = 5.5
-        static let appMenuVisibleRows: CGFloat = 4.5
         /// Rounded: a half-row of an odd pitch lands the glass edge on a half pixel.
         static var menuRowsMaxHeight: CGFloat {
             (menuVisibleRows * (menuRowHeight + menuRowSpacing)).rounded()
@@ -274,8 +273,13 @@ enum Theme {
 }
 
 extension View {
-    /// A floating glass control surface: regular, interactive Liquid Glass.
-    func frosted(in shape: some Shape) -> some View {
-        glassEffect(.regular.interactive(), in: shape)
+    /// Lighter than glass: blurs what passes beneath, faded out at the edges so no outline shows.
+    func featheredBlur() -> some View {
+        background {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .mask { Capsule().blur(radius: Theme.Spacing.md) }
+                .padding(-Theme.Spacing.md)
+        }
     }
 }

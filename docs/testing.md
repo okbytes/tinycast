@@ -289,10 +289,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   the palette query; sections survive filtering, **No Results** is centred, and no dissolve covers the
   last row. The native caret blinks; mouse drag and ⌘A select text; ←/→ move through it; ↑/↓ still
   move the menu highlight. Escape clears a non-empty query, then closes the menu on the next press
-- The bottom-left app menu also searches from its bottom band; every header menu — Emoji categories
-  included — searches from its top band
-- The app menu has no divider above Quit; Quit opens partially visible above the search band and
-  scrolls fully into view with the pointer or arrow keys. Filtering to fewer rows shrinks the menu
+- Every header menu — Emoji categories included — searches from its top band. Filtering to fewer
+  rows shrinks the menu
 - A long menu opens with unchanged row insets; while scrolling, rows can reach the panel edges
 - A click in the palette but outside its menu closes only the menu; a click outside the palette
   closes both, regardless of the menu query; the next summon accepts typing immediately

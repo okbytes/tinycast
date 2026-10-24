@@ -250,7 +250,7 @@ the arrow outside it, and AppKit's own alternation over the field came straight 
 
 `RootPaletteView` holds a single `OpenMenu?` rather than a flag per menu, so "at most one is open" is
 structural instead of a pair of `onChange` handlers pushing each other closed. The ⌘K Actions menu
-hangs `.bottomTrailing`, the app menu `.bottomLeading`, and everything drawn as a header control —
+hangs `.bottomTrailing`, and everything drawn as a header control —
 the clipboard type filter and the emoji category filter — hangs `.belowHeaderTrailing`, under its
 own button. `menuContent` resolves the open case to one `PaletteMenuContent` — a row count, a row
 action and a view built on demand — so ↑/↓, plain ↵, Esc and the click-away catcher serve every menu
@@ -274,8 +274,6 @@ row sits as far from it as from the search field's hairline. That height joins t
 sizing, but the separator takes no selection index, so navigation still walks only rows. A menu
 taller than its cap ends its viewport mid-row, so the fold never lands on a separator or section
 title, and both hairlines are one device pixel.
-The app menu keeps its five actions in one group and caps the list at four and a half rows, leaving
-Quit partially visible above the search band until scrolling or keyboard navigation reveals it.
 Built-in action menus mark boundaries between opening or copying, managing the item, settings, and
 deletion. Menus offering one kind of action, such as calculator copies, color formats, or emoji
 transfers, keep their rows in one group.
@@ -439,6 +437,6 @@ app:
 Both require the Accessibility permission (`Permissions.ensureAccessibility()`).
 
 The same show also mirrors that app into `PaletteState.pasteTarget` (a `PasteTarget`: localized
-name + bundle path), so Clipboard and Emoji can name it — the footer pill reads "Paste to Notes" and
+name + bundle path), so Clipboard and Emoji can name it — the footer action reads "Paste to Notes" and
 the ⌘K paste rows carry the app's icon. Resolved once per summon, never per render, and deliberately
 not cleared by `prepare` (pop-to-root resets the screen, not the target).

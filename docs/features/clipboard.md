@@ -234,7 +234,7 @@ paste.
 
 The clipboard header carries a `ClipboardFilterButton` at the trailing edge of the search field —
 the only palette screen with a control up there. It toggles a `PopoverMenu` anchored `.topTrailing`
-under the button, so the ⌘K Actions menu, the app menu and this one are the same view on the same
+under the button, so the ⌘K Actions menu and this one are the same view on the same
 glass. **⌘P** toggles it; ↑/↓, ↵ and Esc come free from `RootPaletteView`'s one menu path, and the
 menu opens highlighting the *active* filter rather than the first row, the way a pop-up button does.
 A native, row-height search field above the rows filters their titles with the shared fuzzy matcher;

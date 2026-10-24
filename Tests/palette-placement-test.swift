@@ -75,12 +75,6 @@ struct PalettePlacementTests {
         let inset = Theme.Spacing.md
         let headerExtent = Theme.Size.headerPadding + Theme.Size.headerHeight
 
-        let leading = MenuPanelCorner.bottomLeading.frame(
-            contentSize: content, parentFrame: parent, inset: inset,
-            headerExtent: headerExtent)
-        expect(leading.minX, parent.minX + inset, "the left menu follows the footer's leading edge")
-        expect(leading.minY, parent.minY + inset, "the left menu follows the footer's bottom edge")
-
         let trailing = MenuPanelCorner.bottomTrailing.frame(
             contentSize: content, parentFrame: parent, inset: inset,
             headerExtent: headerExtent)
@@ -94,11 +88,8 @@ struct PalettePlacementTests {
         expect(header.maxY, parent.maxY - headerExtent, "a header menu opens below the field")
 
         let scale = Theme.MenuMotion.maximumScale
-        let leadingCanvas = MenuPanelCorner.bottomLeading.scaledFrame(leading, by: scale)
         let trailingCanvas = MenuPanelCorner.bottomTrailing.scaledFrame(trailing, by: scale)
         let headerCanvas = MenuPanelCorner.belowHeaderTrailing.scaledFrame(header, by: scale)
-        expect(leadingCanvas.minX, leading.minX, "left expansion keeps its leading edge fixed")
-        expect(leadingCanvas.minY, leading.minY, "left expansion keeps its bottom edge fixed")
         expect(trailingCanvas.maxX, trailing.maxX, "right expansion keeps its trailing edge fixed")
         expect(trailingCanvas.minY, trailing.minY, "right expansion keeps its bottom edge fixed")
         expect(headerCanvas.maxX, header.maxX, "header expansion keeps its trailing edge fixed")

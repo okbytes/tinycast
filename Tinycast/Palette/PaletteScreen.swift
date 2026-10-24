@@ -92,7 +92,6 @@ typealias MenuPanelClipPath = @MainActor (_ bounds: CGRect, _ corner: MenuPanelC
 private extension MenuPanelCorner {
     var popoverAttachment: PopoverMenu.Attachment {
         switch self {
-        case .bottomLeading: .bottomLeading
         case .bottomTrailing: .bottomTrailing
         case .belowHeaderTrailing: .none
         }

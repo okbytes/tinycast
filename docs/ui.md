@@ -14,8 +14,8 @@ Tinycast is a **command palette**: a borderless floating panel whose surface is 
 OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is
 white at a fixed alpha ramp. The header and bottom bar **float over the list as fully transparent
 overlays**; there are no hard-edged bars, strips, or dividers. Rows don't clip under the bars, they
-**dissolve**: a scroll-driven gradient mask ghosts them as they pass beneath. Floating controls (the
-action pill, the menu circle, popover menus) are **Liquid Glass**.
+**dissolve**: a scroll-driven gradient mask ghosts them as they pass beneath. Popover menus are
+**Liquid Glass**; the footer's actions are lighter still, bare labels over a feathered blur.
 
 That paragraph describes **Dark**, which is the design. Light is the same design with the ink
 inverted: a white scrim over the same blur, and a black-alpha ramp at matched stops. Nothing about
@@ -27,7 +27,7 @@ Five load-bearing ideas, in priority order:
 2. **One alpha ramp, never grays.** Ink at fixed stops — white over the dark surface, black over the light one.
 3. **Floating bars, not chrome.** Header/footer are transparent overlays; the list fills the whole panel.
 4. **Edges dissolve, they don't clip.** Scroll-driven mask, no separators between list and bars.
-5. **Glass only on floating controls.** The main surface is never glass; pills/menus/circles are.
+5. **Glass only on floating controls.** The main surface is never glass; menus are.
 
 ---
 
@@ -83,10 +83,10 @@ section-header inset, which its version footer lines up under.
 `barControl` dresses the header pop-ups (the clipboard type filter), which state a value and drop a menu
 the way a native pop-up button does — a rectangle, not a pill.
 
-**The footer action group stays a `Capsule`, and so do the buttons inside it.** It is the primary
-action, and the pill is the affordance saying so; squaring it off reads as a toolbar. The capsule
-also keeps the pair concentric for free — a capsule's radius is half its height, so the inner
-buttons land exactly `Spacing.xs` inside the wrapper without either radius being written down.
+**The footer actions carry no container.** A glass capsule around them read heavier than the list it
+floats over, so the pair sits on `featheredBlur()` — an `ultraThinMaterial` behind a capsule mask
+blurred by `Spacing.md`, with no edge to read as a shape. The buttons inside keep their capsule hover,
+so a hovered button is still a pill rather than a toolbar square.
 
 `dialog` sits between `menuPanel` and `panel` so a dialog reads as a smaller sibling of the palette, not a second palette.
 
@@ -184,7 +184,7 @@ Source: `Palette/PalettePanel.swift`, `Palette/RootPaletteView.swift`.
 - **The results layer fills the whole panel.** The header and bottom bar attach via `.safeAreaInset(edge: .top/.bottom)` as transparent overlays that float _over_ the list. The list underlaps them and dissolves at the edges.
 - **Header** (`headerHeight 44`): a back-chevron _or_ mode glyph, then the plain `TextField` (no border/background). Sub-screens (Clipboard, Calculator History) show the back chevron; the launcher shows a magnifying glass. The search icon aligns horizontally with row content, and the query with the row titles.
 - **Compact keyboard entry:** pressing `↓` in the collapsed launcher expands the results and selects the first row without replacing or defocusing the shared search field.
-- **Bottom bar** (`bottomBarHeight 52`): a menu circle on the left, the action group on the right — both floating glass, no bar background. The action group is one glass `Capsule` holding the primary-action pill (label + `↵`) and the Actions toggle (`⌘K`).
+- **Bottom bar** (`bottomBarHeight 52`): the action group on the right, no bar background — the primary action (label + `↵`) and the Actions toggle (`⌘K`) over one `featheredBlur()`.
 - **`BarButton`** is the shared bar control: bare label at rest, a `rowHover` capsule on hover, `barButtonHeight 28`. It carries the footer's two buttons and the clipboard header's type filter, so those hover identically. Hover state lives inside it, so sweeping one never re-renders the palette body.
 
 ---
@@ -242,14 +242,14 @@ leading gap. Headers are non-selectable display rows, so selection (keyed by id)
 
 ## Liquid Glass
 
-Source: `Theme.frosted(in:)`, `DesignSystem/PopoverMenu.swift`.
+Source: `DesignSystem/PopoverMenu.swift`.
 
 Glass is normally for floating controls. The dialog root is the one modal-surface exception.
 
-- `View.frosted(in:)` = `glassEffect(.regular.interactive(), in:)` — regular, interactive glass, so it follows the system Liquid Glass (clear ↔ tinted) setting; `.clear` ignores that setting. Used on the action-group capsule and the menu circle. Dialogs intentionally use untinted, non-interactive `.glassEffect(.regular)` on their root instead; HUDs retain the panel recipe (see "Dialogs & HUD"). Retune it in `frosted(in:)`, not per call site.
+- Dialogs use untinted, non-interactive `.glassEffect(.regular)` on their root; the HUD retains the panel recipe (see "Dialogs & HUD").
 - **Menus are in-window overlays, not system popovers.** `.contextMenu`/`NSMenu` stall clicks for seconds inside a `LazyVStack` and spill outside the panel. Use `PopoverMenu` anchored to a corner via `.overlay`, inset `menuInset` (8pt) so its own corner isn't clipped by the panel's. A menu hung off a control instead of a corner — the clipboard type filter, `.topTrailing` — insets by that control's own metrics so their edges line up.
 - **A menu's `width` is fixed, never intrinsic**, so it can't jitter as its rows change. Every header menu states its own token at its `RootPaletteView.menuContent` case (`clipboardFilterMenuWidth`, `emojiCategoryMenuWidth`), so retuning one never moves another. Native footer menus add 30pt without changing those header widths.
-- **`PopoverMenu`** uses `glassEffect(.regular)` with `menuPanel 16` corners and **no hand-tuned shadow** — Tahoe glass carries its own elevation; adding a drop shadow reads heavy and non-native. A footer menu raises only its attached bottom corner to the controls' 18-point radius, so the two silhouettes meet exactly.
+- **`PopoverMenu`** uses `glassEffect(.regular)` with `menuPanel 16` corners and **no hand-tuned shadow** — Tahoe glass carries its own elevation; adding a drop shadow reads heavy and non-native. A footer menu raises only its attached bottom corner to 18 points, concentric with the panel's corner 8 points beyond it.
 - Its native search field is a row-height sibling of the scroller, above header menus or below footer menus. It uses an 18pt horizontal inset to align with the visible row glyphs. The top field stays vertically symmetric; the bottom field keeps its 1pt optical lift. Menus omit the adjacent edge dissolve and centre **No Results** in one row when their filtered rows are empty. The 8pt resting list inset belongs to the scroll content, so rows can reach the surface edges without shifting their initial position; hover fills keep the dedicated `menuRow 10` corner.
 - `PopoverMenuRow`: leading glyph, label, trailing shortcut glyph and `menuHover` fill on hover. Menus animate in with opacity and scale from the anchored corner, stretching briefly to 1.003 before settling; `Theme.MenuMotion` owns the entry, settle and exit timings.
 - The glyph is a `PopoverMenuIcon`: `.symbol` (SF Symbol, `monochrome`, `menuSymbol` — or **red** when `isDestructive`) `.file` (a real app icon via `IconCache`, used by the paste rows to show the paste target) or `.thumbnail` (a picture's own preview, cropped to the slot). `PopoverMenuItem` keeps a `systemImage:` convenience init, so symbol rows read exactly as before.

@@ -97,23 +97,6 @@ struct RootPaletteView: View {
             })
     }
 
-    private var appMenuContent: PopoverMenuContent {
-        let appName = Bundle.main.appDisplayName
-        return PopoverMenuContent(
-            header: Bundle.main.appVersionTitle,
-            items: [
-                PopoverMenuItem(title: "Settings", systemImage: "gearshape", shortcut: "⌘,") {
-                    core.settingsCoordinator.showSettings()
-                },
-                PopoverMenuItem(
-                    title: "Quit \(appName)", systemImage: "rectangle.portrait.and.arrow.right",
-                    isDestructive: true
-                ) {
-                    NSApp.terminate(nil)
-                }
-            ])
-    }
-
     /// The one source every menu path addresses rows through, so none can disagree.
     private var menuContent: PaletteMenuContent? {
         switch openMenu {
@@ -123,14 +106,6 @@ struct RootPaletteView: View {
                 at: selection(in: screen), searchQuery: ActionMenuSearchQuery(vm.menuQuery),
                 menuSelection: $menuSelection,
                 onActivate: activateMenuItem)
-        case .app:
-            let filtered = appMenuContent.matching(ActionMenuSearchQuery(vm.menuQuery))
-            return PaletteMenuContent(
-                popover: filtered.content, selection: $menuSelection,
-                visibleRows: Theme.Size.appMenuVisibleRows,
-                search: PopoverMenu.Search(
-                    placeholder: "Search for actions…", placement: .bottom),
-                onActivate: activateMenuItem, preferredSelection: filtered.bestMatch)
         case .clipboardFilter:
             return headerMenu(
                 clipboardFilterContent, width: Theme.Size.clipboardFilterMenuWidth)
@@ -461,22 +436,13 @@ struct RootPaletteView: View {
 
     private var bottomBar: some View {
         // Floating controls, no bar; the edge dissolve ghosts the rows passing beneath.
-        HStack(spacing: 0) {
-            appMenuButton
-            Spacer()
-            ActionGroup(
-                resolve: { screen }, tint: pillTint, activate: activateSelection,
-                toggleActions: toggleActions)
-        }
+        ActionGroup(
+            resolve: { screen }, tint: pillTint, activate: activateSelection,
+            toggleActions: toggleActions)
+        .frame(maxWidth: .infinity, alignment: .trailing)
         .padding(.horizontal, Theme.Spacing.md)
         .frame(height: Theme.Size.bottomBarHeight)
         .frame(maxWidth: .infinity)
-    }
-
-    private var appMenuButton: some View {
-        MenuCircleButton {
-            if openMenu == .app { closeMenus() } else { open(.app, highlighting: 0) }
-        }
     }
 
     /// The one path opening the Actions menu, sampling the state its rows depend on.
@@ -674,7 +640,6 @@ struct RootPaletteView: View {
 
     private var menuCorner: MenuPanelCorner? {
         switch openMenu {
-        case .app: .bottomLeading
         case .actions: .bottomTrailing
         case .clipboardFilter, .emojiCategory: .belowHeaderTrailing
         case nil: nil
@@ -801,7 +766,6 @@ struct RootPaletteView: View {
 /// The palette's in-window menus. One optional of these is the whole "only one is open" invariant.
 private enum OpenMenu {
     case actions
-    case app
     case clipboardFilter
     case emojiCategory
 }
@@ -820,7 +784,7 @@ private struct ScreenContent: View {
     }
 }
 
-/// The footer control group: primary action and the Actions toggle sharing one glass capsule.
+/// The footer control group: primary action and the Actions toggle over one feathered blur.
 /// Resolves the screen itself, for the same reason `ScreenContent` does.
 private struct ActionGroup: View {
     @Environment(PaletteState.self) private var vm
@@ -856,7 +820,7 @@ private struct ActionGroup: View {
                 }
             }
             .padding(Theme.Spacing.xs)
-            .frosted(in: Capsule())
+            .featheredBlur()
         }
     }
 }
@@ -925,28 +889,6 @@ private struct PaletteHideObserver: ViewModifier {
         content.onChange(of: vm.isVisible) { _, visible in
             if !visible { onHide() }
         }
-    }
-}
-
-/// The footer's menu circle; hover lives here, so a sweep never re-renders the body.
-private struct MenuCircleButton: View {
-    let action: () -> Void
-    @State private var hovered = false
-
-    var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 3) {
-                Capsule().frame(width: 14, height: 1.5)
-                Capsule().frame(width: 8, height: 1.5)
-            }
-            .foregroundStyle(Theme.Colors.textSecondary)
-            .frame(width: Theme.Size.menuButton, height: Theme.Size.menuButton)
-            .background(Circle().fill(hovered ? Theme.Colors.rowHover : Color.clear))
-            .contentShape(.circle)
-        }
-        .buttonStyle(.plain)
-        .onHover { hovered = $0 }
-        .frosted(in: Circle())
     }
 }
 
