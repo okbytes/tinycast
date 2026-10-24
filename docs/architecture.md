@@ -152,12 +152,12 @@ launch. `Platform/InheritedEnvironment.swift` keeps only the variables launchd g
 app (`HOME`, `USER`, `LOGNAME`, `SHELL`, `SSH_AUTH_SOCK`, the XPC and CF ones), sets `PATH` to
 launchd's `/usr/bin:/bin:/usr/sbin:/sbin`, and resets `TMPDIR` to the unsuffixed per-user folder.
 Everything else is dropped: a terminal's `VIRTUAL_ENV` or `NODE_OPTIONS`, Xcode's, and Shortcuts'
-`DIRHELPER_USER_DIR_SUFFIX`, which its shell actions export and the "Update Tinycast" shortcut hands
-down — with it set, every opened app's temp folder is `…/T/com.apple.shortcuts.mac-helper/` and a
-socket path under it overruns the 104-byte limit. Dropping the variable and resetting `TMPDIR` are
-both needed, and `OpenConfiguration.environment` could do neither per launch: it can set `TMPDIR` but
-not remove a variable. `scripts/install.sh` relaunches with the same cleaning, so older builds start
-clean too. The rule is simply that an app opened from Tinycast sees what it would from the Dock.
+`DIRHELPER_USER_DIR_SUFFIX` — with it set, every opened app's temp folder is
+`…/T/com.apple.shortcuts.mac-helper/` and a socket path under it overruns the 104-byte limit.
+Dropping the variable and resetting `TMPDIR` are both needed, and `OpenConfiguration.environment`
+could do neither per launch: it can set `TMPDIR` but not remove a variable. Because Tinycast cleans
+itself, `scripts/install.sh` relaunches it with a plain `open`. The rule is simply that an app opened
+from Tinycast sees what it would from the Dock.
 
 `NSAlert` is never used, and that is load-bearing. Appearance is a setting: `AppCore.applyAppearance()`
 assigns `NSApp.appearance` from `AppSettings.appearance`, and `.system` assigns `nil` so AppKit follows
