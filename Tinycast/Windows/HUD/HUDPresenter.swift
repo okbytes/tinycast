@@ -1,33 +1,28 @@
 import AppKit
 import SwiftUI
 
-/// What both HUDs agree on: one at a time, replace, fade, dwell, fade away.
+/// How a HUD comes and goes: one at a time, replace, fade, dwell, fade away.
 @MainActor
 final class HUDPresenter {
-    /// Where the panel sits above the bottom of the visible frame.
-    enum Anchor {
-        case edgeInset(CGFloat)
-        case heightFraction(CGFloat)
-    }
-
-    private let anchor: Anchor
+    /// How far the panel sits above the bottom of the visible frame.
+    private let edgeInset: CGFloat
     private let dwell: TimeInterval
     private let screen: () -> NSScreen?
     private var panel: HUDPanel?
     private var dismissal: Task<Void, Never>?
 
-    init(anchor: Anchor, dwell: TimeInterval, screen: @escaping () -> NSScreen?) {
-        self.anchor = anchor
+    init(edgeInset: CGFloat, dwell: TimeInterval, screen: @escaping () -> NSScreen?) {
+        self.edgeInset = edgeInset
         self.dwell = dwell
         self.screen = screen
     }
 
-    /// A nil `size` lets SwiftUI measure; progress has no dwell, so it waits to be replaced.
-    func show(_ view: some View, size: CGSize? = nil, dwells: Bool = true) {
+    /// Progress has no dwell, so it waits to be replaced.
+    func show(_ view: some View, dwells: Bool = true) {
         let panel = panel ?? make()
         let host = NSHostingView(rootView: view)
         // Never size from `host.frame` after attaching: AppKit resets it to the content rect.
-        let content = size ?? host.fittingSize
+        let content = host.fittingSize
         host.setFrameSize(content)
         panel.setContentSize(content)
         panel.contentView = host
@@ -40,15 +35,6 @@ final class HUDPresenter {
         }
         if dwells { scheduleDismissal() } else { dismissal?.cancel() }
     }
-
-    /// Re-arms the dismissal, so a repeat extends the dwell rather than replaying it.
-    func extend() {
-        guard let panel, panel.isVisible else { return }
-        panel.cancelFade()
-        scheduleDismissal()
-    }
-
-    var isShowing: Bool { panel?.isVisible ?? false }
 
     private func scheduleDismissal() {
         dismissal?.cancel()
@@ -67,13 +53,7 @@ final class HUDPresenter {
 
     private func place(_ panel: NSPanel) {
         guard let visible = screen()?.visibleFrame else { return }
-        let y: CGFloat
-        switch anchor {
-        case .edgeInset(let inset):
-            y = visible.minY + inset
-        case .heightFraction(let fraction):
-            y = visible.minY + visible.height * fraction
-        }
-        panel.setFrameOrigin(NSPoint(x: visible.midX - panel.frame.width / 2, y: y))
+        panel.setFrameOrigin(
+            NSPoint(x: visible.midX - panel.frame.width / 2, y: visible.minY + edgeInset))
     }
 }

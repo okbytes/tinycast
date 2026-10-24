@@ -133,23 +133,15 @@ enum Theme {
         /// Subject glyph and its fixed tile at the top of a dialog.
         static let dialogSymbol: CGFloat = 28
         static let dialogSymbolContainer: CGFloat = 52
-        /// Shared by the camera's no-video glyph and the volume HUD's speaker.
+        /// The camera's no-video glyph.
         static let dialogIcon: CGFloat = 32
         /// 16:9 and wider than a dialog: the camera is the surface itself.
         static let cameraStage = CGSize(width: 560, height: 315)
-        /// Transient volume HUD shown after any volume or mute command.
-        static let hudWidth: CGFloat = 200
-        static let hudHeight: CGFloat = 100
-        /// Read-only volume bar geometry used by the HUD.
-        static let volumeTrackHeight: CGFloat = 6
-        /// Fixed slot for the level readout, sized to the widest string it ever holds.
-        static let volumeReadout: CGFloat = 38
     }
 
     enum Duration {
-        /// How long each HUD stays up; a sentence needs longer than a level does.
+        /// How long the message HUD stays up.
         static let messageHUD: TimeInterval = 2.4
-        static let volumeHUD: TimeInterval = 1.6
         /// How a borderless surface arrives and leaves; the exit is shorter, so it feels quick.
         static let enter: TimeInterval = 0.18
         static let exit: TimeInterval = 0.12

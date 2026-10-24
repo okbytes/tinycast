@@ -30,6 +30,4 @@ struct DialogRequest {
     var defaultIndex: Int
     /// Resolved when the dialog goes without a choice: Esc, or losing key status.
     var cancelIndex: Int
-    /// A slider the caller reads the chosen level back out of; it claims the arrow keys.
-    var volume: VolumeState?
 }

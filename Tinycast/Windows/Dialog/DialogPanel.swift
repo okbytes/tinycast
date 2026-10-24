@@ -7,13 +7,9 @@ final class DialogPanel: NSPanel {
     enum Key {
         case cancel
         case confirm
-        case increment
-        case decrement
     }
 
     var onKey: ((Key) -> Void)?
-    /// Arrows are a control's keys, not the panel's: left off, they reach whatever has focus.
-    var handlesArrowKeys = false
 
     init(content: NSView, cornerRadius: CGFloat) {
         super.init(
@@ -51,12 +47,6 @@ final class DialogPanel: NSPanel {
             onKey(.cancel)
         case kVK_Return, kVK_ANSI_KeypadEnter:
             onKey(.confirm)
-        case kVK_LeftArrow where handlesArrowKeys,
-            kVK_DownArrow where handlesArrowKeys:
-            onKey(.decrement)
-        case kVK_RightArrow where handlesArrowKeys,
-            kVK_UpArrow where handlesArrowKeys:
-            onKey(.increment)
         default:
             super.sendEvent(event)
         }

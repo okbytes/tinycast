@@ -5,7 +5,7 @@ import SwiftUI
 @MainActor
 final class MessageHUDController {
     private let presenter = HUDPresenter(
-        anchor: .edgeInset(Theme.Size.hudEdgeOffset), dwell: Theme.Duration.messageHUD,
+        edgeInset: Theme.Size.hudEdgeOffset, dwell: Theme.Duration.messageHUD,
         screen: { .underCursor })
 
     func show(message: String, tone: DialogTone = .success) {

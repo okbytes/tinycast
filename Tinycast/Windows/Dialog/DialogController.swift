@@ -60,20 +60,6 @@ final class DialogController: NSObject, NSWindowDelegate {
         return await present(request) == recoveryIndex
     }
 
-    func pickVolume(current: Float32) async -> Float32? {
-        let volume = VolumeState(level: Double(current))
-        let request = DialogRequest(
-            title: "Set Volume", message: "Choose the output volume.", symbol: "speaker.wave.2",
-            tone: .neutral,
-            actions: [
-                DialogAction(title: "Set Volume"),
-                DialogAction(title: "Cancel", role: .cancel)
-            ],
-            defaultIndex: 0, cancelIndex: 1, volume: volume)
-        guard await present(request) == 0 else { return nil }
-        return Float32(volume.level)
-    }
-
     private func present(_ request: DialogRequest) async -> Int {
         // Keyed on the continuation, so a panel still fading can't swallow the next.
         guard continuation == nil else { return request.cancelIndex }
@@ -89,7 +75,6 @@ final class DialogController: NSObject, NSWindowDelegate {
                     }),
                 width: width)
             let panel = DialogPanel(content: content, cornerRadius: Theme.Radius.panel)
-            panel.handlesArrowKeys = request.volume != nil
             panel.delegate = self
             panel.onKey = { [weak self] key in
                 guard let self else { return }
@@ -98,10 +83,6 @@ final class DialogController: NSObject, NSWindowDelegate {
                     finish(request.cancelIndex)
                 case .confirm:
                     finish(request.defaultIndex)
-                case .increment, .decrement:
-                    // Keying the slider lands on the same values Volume Up/Down produce.
-                    guard let volume = request.volume else { return }
-                    volume.level = VolumeLevel.stepped(volume.level, up: key == .increment)
                 }
             }
             self.panel = panel
@@ -141,7 +122,6 @@ final class DialogController: NSObject, NSWindowDelegate {
         continuation.resume(returning: index)
         closing?.fadeOut(duration: Theme.Duration.dialogExit)
     }
-
 
     private func hostingView(_ view: some View, width: CGFloat) -> NSView {
         let hosting = NSHostingView(rootView: AnyView(view))

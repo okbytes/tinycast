@@ -1,5 +1,4 @@
 import AppKit
-import CoreAudio
 import Darwin
 
 struct SystemActionFeedback: Sendable {
@@ -59,35 +58,11 @@ enum SystemActionRunner {
                         .showScreenSaver, SystemActionFailure(error.localizedDescription))
                 }
             }
-        case .playPause:
-            try postMediaKey(16)
-        case .nextTrack:
-            try postMediaKey(17)
-        case .previousTrack:
-            try postMediaKey(18)
-        case .toggleMute:
-            try toggleMute()
         case .toggleMicrophoneMute:
             let muted = try await Task.detached {
                 try await toggleMicrophoneMute()
             }.value
             return SystemActionFeedback(muted ? "Microphone Muted" : "Microphone Unmuted")
-        case .volumeUp:
-            try stepVolume(up: true)
-        case .volumeDown:
-            try stepVolume(up: false)
-        case .setVolume:
-            break  // AppCore owns the value-picking dialog and calls setVolume directly.
-        case .volume0:
-            try setVolume(0)
-        case .volume25:
-            try setVolume(0.25)
-        case .volume50:
-            try setVolume(0.5)
-        case .volume75:
-            try setVolume(0.75)
-        case .volume100:
-            try setVolume(1)
         case .showDesktop:
             // Executing the binary directly is SIGKILLed; only a LaunchServices launch is allowed.
             let configuration = NSWorkspace.OpenConfiguration()
@@ -168,165 +143,6 @@ enum SystemActionRunner {
         return finder.bool(forKey: key)
     }
 
-    static func currentVolume() throws -> Float32 {
-        let device = try defaultOutputDevice()
-        let elements = try volumeElements(on: device)
-        // Averaged across channels without a master, so a pair reads as one level.
-        var total: Float32 = 0
-        for element in elements {
-            var address = volumeAddress(element: element)
-            var value: Float32 = 0
-            var size = UInt32(MemoryLayout<Float32>.size)
-            guard AudioObjectGetPropertyData(device, &address, 0, nil, &size, &value) == noErr else {
-                throw SystemActionFailure(
-                    "The current audio output does not support software volume.")
-            }
-            total += value
-        }
-        return total / Float32(elements.count)
-    }
-
-    /// What the HUD renders; without a mute control, zero level reads as muted.
-    static func outputState() throws -> (level: Float32, muted: Bool) {
-        let level = try currentVolume()
-        let device = try defaultOutputDevice()
-        var address = muteAddress
-        var muted: UInt32 = 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        guard AudioObjectHasProperty(device, &address),
-            AudioObjectGetPropertyData(device, &address, 0, nil, &size, &muted) == noErr
-        else {
-            return (level, level == 0)
-        }
-        return (level, muted != 0)
-    }
-
-    static func setVolume(_ requested: Float32) throws {
-        let device = try defaultOutputDevice()
-        let elements = try volumeElements(on: device)
-        let value = min(max(requested, 0), 1)
-        for element in elements {
-            var address = volumeAddress(element: element)
-            var settable = DarwinBoolean(false)
-            guard AudioObjectIsPropertySettable(device, &address, &settable) == noErr,
-                settable.boolValue
-            else {
-                throw SystemActionFailure(
-                    "The current audio output volume is controlled externally.")
-            }
-            var applied = value
-            let status = AudioObjectSetPropertyData(
-                device, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &applied)
-            guard status == noErr else {
-                throw SystemActionFailure(
-                    "macOS could not change the output volume (error \(status)).")
-            }
-        }
-        if value > 0 { try? setMuted(false, on: device) }
-    }
-
-    /// The master element where there is one, else the preferred stereo channels.
-    private static func volumeElements(on device: AudioDeviceID) throws -> [AudioObjectPropertyElement] {
-        var main = volumeAddress(element: kAudioObjectPropertyElementMain)
-        if AudioObjectHasProperty(device, &main) { return [kAudioObjectPropertyElementMain] }
-
-        var stereoAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyPreferredChannelsForStereo,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain)
-        var channels: (UInt32, UInt32) = (1, 2)
-        var size = UInt32(MemoryLayout<(UInt32, UInt32)>.size)
-        if AudioObjectGetPropertyData(device, &stereoAddress, 0, nil, &size, &channels) != noErr {
-            channels = (1, 2)
-        }
-        let elements = [channels.0, channels.1].filter { channel in
-            var address = volumeAddress(element: channel)
-            return AudioObjectHasProperty(device, &address)
-        }
-        guard !elements.isEmpty else {
-            throw SystemActionFailure("The current audio output does not support software volume.")
-        }
-        return elements
-    }
-
-    private static func volumeAddress(
-        element: AudioObjectPropertyElement
-    )
-        -> AudioObjectPropertyAddress
-    {
-        AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyVolumeScalar,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: element)
-    }
-
-    private static var muteAddress: AudioObjectPropertyAddress {
-        AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyMute,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain)
-    }
-
-    private static func defaultOutputDevice() throws -> AudioDeviceID {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain)
-        var device = AudioDeviceID(kAudioObjectUnknown)
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &device)
-        guard status == noErr, device != kAudioObjectUnknown else {
-            throw SystemActionFailure("No audio output device is available.")
-        }
-        return device
-    }
-
-    private static func stepVolume(up: Bool) throws {
-        try setVolume(Float32(VolumeLevel.stepped(Double(try currentVolume()), up: up)))
-    }
-
-    private static func toggleMute() throws {
-        let device = try defaultOutputDevice()
-        var address = muteAddress
-        var muted: UInt32 = 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        if AudioObjectHasProperty(device, &address),
-            AudioObjectGetPropertyData(device, &address, 0, nil, &size, &muted) == noErr
-        {
-            try setMuted(muted == 0, on: device)
-            return
-        }
-        // No mute control: park the volume at zero and restore it afterwards.
-        let current = try currentVolume()
-        guard current > 0 else {
-            try setVolume(lastNonZeroVolume)
-            return
-        }
-        lastNonZeroVolume = current
-        try setVolume(0)
-    }
-
-    /// Restore level for the mute fallback, written only when a mute drops it to zero.
-    private static var lastNonZeroVolume: Float32 = 0.5
-
-    private static func setMuted(_ muted: Bool, on device: AudioDeviceID) throws {
-        var address = muteAddress
-        guard AudioObjectHasProperty(device, &address) else {
-            guard muted else { return }
-            let current = try currentVolume()
-            if current > 0 { lastNonZeroVolume = current }
-            try setVolume(0)
-            return
-        }
-        var value: UInt32 = muted ? 1 : 0
-        let status = AudioObjectSetPropertyData(
-            device, &address, 0, nil, UInt32(MemoryLayout<UInt32>.size), &value)
-        guard status == noErr else {
-            throw SystemActionFailure("macOS could not change mute state (error \(status)).")
-        }
-    }
-
     private static func lockScreen() throws {
         let path = "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login"
         guard let handle = dlopen(path, RTLD_NOW) else {
@@ -338,22 +154,6 @@ enum SystemActionRunner {
             throw SystemActionFailure("This macOS version does not expose screen locking.")
         }
         _ = unsafeBitCast(symbol, to: LockScreen.self)()
-    }
-
-    private static func postMediaKey(_ key: Int32) throws {
-        guard Permissions.ensureAccessibility() else {
-            throw SystemActionFailure(
-                "Allow Tinycast to control your Mac in Accessibility settings, then try again.",
-                settings: .accessibility)
-        }
-        // The same route as the keyboard's media keys; 0xA/0xB are down and up.
-        for state in [0xA, 0xB] {
-            let data1 = Int((key << 16) | (Int32(state) << 8))
-            let event = NSEvent.otherEvent(
-                with: .systemDefined, location: .zero, modifierFlags: [], timestamp: 0,
-                windowNumber: 0, context: nil, subtype: 8, data1: data1, data2: -1)
-            event?.cgEvent?.post(tap: .cghidEventTap)
-        }
     }
 
     private static func hideOtherApps(except previousApp: NSRunningApplication?) {

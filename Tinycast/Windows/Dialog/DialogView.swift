@@ -42,10 +42,6 @@ struct DialogView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-
-                if let volume = request.volume {
-                    VolumeSlider(state: volume)
-                }
             }
             .padding(.horizontal, Theme.Spacing.xs)
             .padding(.top, Theme.Spacing.xs)

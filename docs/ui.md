@@ -49,8 +49,8 @@ These are the things that quietly break the look if changed. Preserve them unles
 - **Resolve every glyph through `SymbolImage`, not `Image(systemName:)`.** Some catalog symbols are bundled assets in `Assets.xcassets` (`toggleBluetooth`), and `Image(systemName:)` silently renders nothing for those.
 - **↵ runs the primary action, Escape cancels, and Cancel always renders leading** (the left button), matching macOS convention. A button never prints its key cap; a deliberate hover reveals its outlined `KeyCapChip` in a `Tooltip`.
 - **In the palette, a hover label is Tinycast's `tooltip`, never `.help()`**: an AppKit tooltip never appears while the app sits inactive behind the non-activating panel. A Settings window activates the app, so `.help()` shows there and stays the label to use. The tooltip hangs above its control by default; a control in the palette header passes `edge: .bottom`, since above it is off the window, and a label may run to several lines.
-- **A transient readout is a HUD, not a dialog.** `VolumeHUDController`'s box is volume and mute only, since that one needs an actual level and number; every other success or info confirmation goes through `MessageHUDController`'s pill, whose leading glyph *is* its `DialogTone`. A pill has no subject to name, so the icon rule above does not apply to it — and that mapping stays file-scoped so nothing can reach for it when building a `DialogRequest`. A new HUD means a new presenter, not a second shape bolted onto an existing controller.
-- **Glass is for floating controls, with dialogs as the deliberate modal exception.** The action capsule, menu circle and `PopoverMenu` use it inside the palette; dialogs apply one system `.glassEffect(.regular)` to their root surface. Dialog buttons stay matte so their roles remain legible. Both HUDs keep the lighter `panelScrim` → `GlassEffectView()` → `clipShape` recipe.
+- **A transient readout is a HUD, not a dialog.** Every success or info confirmation goes through `MessageHUDController`'s pill, whose leading glyph *is* its `DialogTone`. A pill has no subject to name, so the icon rule above does not apply to it — and that mapping stays file-scoped so nothing can reach for it when building a `DialogRequest`. A new HUD means a new presenter, not a second shape bolted onto an existing controller.
+- **Glass is for floating controls, with dialogs as the deliberate modal exception.** `PopoverMenu` uses it inside the palette; dialogs apply one system `.glassEffect(.regular)` to their root surface. Dialog buttons stay matte so their roles remain legible. The HUD keeps the lighter `panelScrim` → `GlassEffectView()` → `clipShape` recipe.
 
 ---
 
@@ -133,8 +133,7 @@ shortcut-recorder callout, and `menuRow` is deliberately equal to
 `emojiGridInset 16` ·
 `settingsSidebar 215` · `settingsRowIcon 20` · `dialogWidth 290` ·
 `dialogButtonHeight 34` · `dialogSymbol 28` · `dialogSymbolContainer 52` ·
-`dialogIcon 32` · `hudWidth 200` ·
-`hudHeight 100` · `volumeTrackHeight 6` · `volumeReadout 38`
+`dialogIcon 32`
 
 `keyCap` sizes the palette's keycap chips; `recorderKeyCap` (both size and radius) is the intentionally-smaller Settings shortcut-recorder chip.
 
@@ -159,7 +158,7 @@ shipped. Light is the same stop with the ink inverted, and is the only column op
 | `separator`       | white 0.10     | black 0.12     | a list↔preview hairline (clipboard)              |
 | `controlSurface`  | white 0.10     | black 0.08     | filled keycaps, glyph tiles                      |
 | `border`          | white 0.20     | black 0.18     | outlined keycap borders                          |
-| `textPrimary`     | white 1.00     | black 1.00     | search text and caret, volume fill and knob      |
+| `textPrimary`     | white 1.00     | black 1.00     | search text and caret                            |
 | `textSecondary`   | white 0.60     | black 0.60     | secondary labels                                 |
 | `textTertiary`    | white 0.40     | black 0.42     | placeholders, trailing kind labels               |
 | `menuSymbol`      | white 0.70     | black 0.70     | native popover-menu symbols                      |
@@ -295,18 +294,17 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   red-glyph security warning can carry a plain white button, and turning on Calendar is
   `.neutral` + `.standard` rather than a red alarm.
 - **Surface.** A dialog applies one system `.glassEffect(.regular)` to a
-  `RoundedRectangle(panel 26)`. Every dialog is `dialogWidth 290` wide, the volume slider's
-  included. `panelScrim` sits beneath the glass so the dialog
+  `RoundedRectangle(panel 26)`. Every dialog is `dialogWidth 290` wide. `panelScrim` sits beneath the glass so the dialog
   keeps the launcher's darker density without losing the system material. `DialogPanel` clips its
   `NSHostingView` layer to the same continuous radius, then lets AppKit draw the native window shadow;
   this avoids both the rectangular outline of an unshaped panel and the hard bounds of a SwiftUI blur.
   The launcher's root gains a `dialogDimming` overlay only when it remains visible behind the panel;
   actions that hide the launcher first do no dimming work. Its fade follows `dialogEnter` / `dialogExit`
   so both surfaces separate as one transition. Matte button fills come from `controlSurface` /
-  `selection`, while a destructive action uses the destructive tint. The **volume HUD** and **message
-  pill** keep the non-glass panel recipe.
+  `selection`, while a destructive action uses the destructive tint. The **message pill** keeps the
+  non-glass panel recipe.
 - **Layout.** Subject glyph in a low-opacity rounded tile, then title (`panelTitle`) + wrapped
-  secondary message, the optional volume slider and full-width actions. Content uses a 22-point
+  secondary message and full-width actions. Content uses a 22-point
   inset while the actions keep the tighter `dialogInset 18`. One action spans the row; two sit side by side with
   **Cancel rendered leading** only while both labels fit on one line, then `ViewThatFits` stacks them.
   Three or more always stack in the caller's semantic order. `DialogView.visualOrder` reorders only
@@ -321,9 +319,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   `Tooltip` tile holding an outlined `KeyCapChip` for the key the panel actually handles (`↵`, `⎋`).
   Only those two keys are ever advertised, so a shown cap cannot drift from dialog behavior.
   **↵ runs the dialog's primary action; Escape cancels**, on every dialog including destructive ones.
-  Arrow keys walk the volume slider along the same 5% grid the volume commands use (`DialogPanel`
-  reports `.increment` / `.decrement` and `DialogController` applies `VolumeLevel.stepped`, so the
-  panel never learns what a volume step is); click-away resolves as a dismissal.
+  Click-away resolves as a dismissal.
 - **Async, not modal.** Presentation is `async` (`withCheckedContinuation`), so there is no nested run
   loop. A held hotkey can't stack dialogs: while one is up, a second request resolves immediately as a
   dismissal — which is why the old `isConfirmingCommand` re-entrancy flag is gone. The guard is keyed
@@ -340,26 +336,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
 - **Non-activating**, like the palette: the dialog takes key focus for its own keys without pulling app
   focus off whatever the user was in. It sits at `.dialog`, above the palette's `.palette`, and is
   centred on the **cursor's** display with the same slight optical lift the palette uses.
-- **`VolumeSlider`** uses SwiftUI's native `Slider`, paired with a monospaced-digit percentage in the
-  same `volumeReadout 38` slot the HUD uses, so the row does not resize between `0%` and `100%`.
-  Pointer interaction stays native; the arrows still walk the 5% grid through `DialogPanel`.
-- **`VolumeHUDController`'s box** is the readout for the volume/mute commands, since macOS only
-  draws its own HUD for real media keys and a CoreAudio change would otherwise be silent. It exists
-  because a level needs an actual bar and number, not a one-line message: speaker glyph
-  (`dialogIcon 32`, neutral `Color.primary` — a level isn't a success/warning statement), the bar, then
-  the level as monospaced text beside it, in a fixed `volumeReadout 38` slot so the track can't resize
-  as the number runs 0% → 100% — the same trick `VolumeSlider` uses, since the two now read as one
-  control in two places. That slot is measured, not guessed: 38 is the widest string it ever holds
-  ("Muted", 36pt in `rowTrailing`) plus a hair, because every point of slack is subtracted straight off
-  the track. Fixed `hudWidth 200 × hudHeight 100`, with **asymmetric padding** — `xxl` 20 vertical,
-  `xl` 12 horizontal — since 20pt of side padding costs a fifth of a 200pt box where the same token on
-  a 420pt dialog costs a twentieth, and the bar is the content here.
-  Muted prints `Muted`, not `0%`: the bar is already empty, so a
-  number would either contradict it or hide the level the user comes back to. Auto-dismisses after
-  `Duration.volumeHUD` (1.6s); a repeat command updates the shared `VolumeState` and calls
-  `HUDPresenter.extend()`, so the bar slides to its new value in place instead of replaying the
-  entrance.
-- **`MessageHUDController`'s pill** is every _other_ transient
+- **`MessageHUDController`'s pill** is every transient
   confirmation: every system action whose effect
   is invisible (`Trash Emptied`, `Hidden Files Shown`, `Bluetooth Off`). One capsule shape, sized to
   its message (`hudMaxWidth 420` ceiling), clipped to a `Capsule()`, with a plain glyph leading the
@@ -371,8 +348,7 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   `fileprivate` in `MessageHUDView.swift` precisely so nobody can reach for it when building a
   `DialogRequest`, where the icon rule is the opposite. It leads, so the outcome lands at a glance
   before the sentence is read. Auto-dismisses after
-  `Duration.messageHUD` (2.4s) — longer than the volume box, since a sentence needs reading time and a
-  level only needs a glance — and a repeat call replaces rather than stacks.
+  `Duration.messageHUD` (2.4s), and a repeat call replaces rather than stacks.
 - **The same pill reports work still running**, through `showProgress(message:)`: reading
   the text out of a clipboard image has no panel to watch the answer arrive in, so the pill says
   `Reading text…` in its place and the result message replaces it when the read is done. Its leading mark is a spinner rather
@@ -382,15 +358,13 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   every tint given to it, so a blue spinner is only reachable as a symbol. Progress has no natural
   dwell, so it is shown with `dwells: false` and stays up until something replaces it — the caller
   owns that, so every exit from the work it covers must end in a message of its own.
-- **`HUDPresenter`** is what keeps those two controllers from duplicating each other: one panel at a
-  time, replace rather than stack, fade in, sit out its dwell, fade away, centred horizontally on
-  a screen. The two HUDs differ only in their content, their anchor (`edgeInset(hudEdgeOffset 48)` for
-  the pill, `heightFraction(0.12)` for the box) and how long they dwell — so those are the presenter's
-  three arguments. **It sizes its window from a local, never from `host.frame` after attaching the
+- **`HUDPresenter`** owns how the pill comes and goes: one panel at a time, replace rather than
+  stack, fade in, sit out its dwell, fade away, centred horizontally `hudEdgeOffset 48` above the
+  bottom of a screen. **It sizes its window from a local, never from `host.frame` after attaching the
   content view**: assigning a content view resizes it to the window's current content rect, which is
   zero on a fresh panel, and a zero-width window "centers" with its leading edge on the screen's
   midline — visible only on the session's first HUD, which is what makes it easy to miss. Add a
-  third HUD by constructing another presenter, not by teaching an existing controller a second shape.
+  second HUD by constructing another presenter, not by teaching the pill's controller a second shape.
 
 ## Scrollbars
 
@@ -423,15 +397,6 @@ on top of it.
 
 `AVCaptureVideoPreviewLayer` is hosted in one `NSViewRepresentable` and nothing else; the buttons
 around it are Tinycast's own, `CameraButton` over `ModalActionButtonStyle`.
-
-## The volume slider
-
-Set Volume is the one dialog carrying a control beyond its buttons: `DialogRequest.volume` hands it a
-`VolumeState`, and the caller reads the chosen level back out of that state.
-
-**Arrow keys belong to the slider, not the panel.** `DialogPanel.handlesArrowKeys` is set only when
-the request carries a volume, so the slider steps on ←/→ while any other dialog leaves them to
-whatever has focus.
 
 ## Settings
 

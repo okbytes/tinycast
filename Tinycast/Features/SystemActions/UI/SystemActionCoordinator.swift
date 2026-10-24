@@ -5,7 +5,6 @@ import AppKit
 final class SystemActionCoordinator {
     private let paletteCoordinator: PaletteCoordinator
     private var isTogglingMicrophone = false
-    @ObservationIgnored private lazy var volumeHUD = VolumeHUDController()
     /// Dialog and message-HUD presentation only — never for state this type owns.
     private unowned let core: AppCore
 
@@ -45,18 +44,7 @@ final class SystemActionCoordinator {
             break
         }
         do {
-            var feedback: SystemActionFeedback?
-            if action.id == .setVolume {
-                let current = try SystemActionRunner.currentVolume()
-                guard let selected = await core.pickVolume(current: current) else { return }
-                try SystemActionRunner.setVolume(selected)
-            } else {
-                feedback = try await SystemActionRunner.run(action.id, previousApp: previousApp)
-            }
-            if Self.showsVolumeFeedback.contains(action.id) {
-                let state = try SystemActionRunner.outputState()
-                volumeHUD.show(level: state.level, muted: state.muted)
-            } else if let feedback {
+            if let feedback = try await SystemActionRunner.run(action.id, previousApp: previousApp) {
                 core.showMessage(feedback.title, tone: feedback.isNoOp ? .neutral : .success)
             }
         } catch let failure as SystemActionFailure {
@@ -66,12 +54,6 @@ final class SystemActionCoordinator {
                 action: action, failure: SystemActionFailure(error.localizedDescription))
         }
     }
-
-    /// Level and mute actions; macOS draws its HUD only for real media keys.
-    private static let showsVolumeFeedback: Set<SystemAction.ID> = [
-        .setVolume, .volumeUp, .volumeDown, .toggleMute,
-        .volume0, .volume25, .volume50, .volume75, .volume100
-    ]
 
     /// Sync entry point for the runner's own async completion handlers, which can't await.
     func presentSystemActionFailure(id: SystemAction.ID, failure: SystemActionFailure) {

@@ -375,9 +375,4 @@ final class AppCore {
     func showProgress(_ message: String) {
         messageHUD.showProgress(message: message)
     }
-
-    /// The volume slider, so `dialogs` stays the single owner of every prompt in the app.
-    func pickVolume(current: Float32) async -> Float32? {
-        await dialogs.pickVolume(current: current)
-    }
 }

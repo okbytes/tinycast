@@ -101,7 +101,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `callout-test` | `DesignSystem/Theme.swift`, `HotKeys/UI/CalloutPlacement.swift` |
 | `system-action-test` | `SystemActions/Model/SystemAction.swift` |
 | `microphone-mute-test` | Native input mute, delayed confirmation, device switches and failures; injected CoreAudio calls only |
-| `volume-test` | `SystemActions/Model/VolumeLevel.swift` |
 | `window-command-test` | `WindowManagement/WindowCommand.swift`, `WindowPlacementEngine.swift`, `WindowActionMemory.swift` |
 | `uninstall-test` | all five pure files in `Uninstall/Model/` |
 | `folder-command-test` | `CommandFolder/Model/FolderCommand.swift` — which files make commands, names, links, entry ids and the sweep |
@@ -413,14 +412,13 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 ### System actions and window management
 
-- Arrow keys step the Set Volume slider
 - A confirmation-gated action (Restart, Quit All) confirms, showing the subject's own glyph
 - Restart and Shut Down follow "Reopen windows when logging back in": after logging back in,
   apps and windows reopen with it on and stay closed with it off. Check both actions and settings
   from the launcher and a global hotkey
 - Empty Trash confirms while Finder's "Show warning before emptying the Trash" is on, and runs
   without a dialog once it is off
-- Volume actions show the volume HUD; everything else shows the message pill
+- A system action's feedback is the message pill
 - Toggle Microphone Mute works from the launcher and a global hotkey with the palette closed;
   its pill reports Microphone Muted / Microphone Unmuted, input audio follows that state, and input
   gain and output audio stay unchanged. Switch the default input and repeat; an unavailable or

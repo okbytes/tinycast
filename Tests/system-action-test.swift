@@ -17,7 +17,7 @@ struct SystemActionTests {
 
     static func main() {
         let actions = SystemActionCatalog.all
-        expect(actions.count == 32, "catalog contains all 32 agreed actions")
+        expect(actions.count == 20, "catalog contains all 20 agreed actions")
         expect(actions.map(\.id) == SystemAction.ID.allCases, "catalog covers every ID once")
         expect(Set(actions.map { $0.name.lowercased() }).count == actions.count, "names are unique")
         expect(actions.allSatisfy { !$0.name.isEmpty }, "names are non-empty")
@@ -70,7 +70,7 @@ struct SystemActionTests {
         expect(microphone.sfSymbol == "mic.slash", "microphone mute uses a microphone glyph")
         expect(
             microphone.entryID == "system-action:toggle-microphone-mute",
-            "microphone mute has a stable identity separate from output mute")
+            "microphone mute has a stable identity")
         expect(microphone.confirmation == .none, "microphone mute runs directly from a global hotkey")
 
         print("\(passes) passed, \(failures) failed")

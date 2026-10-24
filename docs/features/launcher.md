@@ -400,7 +400,7 @@ off (`launcherShowsSuggestions`, carried by a settings backup). `HotKeyManager.r
 stable entry IDs, labels, symbols and confirmation policy are covered by
 `Tests/system-action-test.swift`; platform side effects live separately in `SystemActionRunner`.
 `SystemActionCoordinator.runSystemAction(id:)` remains the one execution funnel — shared by palette activation and a
-global hotkey — hiding the floating palette before any confirmation or value dialog and surfacing
+global hotkey — hiding the floating palette before any confirmation and surfacing
 permission-aware failures. With the palette closed it targets the frontmost app, so Hide Others and
 Quit All act on the same window a palette launch would have.
 
@@ -428,14 +428,10 @@ the action, Escape cancels. **Empty Trash follows Finder's own "Show warning bef
 Trash"** (Finder ▸ Settings ▸ Advanced) rather than overriding it: with the box off it runs without a
 dialog. `SystemActionRunner.finderWarnsBeforeEmptyingTrash` reads `com.apple.finder`'s
 `WarnOnEmptyTrash` at call time, and an absent key counts as on, because Finder writes it only once
-the box is changed. Every dialog is Tinycast's own: confirmations, failure reports and the Set
-Volume slider all render through `DialogController` rather than an `NSAlert`
-(see [ui.md](../ui.md#dialogs--hud)). Each confirmation carries the action's own icon — Restart shows
-`arrow.clockwise`, Empty Trash `trash.slash` — so the dialog is recognizably about the row that
-opened it. Output volume and mute actions also show Tinycast's transient volume HUD, since macOS only draws
-its own for real media keys. Volume Up/Down walk a 5% grid (`VolumeLevel.stepped`, covered by
-`Tests/volume-test.swift`): an off-grid level snaps to the next line rather than past it, so from 37%
-up lands on 40% and down on 35%, and repeated presses stay on round numbers.
+the box is changed. Every dialog is Tinycast's own: confirmations and failure reports render
+through `DialogController` rather than an `NSAlert` (see [ui.md](../ui.md#dialogs--hud)). Each
+confirmation carries the action's own icon — Restart shows `arrow.clockwise`, Empty Trash
+`trash.slash` — so the dialog is recognizably about the row that opened it.
 
 An action whose effect is invisible reports back through a pill (`MessageHUDController`) rather
 than finishing silently:
@@ -445,12 +441,11 @@ than finishing silently:
 something actually changed, `.neutral` when there was nothing to do, shown as the glyph trailing the
 message rather than a per-action icon, since the message already names the state. Actions that are
 their own confirmation, such as Show Desktop, Hide Others,
-Quit All and the power actions, return nothing. Output volume and mute stay on the
-palette's own box HUD, since that one has an actual level and number to show, not just a message.
+Quit All and the power actions, return nothing.
 
 **Toggle Microphone Mute** reads the current default macOS input device on each activation and
 toggles its native CoreAudio input mute control without changing input gain or output audio.
-It is available in Settings › System Actions with the same global hotkey recorder as output mute.
+It is available in Settings › System Actions with a global hotkey recorder like every action.
 CoreAudio work runs off-main, and the message pill reports `Microphone Muted` or
 `Microphone Unmuted` only once the device confirms the requested state. Repeated activations are
 ignored while a change is pending. An absent input device, unavailable or externally controlled mute,
@@ -461,9 +456,7 @@ first and reports `Trash Is Already Empty`, because Finder raises an error when 
 Trash. The count deliberately goes through Finder instead of reading `~/.Trash` directly: that folder
 is TCC-protected, so an unprivileged read fails in a way indistinguishable from "empty", which would
 silently skip a real empty. Eject All Disks, Dismiss Notifications and Unhide All Apps report the same
-way when there is nothing to act on. Volume and mute fall back to the output's preferred stereo channels when the device exposes
-no master element (common on HDMI), and Toggle Mute parks the level at zero when there is no mute
-control at all. Multi-disk ejection takes every external or ejectable volume — a dock's fixed-media
+way when there is nothing to act on. Multi-disk ejection takes every external or ejectable volume — a dock's fixed-media
 HDD reports as neither ejectable nor removable, so external alone qualifies — while excluding
 internal, network and root volumes, treats a sibling volume that the same physical eject already
 unmounted as done, counts a volume whose eject errored but whose mount is gone as ejected, and

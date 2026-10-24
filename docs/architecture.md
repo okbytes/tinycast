@@ -18,7 +18,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ LauncherOrder · LauncherSuggestions · LauncherRankingStore ·               │
 │ SearchScopes ·                                                             │
 │ Calculator/* · EmojiCatalog · EmojiGridGeometry ·                          │
-│ SystemAction · VolumeLevel ·                                               │
+│ SystemAction ·                                                             │
 │ WindowCommand · WindowPlacementEngine · WindowActionMemory ·               │
 │ PaletteRowIndex ·                                                          │
 │ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
@@ -98,7 +98,7 @@ hotkey to a coordinator. Views inject `AppCore` through `@Environment` and use i
 those coordinators — `core.uninstallCoordinator.beginUninstall(…)` is the shape, and the alternative
 is injecting twelve coordinators separately for no gain. Reading a store off `AppCore` to render it is
 fine too; deciding something with one is what the rule forbids. `showNotice`, `confirm`,
-`reportFailure`, `showMessage` and `pickVolume` are forwarders on `AppCore` itself, so
+`reportFailure` and `showMessage` are forwarders on `AppCore` itself, so
 `DialogController` and `MessageHUDController` stay single-owned.
 
 New long-lived state belongs on `AppCore`, wired in `start()`. Do not create a competing singleton: this is a singleton, not a container.
@@ -142,9 +142,8 @@ driven imperatively from AppKit.
 - **The camera panel** — a borderless, non-activating `CameraPanel` at `.floating` over one
   `CameraSession`, driven by `CameraCoordinator` on `AppCore` for the `Open Camera` command. See
   [features/camera.md](features/camera.md).
-- **HUDs** are separate, because a dialog asks and a HUD reports: `MessageHUDController` (the pill) and
-  `VolumeHUDController` (the level box), both over a shared `HUDPresenter` that owns the
-  one-at-a-time, auto-dismiss and fade policy. See [ui.md](ui.md#dialogs--hud).
+- **HUDs** are separate, because a dialog asks and a HUD reports: `MessageHUDController` (the pill)
+  over a `HUDPresenter` that owns the one-at-a-time, auto-dismiss and fade policy. See [ui.md](ui.md#dialogs--hud).
 
 **Apps Tinycast opens inherit its environment**, through `NSWorkspace.openApplication` and the URL
 opens alike, so it is made the Dock's once, in `applicationWillFinishLaunching`, before anything can
