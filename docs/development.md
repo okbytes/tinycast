@@ -92,29 +92,8 @@ Consequences worth knowing:
 Xcode works out of the box and needs nothing here. Everything below is optional, and which editor you
 use is your business — the repo prescribes none of it.
 
-VS Code gets code intelligence from SourceKit-LSP, which needs a `buildServer.json` because there is no
-`Package.swift`. Build once, then hand the log to the sync script — that writes both `buildServer.json`
-and the flag database:
-
-```sh
-brew install xcode-build-server
-xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
-    -derivedDataPath build/DerivedData build 2>&1 | tee /tmp/tinycast-build.log
-./scripts/sync-lsp.sh /tmp/tinycast-build.log
-```
-
-Both files are git-ignored because they embed absolute paths, and `sourcekit-lsp` looks for
-`buildServer.json` at the workspace root by name, so it cannot live in a subfolder. After this the
-**Build Tinycast.app (debug)** task (⌘⇧B) and **F5** re-run the script on every build, so new and
-renamed files keep resolving.
-
-**Do not run `xcode-build-server config`.** It writes `kind: xcode`, and in that mode the server ignores
-`.compile` entirely — it serves flags from a cache it scrapes out of `.xcactivitylog` instead. That
-cache is only refreshed when `LogStoreManifest.plist` advances, and when the manifest stops updating
-(it does) the editor silently pins itself to the source list from some older build: every reference to a
-file added since reads *cannot find type X in scope*, in every file, until you restart the server. It
-also mixes Release entries in with Debug and lets them win. `scripts/sync-lsp.sh` keeps the mode
-`manual`, where `.compile` is the single source of truth.
+The checked-in Zed settings disable the Swift language server. Use Xcode or command-line builds
+for diagnostics.
 
 ### Symbols in `Tests/`
 
@@ -127,7 +106,7 @@ find in scope*. Measured on `fuzz-test.swift`: 60 errors with no entry, 0 with o
 ```
 
 It reads the source lists from `run-tests.sh` itself, so they cannot drift from what the suite actually
-compiles. `scripts/sync-lsp.sh` runs it too. Three things it has to get right, all of which fail
+compiles. Three things it has to get right, all of which fail
 silently otherwise: every path is absolute, because `sourcekit-lsp` resolves the command itself and does
 not apply `directory` to relative arguments; the command carries an explicit `-sdk`; and each entry
 claims **only files under `Tests/`** — its harness plus any helper compiled beside it. The command
@@ -159,8 +138,7 @@ The comment policy in [standards.md](standards.md#comments) is deliberately not 
 ./scripts/format.sh --check    # report what would change, write nothing (exit 1 if any)
 ```
 
-`swift-format` from the Xcode toolchain — the same binary sourcekit-lsp formats with, so ⌘S in VS Code
-and this script cannot disagree. `.swift-format` at the repo root tunes it to this tree; without it the
+The script uses `swift-format` from the Xcode toolchain. `.swift-format` at the repo root tunes it to this tree; without it the
 stock config defaults to 2-space indent and rewrites all 200 files.
 
 Every `*.generated.swift` file is excluded: formatting one is hand-editing it, and the next
