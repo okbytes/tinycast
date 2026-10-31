@@ -1,8 +1,8 @@
 # Uninstall Application
 
 Removes an app _and_ the files it leaves behind — caches, preferences, containers, saved state,
-launch agents. Reached from the launcher's Actions menu (⌘K → **Uninstall Application**) on
-any `.application` entry; it opens the `.uninstall` palette sub-screen scoped to that app.
+crash reports, launch agents. Reached from the launcher's Actions menu (⌘K → **Uninstall Application**)
+on any `.application` entry; it opens the `.uninstall` palette sub-screen scoped to that app.
 
 ## Invariants
 
@@ -11,8 +11,8 @@ any `.application` entry; it opens the `.uninstall` palette sub-screen scoped to
   tolerable — a false positive costs a drag back, not the user's data — so a "delete permanently" option
   would have to drop name matching in the same commit.
 - **The deciding half stays Foundation-only and pure** for `uninstall-test`, with every environment fact
-  injected: the scanner hands the rules directory **names**, never URLs, and hands the classifier a
-  `PathFacts`.
+  injected: the scanner hands the rules directory **names** and launch-job program paths, never
+  URLs, and hands the classifier a `PathFacts`.
 - **`UninstallScanner` detects Full Disk Access and never requests it.** The probe is silent and
   promptless; this feature asks for no permission and never escalates privilege.
 - **`tccRelativePrefixes` is measured, not assumed.** Probe a location by creating and trashing a
@@ -45,7 +45,8 @@ Same split as `WindowManagement`: a pure half that decides, an impure half that 
 
 The first five compile standalone into `Tests/uninstall-test.swift`, so they stay Foundation-only
 and take every environment fact as a parameter. The scanner hands the rules **child names**, never
-URLs, which is what makes "no filesystem access in the pure layer" structural rather than a promise.
+URLs, and for a launch job the program paths it read out of the plist — which is what makes "no
+filesystem access in the pure layer" structural rather than a promise.
 
 ## Attribution
 
@@ -78,17 +79,28 @@ container), then applies the bundle-ID rule to the remainder.
 **`displayName`** — the weak one, and the only one hedged. Exact, case- and diacritic-folded equality;
 never a prefix or substring, so "Books" and "Books Reader" cannot claim each other's folders in either
 direction. On top of that a name must be ≥ 3 folded characters, must not be a standard Library
-subdirectory name (`Preferences`, `Caches`, `Containers`, …), and **must not be shared with another
+subdirectory name (including every root-table path component and `CloudKit`), and **must not be shared with another
 installed app** — a second app called "Mail" is precisely what makes `~/Library/Application Support/Mail`
 unattributable. Three, not four, is the floor: Zed, IINA and Xee all name their own folders, and the
 safety comes from those three guards rather than from length. Enabled in the human-named roots
-(`Application Support`, `Caches`, `Logs`) and the plug-in wells; everywhere else a child is a bundle
-ID by construction, so a name match there would be a false positive by definition.
+(`Application Support`, `Caches`, `Logs`), the plug-in wells and launch jobs. Preferences and
+containers stay bundle-ID only: a child there is an identifier by construction, so a name match
+would be a false positive.
 
 A `.displayName` match **is** checked by default, and the row says "matched by name" so the weaker
 evidence is visible before confirming. It earns that because the match is exact, confined, and never
 claims a name another installed app answers to — and because the feature only ever moves to the
 Trash, so an unwanted row costs a drag back rather than data.
+
+**Product token.** The last component of a three-part bundle ID joins that same name list, so
+`com.google.drivefs` claims a folder named `DriveFS` when the display name is "Google Drive". It is
+dropped when it is shorter than three characters, when it names a role rather than a product
+(`client`, `helper`, `agent`, `beta`, …), when it is a reserved Library folder, or when another
+installed app already has that token or that name. A display name wins the tie: an app actually
+called Chrome keeps the folder, and Google Chrome's token yields. A four-part ID
+(`com.google.Chrome.beta`) has no token — the channel name is not a folder we can safely claim. The
+executable (`CFBundleExecutable`) is deliberately not a token. When it differs from the names above
+it is often a runtime or a helper (`Electron`, `claude`), and those match other apps' folders.
 
 **`binSymlink`** — a launcher in `/usr/local/bin`, `/opt/homebrew/bin`, `~/.local/bin` or `~/bin`
 whose symlink resolves inside the app bundle. Attribution is by **link target, never by name**: `zed`
@@ -100,6 +112,19 @@ without a special case.
 `UninstallIdentity.make` returns `nil` — refusing the whole uninstall — when the target is Tinycast
 itself, by bundle ID _or_ bundle URL, compared against the **running** identity so the Dev channel
 refuses itself too.
+
+**Reports.** `Logs/DiagnosticReports`, `Logs/CrashReporter` and `Application Support/CrashReporter`
+match a file whose name is the bundle ID or a safe name, or starts with one followed by `_` or `-`
+and a `YYYY-MM-DD` timestamp or UUID (`Helium_2026-10-24.ips`, `VMware Fusion_<uuid>.plist`).
+Helium cannot claim `Helium-Helper_…`, and the longer-ID sibling guard applies to timestamped
+reports too.
+
+**Launch jobs.** Launch agents, daemons and privileged helpers match by display name as well as
+bundle ID — `Badgeify.plist` is not a bundle ID. In LaunchAgents and LaunchDaemons, an otherwise
+unmatched regular plist is kept when its `Label` matches or its executable points inside the app
+bundle. `Program` takes precedence; only when absent does `ProgramArguments[0]` supply the executable.
+Other arguments and tilde expansion never establish ownership. Path-attributed rows say "points at
+the app"; a job that merely passes the app to `/usr/bin/open` is not its own executable.
 
 ### Roots
 
@@ -114,21 +139,41 @@ against 62 installed apps the entire root was worth one 115 kB folder, so it bou
 and carried the only catastrophic failure mode in the design. Raycast does list `~/OrbStack`; we
 deliberately don't.
 
-Immediate children only, everywhere. `Preferences/ByHost` is its own root rather than raising
-`Preferences` to depth 2, which would descend into every unrelated app's subfolder. Beyond the
-`~/Library` and `/Library` staples the table covers the plug-in wells — `QuickLook`, `Services`,
-`PreferencePanes`, `Screen Savers`, `Internet Plug-Ins`, `Spotlight`, `Automator`, `Input Methods`,
-`Audio/Plug-Ins/{HAL,Components}` — whose children are wrappers named after the product that
-installed them, which is why `strippedExtensions` also drops `.qlgenerator`, `.saver`, `.prefPane`
-and friends. `.app` is deliberately **not** in that list. Deliberately out of scope, and worth
-keeping out: `/private/var/db/receipts` (root-owned, and deleting a receipt
-corrupts the installer's view of the system), `~/Library/Keychains`, `/Library/Extensions`, and every
-user-document location. `/usr/local` is reached **only** through `binDirectories`, and only for
-symlinks that resolve into the bundle — never by name, and never recursively.
+**Company folders are one level deeper.** Application Support, Caches and Logs search immediate
+children, then unclaimed company folders (`Google`, `org.pqrs`, `BraveSoftware`). A company folder
+must equal the bundle ID's vendor token, its reverse-domain prefix, or the token plus `Software`;
+a prefix alone is insufficient. `GoogleDrive` is another product, not a shared folder for Chrome.
+The company folder itself stays; the candidate is `Google/Chrome`. A direct product hit such as
+`Application Support/Firefox` is one row, and discovery never lists its contents.
 
-`UninstallRules.isAcceptableCandidate` is belt and braces over whatever matched: an immediate child of
-its own root, never the home directory or `/`, no relative components, and no overlap with the app
-bundle (which is emitted separately).
+`CloudKit` is the sole extra shared parent, with bundle-ID-only matching inside it. Arbitrary app
+folders are not searched, even for a nested bundle ID: their contents belong to that enclosing app.
+`com.apple` never supplies a vendor folder. Depth stops at two, so `Google/Chrome/Default` stays
+inside the Chrome row. Each nested candidate uses its immediate parent's permissions, not those
+of Application Support, Caches or Logs.
+
+`Preferences/ByHost` is its own root rather than raising `Preferences` to depth 2, which would
+descend into every unrelated app's subfolder. Beyond the `~/Library` and `/Library` staples the table
+covers the plug-in wells — `QuickLook`, `Services`, `PreferencePanes`, `Screen Savers`,
+`Internet Plug-Ins`, `Spotlight`, `Automator`, `Input Methods`,
+`Audio/Plug-Ins/{HAL,Components,VST,VST3,CLAP}`, `ScriptingAdditions`, `Components`,
+`Contextual Menu Items`, `ColorPickers`, `QuickTime`, `Widgets`, `InputManagers`,
+`CoreMediaIO/Plug-Ins/DAL` — whose children are wrappers named after the product that
+installed them, which is why `strippedExtensions` also drops `.qlgenerator`, `.saver`, `.prefPane`
+and friends. `.app` is deliberately **not** in that list. `~/Library/Developer` is in the table so
+Xcode's support folder is found; it is the same exact match as everywhere else, and the Xcode
+directory is one row. `SyncedPreferences` is bundle-ID only, like `Preferences`.
+
+Deliberately out of scope, and worth keeping out: `/private/var/db/receipts` (root-owned, and deleting
+a receipt corrupts the installer's view of the system), `~/Library/Keychains`, `/Library/Extensions`,
+and every user-document location. `/usr/local` is reached **only** through `binDirectories`, and only
+for symlinks that resolve into the bundle — never by name, and never recursively. Nothing here asks
+for an administrator password or for Full Disk Access. A helper in an unwritable directory or a
+container without Full Disk Access stays on the list, locked, with the reason.
+
+`UninstallRules.isAcceptableCandidate` is belt and braces over whatever matched: a child of its own
+root no deeper than that root's depth, never the home directory or `/`, no relative components, and
+no overlap with the app bundle (which is emitted separately).
 
 ## Locking
 
@@ -183,8 +228,9 @@ trashed as the link.
 
 ## Sizing
 
-The two halves of a scan differ by three orders of magnitude. Discovery is 36 parallel shallow
-`contentsOfDirectory` listings plus one `lstat` per hit — milliseconds. Sizing is a recursive
+Discovery makes one shallow listing per root in parallel, plus listings of eligible company and
+CloudKit folders under Application Support, Caches and Logs. Nested and launch-plist loops check
+cancellation between entries. Sizing is a recursive
 enumerator walk per directory candidate, and `/Applications/Xcode.app` alone is ~9.5 GB. So they are
 two calls, not one: `UninstallSession` publishes `.ready` the moment `discover` returns, then
 `measure` streams each walk to a `@MainActor` sink that writes only the row it measured, via
@@ -242,6 +288,7 @@ what stayed behind.
 No filesystem, no temp directories — every input is a `String` or a `PathFacts`. `testStreamedSizes`
 covers the half a walk cannot: a landed size never reorders the plan, never disturbs a neighbour's
 pending state and never re-derives the checked set. Beyond the per-rule
-assertions it ends with a cross-identity sweep: for a set of realistic apps × every root × every
+assertions, regression cases cover vendor-prefix collisions, shared-root names, timestamped sibling
+reports, executable precedence and raw relative components. It ends with a cross-identity sweep: for a set of realistic apps × every root × every
 artifact shape, no app's artifacts may ever be attributed to another. That is the one test that
 catches a regression in the matcher as a whole rather than in a single rule.

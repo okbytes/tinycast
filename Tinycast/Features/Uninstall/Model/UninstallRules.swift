@@ -5,9 +5,11 @@ enum UninstallRules {
     /// Stripped before matching, so `com.foo.Bar.plist` compares as `com.foo.Bar`.
     static let strippedExtensions: Set<String> = [
         "plist", "savedstate", "binarycookies", "lockfile", "lock", "sfl", "sfl2", "sfl3",
+        "ips", "diag", "crash", "spin",
         // Plug-in wrappers, named after the product that installed them.
         "qlgenerator", "saver", "prefpane", "service", "workflow", "mdimporter", "appex",
-        "component", "wdgt", "dext", "driver"
+        "component", "wdgt", "dext", "driver", "osax", "colorpicker", "plugin", "bundle",
+        "vst", "vst3", "clap"
     ]
 
     /// The name plus each stripped form; stripping only adds comparisons, never removes one.
@@ -80,6 +82,25 @@ enum UninstallRules {
         matchesBundleID(groupContainerBase(component), identity: identity)
     }
 
+    /// The company folder itself (`Google`), which holds every product from that company.
+    static func isSharedVendorFolder(_ name: String, identity: UninstallIdentity) -> Bool {
+        guard let vendor = vendorParts(identity) else { return false }
+        let folder = UninstallIdentity.folded(name)
+        return folder == vendor.token || folder == vendor.prefixed || folder == vendor.token + "software"
+    }
+
+    /// `Apple` under Library is the system's shared folder, not one company's.
+    private static func vendorParts(
+        _ identity: UninstallIdentity
+    ) -> (token: String, prefixed: String)? {
+        guard let id = identity.bundleID else { return nil }
+        let parts = id.split(separator: ".").map(String.init)
+        guard parts.count >= 3 else { return nil }
+        let token = parts[1]
+        guard token != "apple", token.count >= 3 else { return nil }
+        return (token, parts[0] + "." + token)
+    }
+
     /// Exact folded equality: no prefix, no substring, so "Books" can't claim "Books Reader".
     static func matchesDisplayName(_ component: String, identity: UninstallIdentity) -> Bool {
         guard !identity.names.isEmpty else { return false }
@@ -91,6 +112,9 @@ enum UninstallRules {
     static func evidence(
         for name: String, in root: UninstallSearchRoot, identity: UninstallIdentity
     ) -> UninstallEvidence? {
+        if root.styles.contains(.report), let evidence = reportEvidence(for: name, identity: identity) {
+            return evidence
+        }
         if root.styles.contains(.bundleID), matchesBundleID(name, identity: identity) {
             return .bundleID
         }
@@ -103,30 +127,97 @@ enum UninstallRules {
         return nil
     }
 
-    static func matches(
-        childNames: [String], in root: UninstallSearchRoot, identity: UninstallIdentity
-    ) -> [(name: String, evidence: UninstallEvidence)] {
-        childNames.compactMap { name in
-            evidence(for: name, in: root, identity: identity).map { (name, $0) }
+    /// Crash reports put the app name, then `_` or `-`, then a timestamp or UUID.
+    static func reportEvidence(
+        for name: String, identity: UninstallIdentity
+    ) -> UninstallEvidence? {
+        for form in matchableForms(name) {
+            let folded = UninstallIdentity.folded(form)
+            if identity.otherBundleIDs.contains(where: {
+                folded == $0 || isReportName(folded, token: $0)
+            }) { return nil }
         }
+        if matchesBundleID(name, identity: identity) { return .bundleID }
+        for form in matchableForms(name) {
+            let folded = UninstallIdentity.folded(form)
+            if let id = identity.bundleID, isReportName(folded, token: id) { return .bundleID }
+            if identity.names.contains(where: { folded == $0 || isReportName(folded, token: $0) }) {
+                return .displayName
+            }
+        }
+        return nil
+    }
+
+    /// A launch-job program that resolves inside the bundle. The name of the plist is irrelevant.
+    static func referencesBundle(
+        program: String?, arguments: [String], bundlePath: String
+    ) -> Bool {
+        guard let executable = program ?? arguments.first, executable.hasPrefix("/") else {
+            return false
+        }
+        return isBundleSymlink(target: executable, bundlePath: bundlePath)
+    }
+
+    static func matches(
+        childNames: [String], nestedNames: [String: [String]] = [:], in root: UninstallSearchRoot,
+        identity: UninstallIdentity
+    ) -> [(name: String, evidence: UninstallEvidence)] {
+        var claimed = Set<String>()
+        var results: [(name: String, evidence: UninstallEvidence)] = []
+        for name in childNames {
+            guard let evidence = evidence(for: name, in: root, identity: identity) else { continue }
+            // The company folder stays; the candidate is the product directory inside it.
+            if root.depth >= 2, isSharedVendorFolder(name, identity: identity) { continue }
+            results.append((name, evidence))
+            claimed.insert(name)
+        }
+        guard root.depth >= 2 else { return results }
+        for parent in nestedNames.keys.sorted() where !claimed.contains(parent) {
+            let vendor = isSharedVendorFolder(parent, identity: identity)
+            guard vendor || UninstallIdentity.folded(parent) == "cloudkit" else { continue }
+            for child in nestedNames[parent] ?? [] {
+                guard let evidence = evidence(for: child, in: root, identity: identity)
+                else { continue }
+                if evidence == .displayName, !vendor { continue }
+                results.append((parent + "/" + child, evidence))
+            }
+        }
+        return results
     }
 
     /// Belt and braces on every produced path, whatever matched it.
     static func isAcceptableCandidate(
-        path: String, rootPath: String, home: String, bundlePath: String
+        path: String, rootPath: String, home: String, bundlePath: String, maxDepth: Int = 1
     ) -> Bool {
+        let rawComponents = path.split(separator: "/")
+        guard !rawComponents.contains("."), !rawComponents.contains("..") else { return false }
         let path = (path as NSString).standardizingPath
+        let rootPath = (rootPath as NSString).standardizingPath
         let home = (home as NSString).standardizingPath
         let bundlePath = (bundlePath as NSString).standardizingPath
         guard path.hasPrefix("/"), path != "/", path != home, path != rootPath else { return false }
         let components = path.split(separator: "/", omittingEmptySubsequences: true).map(String.init)
         guard !components.isEmpty, !components.contains("."), !components.contains("..")
         else { return false }
-        guard (path as NSString).deletingLastPathComponent == rootPath else { return false }
+        guard path.hasPrefix(rootPath + "/") else { return false }
+        let relative = path.dropFirst(rootPath.count + 1)
+        let depth = relative.split(separator: "/", omittingEmptySubsequences: false).count
+        guard depth >= 1, depth <= max(maxDepth, 1) else { return false }
         guard path != bundlePath, !isDescendant(path, of: bundlePath),
             !isDescendant(bundlePath, of: path)
         else { return false }
         return true
+    }
+
+    /// `_` or `-` after the token, so Helium does not claim `Helium Helper_…`.
+    private static func isReportName(_ name: String, token: String) -> Bool {
+        guard name.count > token.count, name.hasPrefix(token) else { return false }
+        let separator = name.index(name.startIndex, offsetBy: token.count)
+        guard name[separator] == "_" || name[separator] == "-" else { return false }
+        let suffix = String(name[name.index(after: separator)...])
+        if UUID(uuidString: suffix) != nil { return true }
+        return suffix.range(
+            of: #"^\d{4}-\d{2}-\d{2}(?:[-_].*)?$"#, options: .regularExpression) != nil
     }
 
     static func isDescendant(_ path: String, of ancestor: String) -> Bool {

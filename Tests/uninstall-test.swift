@@ -231,9 +231,40 @@ struct UninstallTests {
 
         expect(
             UninstallIdentity.safeNames(
-                displayName: "AppCleaner", bundleName: "AppCleaner", otherAppNames: [])
-                == ["appcleaner"],
-            "a bundle name identical to the display name is deduped")
+                displayName: "AppCleaner", bundleName: "AppCleaner",
+                bundleID: "net.freemacsoft.AppCleaner", otherAppNames: []) == ["appcleaner"],
+            "a bundle name identical to the display name is deduped, and so is the product token")
+        expect(
+            UninstallIdentity.safeNames(
+                displayName: "Google Drive", bundleName: "Google Drive",
+                bundleID: "com.google.drivefs", otherAppNames: []) == ["google drive", "drivefs"],
+            "the last bundle-ID component names DriveFS, which the display name does not")
+        expect(
+            UninstallIdentity.productTail("com.spotify.client") == nil,
+            "a role-shaped token is not a folder name — client would match somebody else's")
+        expect(
+            !UninstallIdentity.safeNames(
+                displayName: "Spotify", bundleName: nil, bundleID: "com.spotify.client",
+                otherAppNames: []).contains("client"),
+            "Spotify therefore does not claim a folder named client")
+        expect(
+            UninstallIdentity.safeNames(
+                displayName: "Client", bundleName: nil, bundleID: "com.example.Client",
+                otherAppNames: []).contains("client"),
+            "an app actually named Client still keeps that name")
+        expect(
+            UninstallIdentity.safeNames(
+                displayName: "Chrome", bundleName: nil, bundleID: "com.other.Browser",
+                otherAppNames: [], otherBundleIDs: ["com.google.Chrome"]).contains("chrome"),
+            "a display name wins a shared token — another app's product token does not erase it")
+        expect(
+            !UninstallIdentity.safeNames(
+                displayName: "Google Chrome", bundleName: "Chrome", bundleID: "com.google.Chrome",
+                otherAppNames: ["Chrome"], otherBundleIDs: ["com.other.Browser"]).contains("chrome"),
+            "and Google Chrome drops Chrome once another installed app is actually named that")
+        expect(
+            UninstallIdentity.productTail("com.google.Chrome.beta") == nil,
+            "a channel ID has no product token — beta is not a folder we can claim")
     }
 
     static func testPlugInsAndSymlinks() {
@@ -355,8 +386,24 @@ struct UninstallTests {
         expect(!acceptable("/"), "the filesystem root is never a candidate")
         expect(!acceptable("/Applications"), "a path outside the root is rejected")
         expect(
-            !acceptable(support + "/Nested/Deeper"),
-            "only immediate children are accepted — the walk never descends")
+            !acceptable(support + "/Google/Chrome"),
+            "depth 2 is rejected until the root asks for it")
+        expect(
+            UninstallRules.isAcceptableCandidate(
+                path: support + "/Google/Chrome", rootPath: support, home: home, bundlePath: bundle,
+                maxDepth: 2),
+            "Application Support reaches one company folder down")
+        expect(
+            !UninstallRules.isAcceptableCandidate(
+                path: support + "/Google/Chrome/Default", rootPath: support, home: home,
+                bundlePath: bundle, maxDepth: 2),
+            "a profile inside the product folder is part of that folder, not its own row")
+        let preferences = home + "/Library/Preferences"
+        expect(
+            !UninstallRules.isAcceptableCandidate(
+                path: preferences + "/ByHost/com.foo.Bar.plist", rootPath: preferences, home: home,
+                bundlePath: bundle),
+            "Preferences stays one level deep — ByHost is its own root")
         expect(
             !acceptable(support + "/../../../etc"),
             "relative components are rejected")
@@ -573,6 +620,206 @@ struct UninstallTests {
             "and a plan rebuilt after every size still locks out exactly what it did before")
     }
 
+    // MARK: - Company folders, reports, launch jobs
+
+    static func matchedNames(
+        _ names: [String], nested: [String: [String]] = [:], _ relativePath: String,
+        _ identity: UninstallIdentity
+    ) -> Set<String> {
+        Set(
+            UninstallRules.matches(
+                childNames: names, nestedNames: nested, in: root(relativePath), identity: identity
+            ).map(\.name))
+    }
+
+    static func testCompanyFolders() {
+        let chrome = identity(
+            bundleID: "com.google.Chrome", name: "Google Chrome", bundleName: "Chrome")
+        let tree: [String: [String]] = [
+            "Google": ["Chrome", "Chrome Beta", "DriveFS"],
+            "Claude": ["Chrome", "Notes"]
+        ]
+        let found = matchedNames(["Google", "Claude", "Chrome"], nested: tree, "Application Support", chrome)
+        expect(found.contains("Google/Chrome"), "Chrome's support folder is Google/Chrome")
+        expect(found.contains("Chrome"), "a top-level folder actually named Chrome is still Chrome's")
+        expect(!found.contains("Google"), "the company folder itself is not a candidate")
+        expect(!found.contains("Google/Chrome Beta"), "Chrome Beta keeps its own folder")
+        expect(!found.contains("Google/DriveFS"), "DriveFS belongs to Google Drive, not Chrome")
+        expect(!found.contains("Claude/Chrome"), "a same-named folder under another vendor is not Chrome's")
+
+        let company = identity(bundleID: "com.google.Google", name: "Google")
+        let companyFound = matchedNames(
+            ["Google"], nested: ["Google": ["Chrome", "Google"]], "Application Support", company)
+        expect(
+            !companyFound.contains("Google"),
+            "an app named for its company still does not take every product in that folder")
+        expect(companyFound == ["Google/Google"], "it takes only the directory that is actually its own")
+
+        let beta = identity(
+            bundleID: "com.google.Chrome.beta", name: "Chrome Beta",
+            otherAppNames: ["Google Chrome", "Chrome"],
+            otherBundleIDs: ["com.google.Chrome", "com.google.Chrome.beta"])
+        let betaFound = matchedNames(["Google"], nested: tree, "Application Support", beta)
+        expect(betaFound == ["Google/Chrome Beta"], "Chrome Beta takes only its own nested folder")
+
+        let drive = identity(bundleID: "com.google.drivefs", name: "Google Drive")
+        let driveFound = matchedNames(["Google"], nested: tree, "Application Support", drive)
+        expect(driveFound == ["Google/DriveFS"], "DriveFS matches the bundle ID's last component")
+
+        let brave = identity(
+            bundleID: "com.brave.Browser", name: "Brave Browser", bundleName: "Brave-Browser")
+        expect(
+            matchedNames(
+                ["BraveSoftware"], nested: ["BraveSoftware": ["Brave-Browser", "Crashpad"]],
+                "Application Support", brave) == ["BraveSoftware/Brave-Browser"],
+            "BraveSoftware is the company folder; Brave-Browser is the product")
+
+        let notes = identity(bundleID: "com.apple.Notes", name: "Notes")
+        expect(
+            matchedNames(
+                ["com.tinycast.app", "Apple"],
+                nested: [
+                    "com.tinycast.app": ["Notes", "images"],
+                    "Apple": ["Photos"]
+                ],
+                "Application Support", notes).isEmpty,
+            "Notes does not claim another app's Notes folder, or Apple/Photos")
+
+        let journal = identity(bundleID: "com.apple.journal", name: "Journal")
+        expect(
+            matchedNames(
+                ["CloudKit"], nested: ["CloudKit": ["com.apple.journal", "WebKit"]],
+                "Caches", journal) == ["CloudKit/com.apple.journal"],
+            "a nested bundle ID matches even when the parent is not the company folder")
+
+        let product = identity(bundleID: "com.foo.Bar", name: "Bar")
+        expect(
+            !matchedNames(
+                ["Bar"], nested: ["Bar": ["Default", "Cache"]], "Application Support", product
+            ).contains("Bar/Default"),
+            "once the product folder matches, its contents are not separate rows")
+    }
+
+    static func testReports() {
+        let helium = identity(bundleID: "com.example.Helium", name: "Helium")
+        expect(
+            evidence(
+                "Helium_2026-10-24-100212_Bretts-Mac.diag", "Logs/DiagnosticReports", helium)
+                == .displayName,
+            "a diagnostic report prefixed with the app name matches, and says so")
+        expect(
+            evidence("Helium-2026-10-24-143045.ips", "Logs/DiagnosticReports", helium) == .displayName,
+            "a hyphen after the name counts too")
+        expect(
+            evidence("Helium Helper_2026-10-28.diag", "Logs/DiagnosticReports", helium) == nil,
+            "a space is not the separator, so Helium does not claim Helium Helper")
+        expect(
+            evidence(
+                "com.example.Helium_2026-10-24.ips", "Logs/DiagnosticReports", helium) == .bundleID,
+            "a report named with the bundle ID is bundle-ID evidence, not a name match")
+        let uuid = "45F9F551-E96E-5B5D-9CAD-A539F56DBE2F"
+        let fusion = identity(bundleID: "com.vmware.fusion", name: "VMware Fusion")
+        expect(
+            evidence(
+                "VMware Fusion_\(uuid).plist", "Application Support/CrashReporter", fusion)
+                == .displayName,
+            "CrashReporter plists are the app name, an underscore, then a UUID")
+
+        let safari = identity(bundleID: "com.apple.Safari", name: "Safari")
+        expect(
+            evidence(
+                "SafariTechnologyPreview-2026-10-24.ips", "Logs/DiagnosticReports", safari) == nil,
+            "Safari does not claim Safari Technology Preview's crash reports")
+        let books = identity(bundleID: "com.apple.iBooksX", name: "Books")
+        expect(
+            evidence("Books Reader_2026-10-24.ips", "Logs/DiagnosticReports", books) == nil,
+            "Books does not claim Books Reader's crash reports either")
+    }
+
+    static func testReviewRegressions() {
+        let chrome = identity(bundleID: "com.google.Chrome", name: "Google Chrome", bundleName: "Chrome")
+        expect(
+            matchedNames(
+                ["GoogleDrive"], nested: ["GoogleDrive": ["Chrome"]],
+                "Application Support", chrome).isEmpty,
+            "a product whose name starts with the vendor is not a shared company folder")
+        expect(
+            matchedNames(
+                ["com.other.App"], nested: ["com.other.App": ["com.google.Chrome"]],
+                "Application Support", chrome).isEmpty,
+            "a nested ID inside another installed app's data is not independently owned")
+        let protectedChrome = identity(
+            bundleID: "com.google.Chrome", name: "Google Chrome", bundleName: "Chrome",
+            otherBundleIDs: ["com.other.App"])
+        expect(
+            matchedNames(
+                ["com.other.App"], nested: ["com.other.App": ["com.google.Chrome"]],
+                "Application Support", protectedChrome).isEmpty,
+            "an installed sibling's directory is never searched for our artifacts")
+        let stable = identity(
+            bundleID: "com.example.Helium", name: "Helium",
+            otherBundleIDs: ["com.example.Helium.beta"])
+        expect(
+            evidence("com.example.Helium.beta_2026-10-24.ips", "Logs/DiagnosticReports", stable) == nil,
+            "report matching cannot bypass the longer-ID sibling guard")
+        expect(
+            evidence("Helium-Helper_2026-10-24.ips", "Logs/DiagnosticReports", stable) == nil,
+            "a report prefix must be followed by a timestamp or UUID, not another product name")
+        for name in ["Developer", "CloudKit", "QuickLook", "Audio", "DiagnosticReports"] {
+            let app = identity(bundleID: "com.example." + name, name: name)
+            expect(
+                evidence(name, "Application Support", app) == nil,
+                "shared Library directory \(name) cannot be claimed by display name or product token")
+        }
+        expect(
+            !UninstallRules.isAcceptableCandidate(
+                path: home + "/Library/Application Support/Elsewhere/../Chrome",
+                rootPath: home + "/Library/Application Support", home: home,
+                bundlePath: "/Applications/Chrome.app", maxDepth: 2),
+            "relative components are rejected before normalization erases them")
+    }
+
+    static func testProgramReferences() {
+        let app = identity(bundleID: "com.example.Badgeify", name: "Badgeify")
+        expect(
+            evidence("Badgeify.plist", "LaunchAgents", app) == .displayName,
+            "a launch agent named for the product matches, in a root that used to be bundle-ID only")
+        let bundle = "/Applications/Badgeify.app"
+        expect(
+            UninstallRules.referencesBundle(
+                program: nil, arguments: [bundle + "/Contents/MacOS/Badgeify"], bundlePath: bundle),
+            "a program path inside the bundle attributes the launch job")
+        expect(
+            !UninstallRules.referencesBundle(
+                program: nil, arguments: ["/bin/sh", "/Library/PrivilegedHelperTools/com.example.other"],
+                bundlePath: bundle),
+            "arguments that merely mention an unrelated path do not")
+        expect(
+            !UninstallRules.referencesBundle(
+                program: nil, arguments: ["/Applications/Badgeify2.app/Contents/MacOS/Badgeify"],
+                bundlePath: bundle),
+            "a sibling bundle sharing a path prefix does not either")
+        expect(
+            !UninstallRules.referencesBundle(
+                program: nil, arguments: ["/usr/bin/open", bundle], bundlePath: bundle),
+            "a job that merely opens the app is not its executable")
+        expect(
+            !UninstallRules.referencesBundle(
+                program: "/bin/echo", arguments: [bundle + "/Contents/MacOS/Badgeify"],
+                bundlePath: bundle),
+            "Program takes precedence over argv[0]")
+        expect(
+            UninstallRules.referencesBundle(
+                program: bundle + "/Contents/MacOS/Badgeify", arguments: ["Badgeify"],
+                bundlePath: bundle),
+            "an explicit Program inside the bundle is sufficient")
+        expect(
+            !UninstallRules.referencesBundle(
+                program: "~/Applications/Badgeify.app/Contents/MacOS/Badgeify", arguments: [],
+                bundlePath: bundle),
+            "launchd does not expand tildes in executable paths")
+    }
+
     // MARK: - Cross-identity sweep
 
     /// No artifact of one app may be produced for another, even if a rule regresses.
@@ -599,8 +846,9 @@ struct UninstallTests {
 
         var leaks: [String] = []
         for (owner, _) in identities {
-            let artifacts =
+            var artifacts =
                 shapes.map { $0(owner.id) } + [owner.name, owner.name + ".plist"]
+            if let tail = UninstallIdentity.productTail(owner.id) { artifacts.append(tail) }
             for artifact in artifacts {
                 for (other, otherIdentity) in identities where other.id != owner.id {
                     for root in UninstallSearchRoot.all
@@ -645,7 +893,7 @@ struct UninstallTests {
         let bundleIDOnly: Set<String> = [
             "Preferences", "Preferences/ByHost", "Containers", "Group Containers",
             "Application Scripts", "Saved Application State", "HTTPStorages", "WebKit", "Cookies",
-            "Autosave Information", "LaunchAgents", "LaunchDaemons", "PrivilegedHelperTools"
+            "Autosave Information", "SyncedPreferences"
         ]
         expect(
             roots.filter { bundleIDOnly.contains($0.relativePath) }
@@ -657,6 +905,33 @@ struct UninstallTests {
         expect(
             !roots.contains { $0.relativePath.contains("receipts") || $0.relativePath == "Keychains" },
             "receipts and keychains stay out of scope")
+        expect(
+            roots.allSatisfy { $0.depth == 1 || $0.depth == 2 },
+            "no root searches deeper than a product folder inside a company folder")
+        expect(
+            roots.first { $0.base == .userLibrary && $0.relativePath == "Application Support" }?
+                .depth == 2,
+            "Application Support looks one level into a company folder")
+        expect(
+            roots.first { $0.base == .userLibrary && $0.relativePath == "Preferences" }?.depth == 1,
+            "Preferences does not")
+        expect(
+            roots.contains { $0.relativePath == "Logs/DiagnosticReports" && $0.styles == [.report] },
+            "diagnostic reports are their own root")
+        expect(
+            roots.contains {
+                $0.relativePath == "LaunchAgents" && $0.matchProgramPaths
+                    && $0.styles.contains(.displayName)
+            },
+            "a launch agent can match by name or by the program it runs")
+        expect(
+            roots.contains { $0.relativePath == "Developer" && $0.base == .userLibrary },
+            "Xcode's support folder lives in ~/Library/Developer")
+        for path in ["Services", "Spotlight", "Automator", "Input Methods", "InputManagers"] {
+            expect(
+                roots.contains { $0.base == .systemLibrary && $0.relativePath == path },
+                "system-wide \(path) installations are searched alongside user installations")
+        }
     }
 
     static func main() {
@@ -665,6 +940,10 @@ struct UninstallTests {
         testGroupContainers()
         testDisplayNames()
         testPlugInsAndSymlinks()
+        testCompanyFolders()
+        testReports()
+        testProgramReferences()
+        testReviewRegressions()
         testHomeIsOutOfScope()
         testIdentityRefusal()
         testPathSafety()

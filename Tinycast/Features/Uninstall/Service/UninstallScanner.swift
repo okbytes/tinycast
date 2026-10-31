@@ -47,7 +47,7 @@ enum UninstallScanner {
                         try Task.checkCancellation()
                         return (
                             index,
-                            rows(
+                            try rows(
                                 in: root, identity: identity, environment: environment,
                                 bundlePath: bundlePath)
                         )
@@ -102,22 +102,102 @@ enum UninstallScanner {
     private static func rows(
         in root: UninstallSearchRoot, identity: UninstallIdentity,
         environment: UninstallEnvironment, bundlePath: String
-    ) -> [UninstallCandidate] {
+    ) throws -> [UninstallCandidate] {
         let rootPath = root.path(home: environment.home)
         guard let names = childNames(of: rootPath) else { return [] }
-        // One stat per root, not per row.
-        let parent = parentFacts(of: rootPath)
-        return UninstallRules.matches(childNames: names, in: root, identity: identity)
-            .compactMap { match -> UninstallCandidate? in
-                let path = (rootPath + "/" + match.name as NSString).standardizingPath
-                guard
-                    UninstallRules.isAcceptableCandidate(
-                        path: path, rootPath: rootPath, home: environment.home,
-                        bundlePath: bundlePath)
-                else { return nil }
-                return row(
-                    path: path, evidence: match.evidence, environment: environment, parent: parent)
+        var found = UninstallRules.matches(childNames: names, in: root, identity: identity)
+        if root.depth >= 2 {
+            let direct = Set(found.map(\.name))
+            let parents = names.filter {
+                !direct.contains($0) && (UninstallRules.isSharedVendorFolder($0, identity: identity)
+                    || UninstallIdentity.folded($0) == "cloudkit")
             }
+            let nested = try nestedNames(of: rootPath, children: parents)
+            found = UninstallRules.matches(
+                childNames: names, nestedNames: nested, in: root, identity: identity)
+        }
+        var parentCache: [String: ParentFacts] = [:]
+        if root.matchProgramPaths {
+            let claimed = Set(found.map(\.name))
+            found += try programMatches(
+                names: names, claimed: claimed, rootPath: rootPath, root: root, identity: identity,
+                bundlePath: bundlePath)
+        }
+        return try found.compactMap { match -> UninstallCandidate? in
+            try Task.checkCancellation()
+            let path = (rootPath + "/" + match.name as NSString).standardizingPath
+            guard
+                UninstallRules.isAcceptableCandidate(
+                    path: path, rootPath: rootPath, home: environment.home,
+                    bundlePath: bundlePath, maxDepth: root.depth)
+            else { return nil }
+            let parentPath = (path as NSString).deletingLastPathComponent
+            let parent = parentCache[parentPath] ?? parentFacts(of: parentPath)
+            parentCache[parentPath] = parent
+            return row(
+                path: path, evidence: match.evidence, environment: environment, parent: parent)
+        }
+    }
+
+    /// One level down, and only into real directories. A symlink is judged as the link.
+    private static func nestedNames(
+        of directory: String, children: [String]
+    ) throws -> [String: [String]] {
+        var nested: [String: [String]] = [:]
+        for name in children {
+            try Task.checkCancellation()
+            var info = stat()
+            let path = directory + "/" + name
+            guard lstat(path, &info) == 0, (info.st_mode & S_IFMT) == S_IFDIR else { continue }
+            if let names = childNames(of: path) { nested[name] = names }
+        }
+        return nested
+    }
+
+    /// Filename missed. The plist's label, or a program path inside the bundle, can still hit.
+    private static func programMatches(
+        names: [String], claimed: Set<String>, rootPath: String, root: UninstallSearchRoot,
+        identity: UninstallIdentity, bundlePath: String
+    ) throws -> [(name: String, evidence: UninstallEvidence)] {
+        var found: [(name: String, evidence: UninstallEvidence)] = []
+        for name in names where !claimed.contains(name) && name.lowercased().hasSuffix(".plist") {
+            try Task.checkCancellation()
+            let path = rootPath + "/" + name
+            guard let plist = launchPlist(at: path) else { continue }
+            if let label = plist.label,
+                let evidence = UninstallRules.evidence(for: label, in: root, identity: identity)
+            {
+                found.append((name, evidence))
+                continue
+            }
+            if UninstallRules.referencesBundle(
+                program: plist.program, arguments: plist.arguments, bundlePath: bundlePath)
+            {
+                found.append((name, .programReference))
+            }
+        }
+        return found
+    }
+
+    private struct LaunchPlist {
+        var label: String?
+        var program: String?
+        var arguments: [String]
+    }
+
+    /// Launch-job plists are small. Anything else, including a helper binary, is not one.
+    private static func launchPlist(at path: String) -> LaunchPlist? {
+        var info = stat()
+        guard lstat(path, &info) == 0, (info.st_mode & S_IFMT) == S_IFREG, info.st_size > 0,
+            info.st_size <= 262_144
+        else { return nil }
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+            let plist = try? PropertyListSerialization.propertyList(from: data, format: nil)
+                as? [String: Any]
+        else { return nil }
+        return LaunchPlist(
+            label: plist["Label"] as? String, program: plist["Program"] as? String,
+            arguments: plist["ProgramArguments"] as? [String] ?? [])
     }
 
     /// Serial: four directories of cheap symlink reads, and nothing here needs a walk.
