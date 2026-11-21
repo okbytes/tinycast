@@ -50,10 +50,9 @@ Carbon's dispatcher enters through an explicit `@MainActor` callback. The press 
 Bindings persist as JSON strings under `hotkey.<action>` UserDefaults keys, computed in one place —
 `HotKeyAction.defaultsKey`, which doubles as the `HotKeyCenter` registration id. The set of bound
 bundle IDs lives in `boundAppBundleIDs` and is re-registered on launch. After every `AppIndex` scan,
-`HotKeyManager.removeAppBindings` clears the binding of an app that is gone from both the index and
-LaunchServices: its Settings row went with it, so nothing else could clear the chord. Requiring both
-keeps a dropped search scope from deleting a working shortcut, and running on unchanged scans too
-covers LaunchServices still resolving an app for a few seconds after it is trashed.
+Tinycast removes aliases and shortcuts for missing apps. It checks both the index and LaunchServices
+for a copy that exists outside the Trash, so removing a search scope alone keeps the shortcut. If a
+shortcut fires before the next scan, the same check clears it and its alias instead of opening the app.
 
 Shortcuts are also spelled as typeable chords (`ctrl+option+left`) in the opt-in
 [settings file](settings-file.md) — all but those of folder commands.

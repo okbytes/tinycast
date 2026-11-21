@@ -357,10 +357,38 @@ final class AppIndex {
         await refresh()
     }
 
-    /// Out of the index *and* unknown to LaunchServices, so dropping a search scope isn't a delete.
-    func isUninstalled(bundleID: String) -> Bool {
-        !discoveredEntries.contains { $0.kind == .application && $0.bundleID == bundleID }
-            && NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) == nil
+    func installedApplication(bundleID: String) -> URL? {
+        if let url = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+            .compactMap(\.bundleURL).first(where: { Self.isInstalled(at: $0) })
+        {
+            return url
+        }
+        if let entry = discoveredEntries.first(where: { $0.bundleID == bundleID }),
+            Self.isInstalled(at: entry.url)
+        {
+            return entry.url
+        }
+        return NSWorkspace.shared.urlsForApplications(withBundleIdentifier: bundleID)
+            .first { Self.isInstalled(at: $0) }
+    }
+
+    func removeUninstalledAliases() {
+        let missing = aliases.aliases.keys.filter { key in
+            if key.hasPrefix("/") {
+                return !Self.isInstalled(at: URL(filePath: key))
+            }
+            guard key.wholeMatch(of: /[A-Za-z0-9.-]+/) != nil else { return false }
+            return installedApplication(bundleID: key) == nil
+        }
+        aliases.removeKeys(Set(missing))
+    }
+
+    private static func isInstalled(at url: URL) -> Bool {
+        guard FileManager.default.fileExists(atPath: url.path) else { return false }
+        var relationship = FileManager.URLRelationship.other
+        try? FileManager.default.getRelationship(
+            &relationship, of: .trashDirectory, in: .userDomainMask, toItemAt: url)
+        return relationship != .contains
     }
 
     nonisolated private static func scan(

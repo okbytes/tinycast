@@ -126,6 +126,15 @@ final class AppCore {
             hotKeys.modifierTapMonitor.healthTicker = healthTicker
 
             hotKeys.onTogglePalette = { [weak self] in self?.paletteCoordinator.togglePalette() }
+            hotKeys.onOpenApp = { [weak self] bundleID in
+                guard let self else { return }
+                if let url = appIndex.installedApplication(bundleID: bundleID) {
+                    AppLauncher.launch(url)
+                } else {
+                    aliases.removeKeys([bundleID])
+                    hotKeys.removeAppBindings { $0 == bundleID }
+                }
+            }
             hotKeys.onRunCommand = { [weak self] id in self?.launcherCoordinator.runCommand(id) }
             hotKeys.onRunSystemAction = { [weak self] id in
                 self?.systemActionCoordinator.runSystemAction(id: id)
@@ -138,7 +147,8 @@ final class AppCore {
             }
             appIndex.onScan = { [weak self] in
                 guard let self else { return }
-                hotKeys.removeAppBindings(where: appIndex.isUninstalled)
+                appIndex.removeUninstalledAliases()
+                hotKeys.removeAppBindings { appIndex.installedApplication(bundleID: $0) == nil }
                 // After the first scan, so the file's apps have entries to match.
                 if settings.settingsFileEnabled, settingsFile == nil {
                     startSettingsFile(importing: true)

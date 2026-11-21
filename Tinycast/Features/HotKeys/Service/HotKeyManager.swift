@@ -6,6 +6,7 @@ import Foundation
 final class HotKeyManager {
     var onTogglePalette: (() -> Void)?
     /// The launcher's own command funnel, so a shortcut and a palette row run the same thing.
+    var onOpenApp: ((String) -> Void)?
     var onRunCommand: ((CommandID) -> Void)?
     var onRunSystemAction: ((SystemAction.ID) -> Void)?
     var onRunWindowCommand: ((WindowCommand.ID) -> Void)?
@@ -200,7 +201,7 @@ final class HotKeyManager {
         switch action {
         case .togglePalette: onTogglePalette?()
         case .command(let id): onRunCommand?(id)
-        case .app(let bundleID): AppLauncher.focus(bundleID: bundleID)
+        case .app(let bundleID): onOpenApp?(bundleID)
         case .systemAction(let id): onRunSystemAction?(id)
         case .windowCommand(let id): onRunWindowCommand?(id)
         case .folderCommand(let id): onRunFolderCommand?(id)

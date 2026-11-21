@@ -50,24 +50,6 @@ enum AppLauncher {
         }.value
     }
 
-    /// Focuses the app, launching it first if it isn't running.
-    @MainActor
-    static func focus(bundleID: String) {
-        let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
-            .first
-        if let url = running?.bundleURL
-            ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
-        {
-            // Dock-click semantics; a bare `activate()` does none of it reliably.
-            NSWorkspace.shared.openApplication(
-                at: url, configuration: NSWorkspace.OpenConfiguration())
-        } else if let running {
-            // Running app whose bundle URL can't be resolved (moved or deleted since launch).
-            running.unhide()
-            running.activate()
-        }
-    }
-
     /// Quits every instance; only an unforced quit lets unsaved work put up its sheet.
     @MainActor
     @discardableResult
